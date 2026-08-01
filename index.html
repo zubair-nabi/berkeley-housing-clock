@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Berkeley Housing Clock</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="alternate icon" href="favicon.ico">
+<meta name="theme-color" content="#F2EEE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16130F" media="(prefers-color-scheme: dark)">
+<meta name="description" content="How long it takes to build housing in Berkeley, and how much approved housing is never built at all.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -146,6 +151,20 @@ h2{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:900;margin:0;letter-spacing:
 .stat.hot .v{color:var(--stall)}
 .stat .k{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-top:9px;line-height:1.4}
 
+.rwrap{margin:8px 0 34px}
+.rlabel{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:9px}
+.rbar{display:flex;height:26px;border-radius:3px;overflow:hidden;gap:2px;background:var(--grid)}
+.rbar i{display:block;height:100%;transition:opacity .15s}
+.rbar i:hover{opacity:.8}
+.rbar i:first-child{border-radius:3px 0 0 3px}
+.rbar i:last-child{border-radius:0 4px 4px 0}
+.rkey{display:flex;flex-wrap:wrap;gap:6px 26px;margin-top:12px;font-size:13px;color:var(--ink-2)}
+.rk{display:flex;align-items:baseline;gap:7px}
+.rk i{width:11px;height:11px;border-radius:2px;flex:none;transform:translateY(1px)}
+.rk b{font-family:"IBM Plex Mono",monospace;color:var(--ink);font-weight:600}
+.rk em{font-family:"IBM Plex Mono",monospace;font-style:normal;font-size:11px;color:var(--muted)}
+.rnote{font-size:14px;color:var(--ink-2);max-width:64ch;margin:16px 0 0}
 .wrow{display:grid;grid-template-columns:1fr 60px 1fr 62px;gap:14px;align-items:center;padding:7px 8px;border-radius:3px;font-size:13.5px;transition:background .15s;cursor:pointer}
 .wrow:hover{background:var(--card)}
 .whead{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
@@ -286,10 +305,19 @@ footer{padding:34px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;col
       <div class="stat"><div class="v" id="w-parcels">-</div><div class="k">Sites waiting</div></div>
       <div class="stat hot"><div class="v" id="w-old">?</div><div class="k">Waiting more<br>than three years</div></div>
       <div class="stat"><div class="v" id="w-oldest">?</div><div class="k">Longest wait<br>(years)</div></div>
+      <!-- six tiles exactly, so the grid never orphans one onto its own row -->
       <div class="stat"><div class="v" id="w-pending">?</div><div class="k">Homes still in<br>review, excluded</div></div>
-      <div class="stat"><div class="v" style="font-size:1.7rem" id="w-why">?</div><div class="k">Have any reason<br>on record</div></div>
       <div class="stat hot"><div class="v" id="w-never">?</div><div class="k">Approved 2018-2021<br>and never permitted</div></div>
     </div>
+    <div class="rwrap">
+      <div class="rlabel">Why, where the record says</div>
+      <div class="rbar" id="rbar"></div>
+      <div class="rkey" id="rkey"></div>
+      <p class="rnote">The State's file explains the majority of these homes not at all. Where it does give a
+        reason, it is almost always money: a financing stack that has not closed, or a predevelopment loan
+        standing in for one. Nothing here captures interest rates or construction costs.</p>
+    </div>
+
     <div class="wrow whead"><span>Address</span><span style="text-align:right">Homes</span><span>Years since approval</span><span style="text-align:right">Yrs</span></div>
     <div id="wlist"><div class="skel" style="padding:12px 8px">Computing…</div></div>
     <button class="more" id="wmore" style="display:none">Show all</button>
@@ -486,6 +514,32 @@ function renderClock(groups){
   $("#axis").innerHTML=ticks.map(t=>`<span class="tick" style="left:${t/MAX*100}%">${(+t.toFixed(1))}</span>`).join("");
   document.querySelectorAll(".crow").forEach((el,i)=>{const s=all[i];
     hover(el,`<b>${s.label}</b><br>median ${s.median.toFixed(2)} yr, middle 50% ${s.p25.toFixed(2)} to ${s.p75.toFixed(2)}<br>90th pct ${s.p90.toFixed(2)} yr, n=${s.n}`);});
+}
+/* Grouped for the chart. Seven categories where three are under 1% is not a
+   chart, so financing causes and hard blocks are each collapsed into one. */
+function reasonGroup(t){
+  const [,kind]=stallReason(t);
+  return kind==="f" ? "financing" : kind==="x" ? "blocked" : "unknown";
+}
+function renderReasons(){
+  const G={unknown:{n:0,u:0},financing:{n:0,u:0},blocked:{n:0,u:0}};
+  let tot=0;
+  for(const r of WAIT){ const g=G[reasonGroup(r)]; g.n++; g.u+=r.units; tot+=r.units; }
+  const seg=[
+    ["unknown","No reason on record",   "var(--muted)"],
+    ["financing","Waiting on financing","var(--s2)"],
+    ["blocked","Closed, denied or in enforcement","var(--stall)"]
+  ];
+  $("#rbar").innerHTML=seg.map(([k,,c])=>
+    `<i style="width:${100*G[k].u/tot}%;background:${c}" data-k="${k}"></i>`).join("");
+  $("#rkey").innerHTML=seg.map(([k,label,c])=>
+    `<span class="rk"><i style="background:${c}"></i>${label}
+      <b>${Math.round(100*G[k].u/tot)}%</b>
+      <em>${fmt(G[k].u)} homes, ${G[k].n} site${G[k].n===1?"":"s"}</em></span>`).join("");
+  document.querySelectorAll("#rbar i").forEach(el=>{
+    const g=G[el.dataset.k], label=seg.find(s=>s[0]===el.dataset.k)[1];
+    hover(el,`<b>${label}</b><br>${fmt(g.u)} homes across ${g.n} sites<br>${Math.round(100*g.u/tot)}% of stalled homes`);
+  });
 }
 /* Why is it waiting? The state file rarely says. These are the only signals in it. */
 function stallReason(t){
@@ -1114,8 +1168,7 @@ async function buildMap(){
       .sort((a,b)=>b.units-a.units);
     renderWait();
     $("#w-pending").textContent=fmt(PENDING.reduce((a,r)=>a+r.units,0));
-    const withWhy=WAIT.filter(r=>stallReason(r)[1]).length;
-    $("#w-why").textContent=`${withWhy} of ${WAIT.length}`;
+    renderReasons();
     $("#wmore").onclick=()=>{SHOWALL=!SHOWALL;renderWait();};
 
     /* corridors: normalise the street name off the address, then split
@@ -1165,7 +1218,15 @@ async function buildMap(){
     $("#f-hcd").textContent=`Data to CY${lastY}`;
     $("#f-gis").textContent="Live";
     dot.classList.add("on");
-    st.textContent=`Live · ${fmt(A.length+A2.length)} records in ${ms} ms`;
+    st.textContent="Live from data.ca.gov";
+    /* the useful freshness fact is when the State last republished the file */
+    fetch("https://data.ca.gov/api/3/action/package_show?id=housing-element-annual-progress-report-apr-data-by-jurisdiction-and-year")
+      .then(r=>r.json()).then(j=>{
+        const d=(j.result.resources.find(r=>r.name.trim()==="APR Table A2")||{}).last_modified
+              ||j.result.metadata_modified;
+        if(d) st.textContent="State file updated "+new Date(d).toLocaleDateString("en-US",
+          {day:"numeric",month:"short",year:"numeric"});
+      }).catch(()=>{});
 
     const mf=GROUPS[0].stages;   // multifamily, the figure that actually matters
     $("#lede").innerHTML=`Berkeley approves an apartment building in a median of
