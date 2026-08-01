@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Berkeley Housing Clock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>
+:root{
+  color-scheme: light;
+  --paper:#F2EEE6; --card:#F8F5EF; --ink:#17140F; --ink-2:#5A5248; --muted:#8A8178;
+  --rule:#D6CFC0; --grid:#E2DCCE;
+  --s1:#6E93BE; --s2:#31618F; --s3:#12395C;
+  --stall:#C2392B; --accent:#1160A8; --ok:#1160A8;
+  --stall-soft:rgba(194,57,43,.13);
+}
+@media (prefers-color-scheme: dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme: dark;
+    --paper:#16130F; --card:#1D1915; --ink:#F4F0E8; --ink-2:#B8B0A2; --muted:#8A8178;
+    --rule:#332D25; --grid:#2A2620;
+    --s1:#CFE1F0; --s2:#8FB6D9; --s3:#5183B3;
+    --stall:#D8624F; --accent:#3E8ACC; --ok:#3E8ACC;
+    --stall-soft:rgba(216,98,79,.16);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#16130F; --card:#1D1915; --ink:#F4F0E8; --ink-2:#B8B0A2; --muted:#8A8178;
+  --rule:#332D25; --grid:#2A2620;
+  --s1:#CFE1F0; --s2:#8FB6D9; --s3:#5183B3;
+  --stall:#D8624F; --accent:#3E8ACC; --ok:#3E8ACC;
+  --stall-soft:rgba(216,98,79,.16);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;font-size:16px;line-height:1.55;overflow-x:hidden;
+  background-image:radial-gradient(circle at 1px 1px,color-mix(in srgb,var(--ink) 6%,transparent) 1px,transparent 0);
+  background-size:22px 22px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px 96px}
+h1,h2,h3,.disp{font-family:"Fraunces",Georgia,serif;font-optical-sizing:auto}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+
+.mast{border-bottom:3px double var(--rule);padding:40px 0 14px;margin-bottom:8px;position:relative}
+.kicker{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--stall);margin-bottom:14px}
+h1{font-size:clamp(2.9rem,8vw,5.4rem);line-height:.9;font-weight:900;margin:0 0 16px;letter-spacing:-.025em}
+h1 em{font-style:italic;font-weight:400;color:var(--ink-2)}
+.dateline{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:"IBM Plex Mono",monospace;font-size:11.5px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:8px;border-top:1px solid var(--rule)}
+.themebtn{position:absolute;top:40px;right:0;background:none;border:1px solid var(--rule);color:var(--ink-2);
+  font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;padding:7px 12px;cursor:pointer;text-transform:uppercase}
+.themebtn:hover{border-color:var(--ink);color:var(--ink)}
+.live{display:inline-flex;align-items:center;gap:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:none}
+.dot.on{background:var(--ok);box-shadow:0 0 0 0 currentColor;animation:p 2.4s infinite}
+.dot.err{background:var(--stall)}
+@keyframes p{0%{box-shadow:0 0 0 0 var(--ok)}70%{box-shadow:0 0 0 6px transparent}100%{box-shadow:0 0 0 0 transparent}}
+
+.lede{display:grid;grid-template-columns:1.35fr 1fr;gap:48px;padding:44px 0 40px;border-bottom:1px solid var(--rule);align-items:start}
+.lede-main{font-family:"Fraunces",Georgia,serif;font-size:clamp(1.5rem,3.1vw,2.1rem);line-height:1.24;font-weight:400;margin:0;letter-spacing:-.012em}
+.lede-main strong{font-weight:900;background:linear-gradient(transparent 62%,var(--stall-soft) 62%)}
+.lede-side{font-size:14.5px;color:var(--ink-2);border-left:2px solid var(--stall);padding-left:18px}
+.lede-side p{margin:0 0 11px}
+
+section{padding:52px 0;border-bottom:1px solid var(--rule)}
+.sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:6px;flex-wrap:wrap}
+.sec-num{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--stall);letter-spacing:.18em}
+h2{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:900;margin:0;letter-spacing:-.02em}
+.sec-sub{color:var(--ink-2);font-size:15px;max-width:62ch;margin:8px 0 30px}
+
+/* lookup */
+.searchbox{position:relative;max-width:560px}
+#q{width:100%;background:var(--card);border:1px solid var(--rule);color:var(--ink);padding:16px 18px;font-size:17px;
+  font-family:"IBM Plex Sans",sans-serif;border-radius:3px;outline:none}
+#q:focus{border-color:var(--accent)}
+#q::placeholder{color:var(--muted)}
+#res{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card);border:1px solid var(--rule);
+  border-radius:3px;max-height:290px;overflow-y:auto;z-index:40;display:none}
+#res.on{display:block}
+.ritem{padding:11px 16px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--grid)}
+.ritem:last-child{border-bottom:none}
+.ritem:hover,.ritem.sel{background:var(--paper)}
+.ritem .apn{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);white-space:nowrap}
+.hint{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);margin-top:10px;letter-spacing:.05em}
+
+#card{margin-top:30px;display:none}
+#card.on{display:block}
+.pc{border:1px solid var(--rule);background:var(--card)}
+.pc-h{padding:22px 24px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:baseline}
+.pc-addr{font-family:"Fraunces",serif;font-size:clamp(1.3rem,3vw,1.75rem);font-weight:900;letter-spacing:-.02em;margin:0}
+.pc-meta{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.06em;text-align:right;line-height:1.7}
+.pc-b{padding:24px}
+.pc-empty{color:var(--ink-2);font-size:15px}
+.tl{display:flex;gap:2px;margin:6px 0 22px}
+.tlstep{flex:1;text-align:center;padding:12px 6px;background:var(--grid);border-radius:3px;position:relative}
+.tlstep.done{background:var(--s2);color:#fff}
+.tlstep.done.last{background:var(--s3)}
+.tlstep.stall{background:var(--stall);color:#fff}
+.tlstep .n{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;opacity:.85;display:block}
+.tlstep .d{font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;margin-top:4px;display:block}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-top:4px}
+.kv div{border-top:1px solid var(--rule);padding-top:9px}
+.kv .k{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.kv .v{font-family:"IBM Plex Mono",monospace;font-size:17px;font-weight:600;margin-top:3px}
+.verdict{margin-top:20px;padding:14px 16px;border-left:3px solid var(--stall);background:var(--stall-soft);font-size:14px}
+
+.clock{display:flex;flex-direction:column;gap:22px;margin-bottom:8px}
+.cgroup{display:flex;flex-direction:column;gap:3px}
+.ctitle{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--ink);border-bottom:1px solid var(--rule);padding:0 10px 7px;margin-bottom:6px;font-weight:600}
+.ctitle span{float:right;color:var(--muted);font-weight:400;letter-spacing:.08em}
+.corr{display:grid;grid-template-columns:150px 1fr 96px;gap:14px;align-items:center;padding:8px 10px;border-radius:3px}
+.corr:hover{background:var(--card)}
+.corr.hd{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--muted);border-bottom:1px solid var(--rule);padding-bottom:8px}
+.corr.hd:hover{background:none}
+.cname{font-weight:500;font-size:14px}
+.cstack{position:relative;height:17px;background:var(--grid);border-radius:3px;overflow:hidden}
+.cstack i{position:absolute;left:0;top:0;height:100%;display:block}
+.cstack .st{background:var(--stall);border-radius:0 4px 4px 0}
+.cpct{font-family:"IBM Plex Mono",monospace;font-size:13px;text-align:right;font-weight:600}
+.crow{display:grid;grid-template-columns:220px 1fr 88px;gap:18px;align-items:center;padding:12px 10px;border-radius:3px;transition:background .15s}
+.crow:hover{background:var(--card)}
+.clabel{font-size:14px;font-weight:500;line-height:1.28}
+.clabel .n{display:block;font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);letter-spacing:.05em;margin-top:2px}
+.ctrack{position:relative;height:30px}
+.ciqr{position:absolute;top:7px;height:16px;background:var(--s1);opacity:.42;border-radius:3px}
+.cbar{position:absolute;top:7px;height:16px;background:var(--s2);border-radius:0 4px 4px 0;left:0}
+.crow.hot .cbar{background:var(--stall)} .crow.hot .ciqr{background:var(--stall);opacity:.26}
+.cp90{position:absolute;top:2px;height:26px;width:2px;background:var(--ink);opacity:.55}
+.cval{font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:600;text-align:right;letter-spacing:-.02em}
+.crow.hot .cval{color:var(--stall)}
+.cval span{font-size:11px;color:var(--muted);font-weight:400}
+.axis{display:grid;grid-template-columns:220px 1fr 88px;gap:18px;margin-top:2px}
+.axis-in{position:relative;height:22px;border-top:1px solid var(--grid)}
+.tick{position:absolute;top:4px;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);transform:translateX(-50%)}
+.tick::before{content:"";position:absolute;top:-5px;left:50%;width:1px;height:4px;background:var(--grid)}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:2px;background:var(--rule);border:1px solid var(--rule);margin:30px 0}
+.stat{background:var(--paper);padding:20px 18px}
+.stat .v{font-family:"Fraunces",serif;font-size:clamp(2rem,4.6vw,2.9rem);font-weight:900;line-height:1;letter-spacing:-.03em}
+.stat.hot .v{color:var(--stall)}
+.stat .k{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-top:9px;line-height:1.4}
+
+.wrow{display:grid;grid-template-columns:1fr 60px 1fr 62px;gap:14px;align-items:center;padding:7px 8px;border-radius:3px;font-size:13.5px;transition:background .15s;cursor:pointer}
+.wrow:hover{background:var(--card)}
+.whead{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
+  border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:4px;cursor:default}
+.whead:hover{background:none}
+.waddr{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.waff{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);font-weight:400}
+.why{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.06em;
+  padding:1px 6px;border-radius:2px;margin-left:6px;color:var(--muted);border:1px solid var(--grid);font-weight:400;white-space:nowrap}
+.why.f{color:var(--s2);border-color:var(--s2)}
+.why.x{color:var(--stall);border-color:var(--stall)}
+.wunits{font-family:"IBM Plex Mono",monospace;text-align:right;font-weight:600}
+.wtrack{position:relative;height:15px;background:var(--grid);border-radius:3px;overflow:hidden}
+.wfill{position:absolute;left:0;top:0;height:100%;background:var(--stall);border-radius:0 4px 4px 0;opacity:.85}
+.wyrs{font-family:"IBM Plex Mono",monospace;font-size:12px;text-align:right;color:var(--ink-2)}
+.wyrs.old{color:var(--stall);font-weight:600}
+.more{margin-top:14px;background:none;border:1px solid var(--rule);color:var(--ink-2);padding:9px 16px;cursor:pointer;
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase}
+.more:hover{border-color:var(--ink);color:var(--ink)}
+
+.legend{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:22px;font-size:12.5px}
+.lg{display:flex;align-items:center;gap:7px;color:var(--ink-2)}
+.sw{width:13px;height:13px;border-radius:2px;flex:none}
+.years{display:grid;gap:10px;align-items:end;height:230px;border-bottom:1px solid var(--rule)}
+.ycol{display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.ybars{display:flex;gap:2px;align-items:flex-end;height:100%}
+.yb{flex:1;border-radius:3px 3px 0 0;min-height:2px;transition:opacity .15s}
+.yb:hover{opacity:.75}
+.ylabels{display:grid;gap:10px;margin-top:9px}
+.ylab{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);text-align:center}
+
+.score{background:var(--card);border:1px solid var(--rule);padding:30px}
+.sc-top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+.sc-big{font-family:"Fraunces",serif;font-size:clamp(2.6rem,6vw,3.8rem);font-weight:900;line-height:.95;letter-spacing:-.03em}
+.sc-of{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--muted);letter-spacing:.06em}
+.sc-track{position:relative;height:32px;background:var(--grid);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.sc-fill{position:absolute;left:0;top:0;height:100%;background:var(--s2);border-radius:0 4px 4px 0}
+.sc-pace{position:absolute;top:-5px;height:42px;width:2px;background:var(--stall)}
+.sc-legend{display:flex;justify-content:space-between;font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);letter-spacing:.05em;flex-wrap:wrap;gap:8px}
+.sc-note{margin-top:22px;padding-top:18px;border-top:1px solid var(--rule);font-size:14px;color:var(--ink-2)}
+.sc-note b{color:var(--stall);font-weight:600}
+
+.src{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:22px;margin-top:8px}
+.scard{border-top:2px solid var(--ink);padding-top:12px}
+.scard h4{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.11em;text-transform:uppercase;margin:0 0 7px;font-weight:600}
+.scard p{margin:0;font-size:13px;color:var(--ink-2);line-height:1.5}
+.scard a{color:var(--accent)}
+.fresh{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.09em;
+  padding:2px 7px;border-radius:2px;margin-top:9px;text-transform:uppercase}
+.fresh.ok{background:var(--stall-soft);color:var(--stall)}
+.fresh.lag{background:var(--grid);color:var(--ink-2)}
+.caveat{margin-top:40px;border:1px solid var(--stall);border-left-width:4px;padding:20px 22px;font-size:14px;color:var(--ink-2)}
+.caveat b{color:var(--ink);font-family:"Fraunces",serif;font-size:15px}
+footer{padding:34px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.05em;line-height:1.9}
+
+/* map */
+.mapwrap{position:relative;border:1px solid var(--rule);background:var(--card);height:min(70vh,620px);overflow:hidden}
+#map{position:absolute;inset:0}
+.maplibregl-ctrl-attrib,.maplibregl-ctrl-logo{display:none!important}
+.mapkey{position:absolute;left:16px;bottom:16px;z-index:5;background:color-mix(in srgb,var(--paper) 88%,transparent);
+  border:1px solid var(--rule);padding:12px 14px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+  letter-spacing:.07em;line-height:2;backdrop-filter:blur(6px);pointer-events:none}
+.mapkey b{display:block;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;font-weight:600}
+.mapkey i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:7px;vertical-align:-1px}
+.mapctl{position:absolute;right:16px;top:16px;z-index:5;display:flex;flex-direction:column;gap:5px}
+.mapctl button{background:color-mix(in srgb,var(--paper) 90%,transparent);border:1px solid var(--rule);color:var(--ink-2);
+  font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.12em;padding:7px 11px;cursor:pointer;
+  text-transform:uppercase;backdrop-filter:blur(6px);text-align:left}
+.mapctl button:hover{border-color:var(--ink);color:var(--ink)}
+.mapctl button.off{opacity:.45}
+.mapstatus{position:absolute;left:16px;top:16px;z-index:5;font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+  color:var(--muted);letter-spacing:.07em;background:color-mix(in srgb,var(--paper) 88%,transparent);padding:6px 10px;border:1px solid var(--rule)}
+.maplibregl-popup-content{background:var(--ink)!important;color:var(--paper)!important;border-radius:3px!important;
+  padding:10px 13px!important;font-family:"IBM Plex Mono",monospace!important;font-size:11.5px!important;line-height:1.6!important}
+.maplibregl-popup-tip{border-top-color:var(--ink)!important;border-bottom-color:var(--ink)!important}
+
+#tip{position:fixed;pointer-events:none;opacity:0;transition:opacity .12s;background:var(--ink);color:var(--paper);
+  padding:8px 11px;border-radius:3px;font-family:"IBM Plex Mono",monospace;font-size:11.5px;line-height:1.5;z-index:99;max-width:250px}
+.skel{color:var(--muted)}
+.err{border:1px solid var(--stall);padding:14px 16px;color:var(--stall);font-size:14px;font-family:"IBM Plex Mono",monospace}
+
+@media(max-width:820px){
+  .lede{grid-template-columns:1fr;gap:26px}
+  .crow,.axis{grid-template-columns:130px 1fr 70px;gap:10px}
+  .wrow{grid-template-columns:1fr 52px 90px 54px;gap:9px;font-size:12.5px}
+  .years,.ylabels{gap:4px}.ylab{font-size:9px}
+  .themebtn{position:static;margin-bottom:14px}
+  .tl{flex-wrap:wrap}.tlstep{min-width:calc(50% - 2px)}
+}
+</style>
+</head>
+<body>
+<div id="tip"></div>
+<div class="wrap">
+
+  <header class="mast">
+    <button class="themebtn" id="tt">◐ Theme</button>
+    <div class="kicker">A public record · Berkeley, California</div>
+    <h1>The Housing<br>Clock<em>.</em></h1>
+    <div class="dateline">
+      <span class="live"><span class="dot" id="dot"></span><span id="status">Loading live data…</span></span>
+      <span id="cover">-</span>
+      <span>Every figure computed from official records</span>
+    </div>
+  </header>
+
+  <div class="lede">
+    <p class="lede-main" id="lede">Berkeley approves new housing in about <strong>four months</strong>. Then it waits <strong>a year or more</strong> for anything to be built.</p>
+    <div class="lede-side">
+      <p>The public argument about Berkeley housing assumes the city is slow to approve. The record says approval is the fast part.</p>
+      <p>Everything on this page is fetched live from the State of California and the City of Berkeley when you load it. No estimates, no modelling.</p>
+    </div>
+  </div>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>Look up an address</h2></div>
+    <p class="sec-sub">Any Berkeley address. We match it to its parcel number, then to every housing record the State holds for that parcel.</p>
+    <div class="searchbox">
+      <input id="q" type="text" placeholder="e.g. 2128 Oxford St" autocomplete="off" spellcheck="false">
+      <div id="res"></div>
+    </div>
+    <div class="hint" id="qhint">62,000 addresses · live from Berkeley GIS</div>
+    <div id="card"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>How long each stage takes</h2></div>
+    <p class="sec-sub">Median duration per stage, with the middle 50% shaded and the 90th percentile marked. Only projects with both dates on record are counted.</p>
+    <div class="clock" id="clock"><div class="skel">Computing…</div></div>
+    <div class="axis"><div></div><div class="axis-in" id="axis"></div><div></div></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>The waiting room</h2></div>
+    <p class="sec-sub">Projects the City approved that have no building permit on record. They are legal to build and nothing is happening. Projects still under review are excluded, because they are not stalled, they are simply not decided yet.</p>
+    <div class="stats">
+      <div class="stat hot"><div class="v" id="w-units">-</div><div class="k">Approved homes<br>not yet permitted</div></div>
+      <div class="stat"><div class="v" id="w-parcels">-</div><div class="k">Sites waiting</div></div>
+      <div class="stat hot"><div class="v" id="w-old">?</div><div class="k">Waiting more<br>than three years</div></div>
+      <div class="stat"><div class="v" id="w-oldest">?</div><div class="k">Longest wait<br>(years)</div></div>
+      <div class="stat"><div class="v" id="w-pending">?</div><div class="k">Homes still in<br>review, excluded</div></div>
+      <div class="stat"><div class="v" style="font-size:1.7rem" id="w-why">?</div><div class="k">Have any reason<br>on record</div></div>
+      <div class="stat hot"><div class="v" id="w-never">?</div><div class="k">Approved 2018-2021<br>and never permitted</div></div>
+    </div>
+    <div class="wrow whead"><span>Address</span><span style="text-align:right">Homes</span><span>Years since approval</span><span style="text-align:right">Yrs</span></div>
+    <div id="wlist"><div class="skel" style="padding:12px 8px">Computing…</div></div>
+    <button class="more" id="wmore" style="display:none">Show all</button>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>Where it is stuck</h2></div>
+    <p class="sec-sub">Approved homes by street, and how many of them have no building permit. Berkeley's downtown core has approved thousands of homes and built almost none of them.</p>
+    <div class="corr hd"><span>Street</span><span>Approved homes, red is stalled</span><span style="text-align:right">Stalled</span></div>
+    <div id="corrlist"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">05</span><h2>The skyline that isn't there</h2></div>
+    <p class="sec-sub">Every approved-but-unbuilt project, drawn on its real parcel and extruded by the number of homes it would contain. Blue is what actually got built. Drag to rotate, scroll to zoom, click any block.</p>
+    <div class="mapwrap">
+      <div id="map"></div>
+      <div class="mapstatus" id="mapstatus">Loading parcels…</div>
+      <div class="mapctl">
+        <button id="mb-wait">◼ Waiting</button>
+        <button id="mb-built">◼ Built</button>
+        <button id="mb-sites">◼ Sites</button>
+        <button id="mb-topo">◻ Topo</button>
+        <button id="mb-terrain">◼ Terrain</button>
+        <button id="mb-reset">↺ Reset view</button>
+      </div>
+      <div class="mapkey">
+        <b>Height = homes</b>
+        <span><i style="background:var(--stall)"></i>Approved, not built</span><br>
+        <span><i style="background:var(--s2)"></i>Completed</span><br>
+        <span><i style="background:var(--muted);opacity:.5"></i>Housing element site</span><br>
+        <span><i style="background:#F5A623"></i>BART, real alignment</span>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:12px">Parcels and Housing Element sites from Berkeley GIS, joined to state records by parcel number · streets and landcover © OpenStreetMap contributors, tiles by OpenFreeMap · BART alignment and stations from BART's published GTFS feed · <b>the moving train, boats and birds are decoration, not live positions</b> · contours © OpenTopoMap (CC-BY-SA) · elevation Mapzen/AWS</p>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">06</span><h2>Where the pipeline leaks</h2></div>
+    <p class="sec-sub">Homes approved, permitted, and completed each year, as reported by the City to the State.</p>
+    <div class="legend">
+      <span class="lg"><span class="sw" style="background:var(--s1)"></span>Approved</span>
+      <span class="lg"><span class="sw" style="background:var(--s2)"></span>Permitted</span>
+      <span class="lg"><span class="sw" style="background:var(--s3)"></span>Completed</span>
+    </div>
+    <div class="years" id="years"></div>
+    <div class="ylabels" id="ylabels"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">07</span><h2>The scoreboard</h2></div>
+    <p class="sec-sub">Berkeley must permit 8,934 homes between 2023 and 2031 under its state allocation. Progress counts building permits issued, not approvals.</p>
+    <div class="score">
+      <div class="sc-top">
+        <div><div class="sc-big" id="rh-pct">-</div><div class="sc-of" id="rh-of">-</div></div>
+        <div style="text-align:right"><div class="sc-of">Cycle elapsed</div><div class="sc-big" style="font-size:2rem" id="rh-time">-</div></div>
+      </div>
+      <div class="sc-track"><div class="sc-fill" id="rh-fill"></div><div class="sc-pace" id="rh-pace"></div></div>
+      <div class="sc-legend"><span>2023</span><span style="color:var(--stall)">▲ where it should be today</span><span>2031 · 8,934</span></div>
+      <div class="sc-note">At the current rate of <b id="rh-rate">-</b> permits a year, Berkeley reaches roughly <b id="rh-proj">-</b> of its allocation by 2031.</div>
+    </div>
+  </section>
+
+  <section style="border-bottom:none">
+    <div class="sec-head"><span class="sec-num">08</span><h2>Where this comes from</h2></div>
+    <p class="sec-sub">Two live APIs, queried in your browser each time you load this page. Nothing here is cached or hand-entered.</p>
+    <div class="src">
+      <div class="scard"><h4>HCD Annual Progress Reports</h4>
+        <p>Berkeley's filings to the State: applications, approvals, permits, completions, affordability. Fetched from the <a href="https://data.ca.gov/dataset/housing-element-annual-progress-report-apr-data-by-jurisdiction-and-year" target="_blank" rel="noopener">California Open Data Portal</a>.</p>
+        <span class="fresh lag" id="f-hcd">-</span></div>
+      <div class="scard"><h4>Berkeley GIS: addresses and parcels</h4>
+        <p>62,000 address points with parcel numbers, lot and building size. Live from the City's <a href="https://gis.cityofberkeley.info/arcgis/rest/services" target="_blank" rel="noopener">ArcGIS server</a>.</p>
+        <span class="fresh ok" id="f-gis">-</span></div>
+      <div class="scard"><h4>Housing Element sites</h4>
+        <p>The 382 parcels Berkeley identified as able to accommodate its state allocation, with RHNA flags.</p>
+        <span class="fresh lag">2023 snapshot</span></div>
+      <div class="scard"><h4>Not yet wired</h4>
+        <p>ZAB agendas and CEQAnet are current but publish only as PDF and HTML, they need parsers, not API calls.</p>
+        <span class="fresh lag">Planned</span></div>
+    </div>
+
+    <div class="caveat">
+      <b>What this cannot tell you.</b><br>
+      A project shown as "waiting" may hold a permit the City never reported to the State, the state file is known to drop real filings. Nothing here reflects activity after December 2025; the current year will not appear in state data until April 2027. UC Berkeley's roughly 2,150 student beds are exempt from city permitting and appear nowhere in this data.
+      <br><br>We can show you that a project is stalled. We usually cannot show you why. Financing, rates and construction costs are in no public dataset. <b>If you know why one of these is stuck, that is the most useful thing you can tell us.</b>
+    </div>
+
+    <footer>
+      Prototype · Live from data.ca.gov (CKAN) and gis.cityofberkeley.info (ArcGIS REST)<br>
+      Not affiliated with the City of Berkeley or the University of California
+    </footer>
+  </section>
+</div>
+
+<script>
+/* ── endpoints ─────────────────────────────────────────────── */
+const CKAN="https://data.ca.gov/api/3/action/datastore_search";
+const RES_A ="c78b769d-cc02-4050-91ef-79ded665b5a8";   // APR Table A , applications
+const RES_A2="fe505d9b-8c36-42ba-ba30-08bc4f34e022";   // APR Table A2, entitlement/permit/completion
+const GIS="https://gis.cityofberkeley.info/arcgis/rest/services";
+const ADDR=`${GIS}/Public/GISportal/MapServer/0/query`;
+const SITES=`${GIS}/Public/Portal_Planning/MapServer/22/query`;
+const RHNA={target:8934,start:2023,end:2031};
+
+const $=s=>document.querySelector(s), tip=$("#tip");
+const fmt=n=>Math.round(n).toLocaleString("en-US");
+const norm=s=>(s||"").replace(/\s+/g,"").toUpperCase();
+function hover(el,html){
+  el.addEventListener("mousemove",e=>{tip.innerHTML=html;tip.style.opacity=1;
+    tip.style.left=Math.min(e.clientX+14,innerWidth-tip.offsetWidth-10)+"px";
+    tip.style.top=(e.clientY-tip.offsetHeight-12)+"px";});
+  el.addEventListener("mouseleave",()=>tip.style.opacity=0);
+}
+const num=v=>{const n=parseFloat(v);return Number.isFinite(n)?n:0;};
+function pdate(s){
+  s=(s||"").trim(); if(!s) return null;
+  let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return new Date(+m[1],+m[2]-1,+m[3]);
+  m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/); if(m) return new Date(+m[3],+m[1]-1,+m[2]);
+  return null;
+}
+const yrs=(a,b)=>(b-a)/(365.25*864e5);
+function titleCase(s){return (s||"").split(/\s+/).map(w=>
+  w.length>2&&w===w.toUpperCase()?w[0]+w.slice(1).toLowerCase():w).join(" ");}
+function cleanAddr(a){
+  a=(a||"").trim().replace(/,\s*BERKELEY.*$/i,"");
+  return titleCase(a);
+}
+
+async function ckan(res){
+  const u=`${CKAN}?resource_id=${res}&limit=10000&filters=${encodeURIComponent(JSON.stringify({JURIS_NAME:"BERKELEY"}))}`;
+  const r=await fetch(u); if(!r.ok) throw new Error("HCD "+r.status);
+  const j=await r.json(); if(!j.success) throw new Error("HCD query failed");
+  return j.result.records;
+}
+
+/* ── state ─────────────────────────────────────────────────── */
+let PARCELS=new Map(), WAIT=[], PENDING=[], SHOWALL=false;
+
+function buildModel(A,A2){
+  const P=new Map();
+  const get=(k,raw)=>{ if(!P.has(k)) P.set(k,{apn:k,raw:raw,addr:null,units:0,aff:0,app:null,ent:null,bp:null,co:null,
+                 rows:0,status:null,notes:new Set(),fin:null});
+                 return P.get(k); };
+  for(const r of A){
+    const k=norm(r.APN); if(!k) continue; const t=get(k,(r.APN||"").trim()); t.rows++;
+    t.addr=t.addr||cleanAddr(r.STREET_ADDRESS);
+    t.units=Math.max(t.units,num(r.TOT_PROPOSED_UNITS));
+    const s=(r.APPLICATION_STATUS||"").trim(); if(s) t.status=s;
+    const n=(r.NOTES||"").trim(); if(n&&n!=="-") t.notes.add(n);
+    const d=pdate(r.APP_SUBMIT_DT); if(d&&(!t.app||d<t.app)) t.app=d;
+  }
+  for(const r of A2){
+    const k=norm(r.APN); if(!k) continue; const t=get(k,(r.APN||"").trim()); t.rows++;
+    t.addr=t.addr||cleanAddr(r.STREET_ADDRESS);
+    t.units=Math.max(t.units,num(r.NO_ENTITLEMENTS),num(r.NO_BUILDING_PERMITS));
+    for(const f of ["ACUTELY_LOW_INCOME_DR","EXTREMELY_LOW_INCOME_DR","VLOW_INCOME_DR","LOW_INCOME_DR","MOD_INCOME_DR"])
+      t.aff=Math.max(t.aff,num(r[f]));
+    const fin=(r.FIN_ASSIST_NAME||"").trim(); if(fin) t.fin=fin;
+    const n2=(r.NOTES||"").trim(); if(n2&&n2!=="-") t.notes.add(n2);
+    for(const [src,key] of [["ENT_APPROVE_DT1","ent"],["BP_ISSUE_DT1","bp"],["CO_ISSUE_DT1","co"]]){
+      const d=pdate(r[src]); if(d&&(!t[key]||d<t[key])) t[key]=d;
+    }
+  }
+  return P;
+}
+const q=(arr,p)=>arr.length?arr[Math.min(arr.length-1,Math.max(0,Math.floor(p*arr.length)))]:0;
+/* Small projects (ADUs, duplexes) are ministerial: 472 of them are approved and
+   permitted on the same day. Blending them with multifamily hides the real wait,
+   so every stage is measured separately for the two. */
+const isBig=t=>t.units>=5;
+function stageStats(rows,a,b,label,hot){
+  const L=rows.filter(t=>t[a]&&t[b]).map(t=>yrs(t[a],t[b]))
+          .filter(v=>v>=0&&v<15).sort((x,y)=>x-y);
+  return {label,hot,n:L.length,median:q(L,.5),p25:q(L,.25),p75:q(L,.75),p90:q(L,.9)};
+}
+
+/* ── render ────────────────────────────────────────────────── */
+function renderClock(groups){
+  const all=groups.flatMap(g=>g.stages);
+  const MAX=Math.max(4,Math.ceil(Math.max(...all.map(s=>s.p90))*2)/2);
+  $("#clock").innerHTML=groups.map(g=>`
+    <div class="cgroup"><div class="ctitle">${g.title}<span>${g.sub}</span></div>
+    ${g.stages.map(s=>`
+      <div class="crow${s.hot?' hot':''}">
+        <div class="clabel">${s.label}<span class="n">n = ${s.n} projects</span></div>
+        <div class="ctrack">
+          <div class="ciqr" style="left:${s.p25/MAX*100}%;width:${Math.max((s.p75-s.p25)/MAX*100,.4)}%"></div>
+          <div class="cbar" style="width:${Math.max(s.median/MAX*100,.5)}%"></div>
+          <div class="cp90" style="left:${Math.min(s.p90/MAX*100,99.6)}%"></div>
+        </div>
+        <div class="cval">${s.median<0.02?'<span style="font-size:13px">same day</span>':s.median.toFixed(2)+"<span> yr</span>"}</div>
+      </div>`).join("")}</div>`).join("");
+  const ticks=[];for(let t=0;t<=MAX;t+=MAX/6)ticks.push(t);
+  $("#axis").innerHTML=ticks.map(t=>`<span class="tick" style="left:${t/MAX*100}%">${(+t.toFixed(1))}</span>`).join("");
+  document.querySelectorAll(".crow").forEach((el,i)=>{const s=all[i];
+    hover(el,`<b>${s.label}</b><br>median ${s.median.toFixed(2)} yr, middle 50% ${s.p25.toFixed(2)} to ${s.p75.toFixed(2)}<br>90th pct ${s.p90.toFixed(2)} yr, n=${s.n}`);});
+}
+/* Why is it waiting? The state file rarely says. These are the only signals in it. */
+function stallReason(t){
+  const notes=[...(t.notes||[])].join(" ; ");
+  if(/not entitled yet/i.test(notes))        return ["not actually approved","x"];
+  if(/denied/i.test(notes))                  return ["application denied","x"];
+  if(/closed/i.test(notes))                  return ["application closed","x"];
+  if(/code enforcement/i.test(notes))        return ["code enforcement","x"];
+  if(/predevelopment/i.test(notes))          return ["predevelopment loan only","f"];
+  if(/only .*funding has been secured/i.test(notes)) return ["financing incomplete","f"];
+  if(t.fin)                                  return ["awaiting public financing","f"];
+  return ["no reason on record",""];
+}
+function renderWait(){
+  const rows=SHOWALL?WAIT:WAIT.slice(0,25);
+  const MAXW=Math.max(...WAIT.map(r=>r.y),1);
+  $("#w-units").textContent=fmt(WAIT.reduce((a,r)=>a+r.units,0));
+  $("#w-parcels").textContent=WAIT.length;
+  $("#w-old").textContent=WAIT.filter(r=>r.y>3).length;
+  $("#w-oldest").textContent=MAXW.toFixed(1);
+  $("#wlist").innerHTML=rows.map(r=>{
+    const [why,kind]=stallReason(r);
+    return `<div class="wrow" data-apn="${r.apn}">
+      <span class="waddr">${r.addr||"?"}${r.aff?` <span class="waff">· ${Math.round(r.aff)} affordable</span>`:""}
+        <span class="why ${kind}">${why}</span></span>
+      <span class="wunits">${fmt(r.units)}</span>
+      <span class="wtrack"><span class="wfill" style="width:${Math.min(r.y/MAXW*100,100)}%"></span></span>
+      <span class="wyrs${r.y>3?' old':''}">${r.y.toFixed(1)}</span>
+    </div>`;}).join("");
+  document.querySelectorAll("#wlist .wrow").forEach((el,i)=>{
+    const r=rows[i];
+    hover(el,`<b>${r.addr}</b><br>${fmt(r.units)} homes${r.aff?` · ${Math.round(r.aff)} affordable`:""}<br>approved ${r.ent.toISOString().slice(0,10)}<br>waiting ${r.y.toFixed(1)} years<br><i>click to open</i>`);
+    el.onclick=()=>showParcel(r.raw||r.apn,r.addr);
+  });
+  const b=$("#wmore"); b.style.display=WAIT.length>25?"inline-block":"none";
+  b.textContent=SHOWALL?"Show top 25":`Show all ${WAIT.length}`;
+}
+function renderYears(A2){
+  const by=new Map();
+  for(const r of A2){
+    const y=r.YEAR; if(!y) continue;
+    if(!by.has(y)) by.set(y,{year:y,ent:0,bp:0,co:0});
+    const t=by.get(y);
+    t.ent+=num(r.NO_ENTITLEMENTS); t.bp+=num(r.NO_BUILDING_PERMITS); t.co+=num(r.NO_OTHER_FORMS_OF_READINESS);
+  }
+  const Y=[...by.values()].sort((a,b)=>a.year.localeCompare(b.year));
+  const MAX=Math.max(...Y.flatMap(y=>[y.ent,y.bp,y.co]));
+  const cols=`repeat(${Y.length},1fr)`;
+  $("#years").style.gridTemplateColumns=cols; $("#ylabels").style.gridTemplateColumns=cols;
+  $("#years").innerHTML=Y.map(y=>`<div class="ycol"><div class="ybars">
+     <div class="yb" data-y="${y.year}" data-k="Approved"  data-v="${y.ent}" style="height:${y.ent/MAX*100}%;background:var(--s1)"></div>
+     <div class="yb" data-y="${y.year}" data-k="Permitted" data-v="${y.bp}"  style="height:${y.bp/MAX*100}%;background:var(--s2)"></div>
+     <div class="yb" data-y="${y.year}" data-k="Completed" data-v="${y.co}"  style="height:${y.co/MAX*100}%;background:var(--s3)"></div>
+   </div></div>`).join("");
+  $("#ylabels").innerHTML=Y.map(y=>`<div class="ylab">'${String(y.year).slice(2)}</div>`).join("");
+  document.querySelectorAll(".yb").forEach(el=>hover(el,`<b>${el.dataset.y}</b><br>${el.dataset.k}: ${fmt(+el.dataset.v)} homes`));
+  return Y;
+}
+function renderScore(Y){
+  const cyc=Y.filter(y=>+y.year>=RHNA.start);
+  const permitted=cyc.reduce((a,y)=>a+y.bp,0), span=RHNA.end-RHNA.start;
+  const now=new Date(), elapsed=Math.min(span,(now.getFullYear()+now.getMonth()/12)-RHNA.start);
+  const pct=permitted/RHNA.target, rate=cyc.length?permitted/cyc.length:0;
+  $("#rh-pct").textContent=Math.round(pct*100)+"%";
+  $("#rh-of").textContent=`${fmt(permitted)} of ${fmt(RHNA.target)} permitted`;
+  $("#rh-time").textContent=Math.round(elapsed/span*100)+"%";
+  $("#rh-fill").style.width=(pct*100)+"%";
+  $("#rh-pace").style.left=(elapsed/span*100)+"%";
+  $("#rh-rate").textContent=fmt(rate);
+  $("#rh-proj").textContent=Math.round(rate*span/RHNA.target*100)+"%";
+  hover($(".sc-track"),`<b>RHNA 6th cycle</b><br>${fmt(permitted)} permitted of ${fmt(RHNA.target)}<br>${cyc.length} of ${span} years reported<br>needs ${fmt(RHNA.target/span)}/yr · running ${fmt(rate)}/yr`);
+}
+
+/* ── address lookup ────────────────────────────────────────── */
+let tmr=null, cands=[];
+$("#q").addEventListener("input",e=>{
+  clearTimeout(tmr); const v=e.target.value.trim();
+  if(v.length<3){ $("#res").classList.remove("on"); return; }
+  tmr=setTimeout(()=>searchAddr(v),260);
+});
+$("#q").addEventListener("keydown",e=>{ if(e.key==="Escape") $("#res").classList.remove("on"); });
+document.addEventListener("click",e=>{ if(!e.target.closest(".searchbox")) $("#res").classList.remove("on"); });
+
+async function searchAddr(v){
+  const esc=v.toUpperCase().replace(/'/g,"''");
+  const p=new URLSearchParams({where:`FullAddress LIKE '${esc}%'`,
+    outFields:"FullAddress,APN,ZipCode,LotSqft,BldgSqft",returnGeometry:"true",outSR:"4326",
+    resultRecordCount:"8",returnDistinctValues:"false",f:"json"});
+  try{
+    const r=await fetch(`${ADDR}?${p}`); const j=await r.json();
+    cands=(j.features||[]).map(f=>({...f.attributes,geom:f.geometry}));
+    const seen=new Set();
+    cands=cands.filter(c=>{const k=c.FullAddress;if(seen.has(k))return false;seen.add(k);return true;});
+    $("#res").innerHTML=cands.length
+      ? cands.map((c,i)=>`<div class="ritem" data-i="${i}"><span>${titleCase(c.FullAddress)}</span><span class="apn">${c.APN||""}</span></div>`).join("")
+      : `<div class="ritem" style="color:var(--muted)">No Berkeley address matches "${v}"</div>`;
+    $("#res").classList.add("on");
+    document.querySelectorAll(".ritem[data-i]").forEach(el=>el.onclick=()=>{
+      const c=cands[+el.dataset.i];
+      $("#q").value=titleCase(c.FullAddress); $("#res").classList.remove("on");
+      showParcel(c.APN,titleCase(c.FullAddress),c);
+    });
+  }catch(err){ $("#res").innerHTML=`<div class="ritem" style="color:var(--stall)">Berkeley GIS unreachable</div>`; $("#res").classList.add("on"); }
+}
+
+async function sitesFor(apn){
+  try{
+    const p=new URLSearchParams({where:`APN_1 = '${apn.replace(/'/g,"''")}'`,
+      outFields:"APN_1,RHNA_5,Category,Permit__",returnGeometry:"false",f:"json"});
+    const r=await fetch(`${SITES}?${p}`); const j=await r.json();
+    return (j.features||[])[0]?.attributes||null;
+  }catch{ return null; }
+}
+
+async function showParcel(apn,addr,gis){
+  const t=PARCELS.get(norm(apn));
+  const card=$("#card"); card.classList.add("on");
+  card.innerHTML=`<div class="pc"><div class="pc-h">
+      <h3 class="pc-addr">${addr||"-"}</h3>
+      <div class="pc-meta">APN ${apn||"-"}${gis?`<br>Lot ${fmt(gis.LotSqft||0)} sqft · Building ${fmt(gis.BldgSqft||0)} sqft`:""}</div>
+    </div><div class="pc-b" id="pcb"><span class="skel">Checking state records…</span></div></div>`;
+  card.scrollIntoView({behavior:"smooth",block:"nearest"});
+
+  const site=await sitesFor(apn);
+  const siteLine=site?`<div class="kv" style="margin-top:18px"><div><div class="k">Housing element site</div><div class="v" style="font-size:14px">${site.Category||"-"}</div></div>
+      <div><div class="k">Counts toward RHNA</div><div class="v" style="font-size:14px">${site.RHNA_5==="Yes"?"Yes":"No"}</div></div>
+      ${site.Permit__?`<div><div class="k">Case number</div><div class="v" style="font-size:14px">${site.Permit__}</div></div>`:""}</div>`:"";
+
+  if(!t){
+    $("#pcb").innerHTML=`<p class="pc-empty">No housing development record for this parcel in the State's 2018-2025 filings.
+      That usually means no multi-unit project has been proposed here, small permits and repairs are not reported to the State.</p>${siteLine}`;
+    return;
+  }
+  const steps=[["Applied",t.app],["Approved",t.ent],["Permitted",t.bp],["Moved in",t.co]];
+  const lastIdx=steps.reduce((m,s,i)=>s[1]?i:m,-1);
+  const stalled=t.ent&&!t.bp;
+  const waitY=stalled?yrs(t.ent,new Date()):null;
+  const tl=steps.map(([n,d],i)=>`<div class="tlstep ${d?"done":""} ${i===lastIdx?"last":""} ${stalled&&i===2?"stall":""}">
+      <span class="n">${n}</span><span class="d">${d?d.toISOString().slice(0,10):"-"}</span></div>`).join("");
+  const dur=(a,b)=>a&&b?`${yrs(a,b).toFixed(2)} yr`:"-";
+  $("#pcb").innerHTML=`
+    <div class="tl">${tl}</div>
+    <div class="kv">
+      <div><div class="k">Homes</div><div class="v">${fmt(t.units)}</div></div>
+      <div><div class="k">Affordable</div><div class="v">${fmt(t.aff)}</div></div>
+      <div><div class="k">Apply → approve</div><div class="v">${dur(t.app,t.ent)}</div></div>
+      <div><div class="k">Approve → permit</div><div class="v">${dur(t.ent,t.bp)}</div></div>
+      <div><div class="k">Permit → move-in</div><div class="v">${dur(t.bp,t.co)}</div></div>
+    </div>
+    ${stalled?`<div class="verdict"><b>Approved but not permitted.</b> This project has been legal to build for
+       <b>${waitY.toFixed(1)} years</b>. The citywide median wait from approval to building permit is
+       ${window.__MED_ENT_BP__?window.__MED_ENT_BP__.toFixed(2):"-"} years.</div>`:""}
+    ${t.co?`<div class="verdict" style="border-color:var(--s2);background:none"><b>Completed.</b> Took
+       ${t.app&&t.co?yrs(t.app,t.co).toFixed(1):"-"} years from first application to occupancy.</div>`:""}
+    ${siteLine}`;
+}
+
+/* ── 3D map ────────────────────────────────────────────────── */
+const PARCEL_Q=`${GIS}/Public/Portal_Planning/MapServer/6/query`;
+const BOUND_Q =`${GIS}/Public/Portal_Planning/MapServer/8/query`;
+const M_PER_HOME=1.6;             // vertical scale: 1 home = 1.6 m
+let MAP=null, MAPBUILT=false, MAPDATA=null, MAPSTYLE=null;
+
+/* (Re)attach the data layers. Called on first load and again after a theme
+   restyle, since setStyle() drops everything the page added. */
+function addDataLayers(){
+  if(!MAP||!MAPDATA) return;
+  const c=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const add=(id,src,spec)=>{ if(MAP.getLayer(id))MAP.removeLayer(id);
+    if(!MAP.getSource(src.id)) MAP.addSource(src.id,{type:"geojson",data:src.data});
+    MAP.addLayer({id,source:src.id,...spec}); };
+  if(MAPDATA.bound) add("bound-l",{id:"bound",data:MAPDATA.bound},
+    {type:"line",paint:{"line-color":c("--muted"),"line-width":1,"line-opacity":.55}});
+  if(MAPDATA.sites){
+    add("sites-f",{id:"sites",data:MAPDATA.sites},
+      {type:"fill",paint:{"fill-color":c("--muted"),"fill-opacity":.16}});
+    add("sites-o",{id:"sites",data:MAPDATA.sites},
+      {type:"line",paint:{"line-color":c("--muted"),"line-width":.6,"line-opacity":.5}});
+  }
+  add("built-3d",{id:"built",data:MAPDATA.built},{type:"fill-extrusion",paint:{
+    "fill-extrusion-color":c("--s2"),"fill-extrusion-height":["get","h"],
+    "fill-extrusion-base":0,"fill-extrusion-opacity":.9,"fill-extrusion-vertical-gradient":true}});
+  add("wait-3d",{id:"wait",data:MAPDATA.wait},{type:"fill-extrusion",paint:{
+    "fill-extrusion-color":c("--stall"),"fill-extrusion-height":["get","h"],
+    "fill-extrusion-base":0,"fill-extrusion-opacity":.95,"fill-extrusion-vertical-gradient":true}});
+
+  /* BART: real alignment and station positions from the agency's GTFS feed */
+  if(MAPDATA.bart){
+    add("bart-glow",{id:"bart",data:MAPDATA.bart},
+      {type:"line",layout:{"line-cap":"round"},
+       paint:{"line-color":"#F5A623","line-width":7,"line-blur":6,"line-opacity":.35}});
+    add("bart-line",{id:"bart",data:MAPDATA.bart},
+      {type:"line",layout:{"line-cap":"round"},
+       paint:{"line-color":"#F5A623","line-width":2,"line-opacity":.9,"line-dasharray":[2,1.4]}});
+  }
+  if(MAPDATA.bartSt){
+    add("bart-st",{id:"bartst",data:MAPDATA.bartSt},
+      {type:"circle",paint:{"circle-radius":5,"circle-color":"#F5A623",
+        "circle-stroke-width":2,"circle-stroke-color":c("--paper"),"circle-opacity":.95}});
+  }
+  startAmbient();
+}
+
+/* ---------------------------------------------------------------------------
+   Ambient layer. The BART train follows the agency's real track geometry, but
+   its position is a loop, not a live feed. Boats and birds are pure ornament.
+   Nothing in this block is data and the map caption says so.
+--------------------------------------------------------------------------- */
+let AMB=null;
+function startAmbient(){
+  if(!MAP||AMB) return;
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const line=MAPDATA.bart&&MAPDATA.bart.features&&MAPDATA.bart.features[0];
+  const path=line?line.geometry.coordinates:null;
+  const BAY=[-122.335,-122.305,37.845,37.895];   // west of the shoreline
+  const rnd=(a,b,s)=>a+(b-a)*((Math.sin(s*12.9898)*43758.5453)%1+1)%1;
+
+  /* Everything below moves in metres per second and is scaled by real elapsed
+     time, so it runs the same on a 60 Hz and a 120 Hz display. Speeds are the
+     actual ones: a sailboat makes about 5 knots, a gull cruises about 11 m/s,
+     and BART runs around 25 m/s between stations. */
+  const M_LAT=111132, M_LON=111320*Math.cos(37.87*Math.PI/180);
+  const mps=(m,axis)=>m/(axis==="lat"?M_LAT:M_LON);   // metres/sec -> degrees/sec
+  /* At this zoom one pixel is about 12 m, so a real 2.6 m/s boat moves a fifth
+     of a pixel per second and looks frozen. Run the whole scene as a gentle
+     time-lapse: real relative speeds, played about ten times over. */
+  const TIME_SCALE=10;
+
+  const boats=Array.from({length:7},(_,i)=>({
+    x:rnd(BAY[0],BAY[1],i+1), y:rnd(BAY[2],BAY[3],i+7),
+    spd:2.0+1.6*((i%3)/2),          // 2.0 to 3.6 m/s, a boat under sail
+    hdg:(i%2?100:280)+rnd(-18,18,i+3),
+    turn:rnd(-1.4,1.4,i+11),        // degrees per second of lazy heading drift
+    ph:i*0.9}));
+
+  const birds=Array.from({length:14},(_,i)=>({
+    x:rnd(BAY[0],-122.27,i+21), y:rnd(BAY[2],BAY[3],i+31),
+    spd:8+5*((i%4)/3),              // 8 to 13 m/s
+    hdg:70+rnd(-25,25,i+41),
+    wob:0.5+0.35*((i%3)/2),         // slow wander
+    flap:2.2+0.9*((i%5)/4),         // wingbeat, used only for opacity
+    ph:i*0.7}));
+  /* Draw the sprites on a canvas so the ornament reads as boats, gulls and a
+     train rather than three sizes of dot. */
+  function sprite(name,w,hgt,draw){
+    if(MAP.hasImage(name)) return;
+    const r=Math.min(devicePixelRatio||1,2), cv=document.createElement("canvas");
+    cv.width=w*r; cv.height=hgt*r;
+    const x=cv.getContext("2d"); x.scale(r,r); x.lineJoin="round"; x.lineCap="round";
+    draw(x,w,hgt);
+    MAP.addImage(name,{width:cv.width,height:cv.height,
+      data:new Uint8Array(x.getImageData(0,0,cv.width,cv.height).data)},{pixelRatio:r});
+  }
+  const hull="#EFE9DB", hullDark="rgba(0,0,0,.45)";
+  sprite("boat",22,22,(x)=>{                      // hull + sail, pointing north
+    x.fillStyle=hull; x.strokeStyle=hullDark; x.lineWidth=1;
+    x.beginPath(); x.moveTo(11,3); x.lineTo(15,15); x.lineTo(11,17.5); x.lineTo(7,15); x.closePath();
+    x.fill(); x.stroke();
+    x.beginPath(); x.moveTo(11,4); x.lineTo(11,15); x.stroke();
+    x.fillStyle="rgba(255,255,255,.75)";
+    x.beginPath(); x.moveTo(11.6,5); x.lineTo(14.4,13.4); x.lineTo(11.6,13.4); x.closePath(); x.fill();
+  });
+  sprite("gull",20,14,(x)=>{                      // a gull silhouette, wings in a V
+    x.strokeStyle="#F4F0E8"; x.lineWidth=1.6;
+    x.beginPath(); x.moveTo(2,9); x.quadraticCurveTo(6,2.5,10,7);
+    x.quadraticCurveTo(14,2.5,18,9); x.stroke();
+  });
+  sprite("train",26,14,(x)=>{                     // a BART car seen from above
+    x.fillStyle="#F5A623"; x.strokeStyle="#FFFFFF"; x.lineWidth=1.4;
+    const r2=4; x.beginPath();
+    x.moveTo(3+r2,3); x.lineTo(23-r2,3); x.quadraticCurveTo(23,3,23,3+r2);
+    x.lineTo(23,11-r2); x.quadraticCurveTo(23,11,23-r2,11);
+    x.lineTo(3+r2,11); x.quadraticCurveTo(3,11,3,11-r2);
+    x.lineTo(3,3+r2); x.quadraticCurveTo(3,3,3+r2,3); x.closePath();
+    x.fill(); x.stroke();
+    x.fillStyle="rgba(0,0,0,.35)";
+    for(let i=0;i<3;i++) x.fillRect(7+i*5,5.5,3,3);
+  });
+
+  const src=(id,d)=>{ if(!MAP.getSource(id)) MAP.addSource(id,{type:"geojson",data:d});
+                      else MAP.getSource(id).setData(d); };
+  const fc=f=>({type:"FeatureCollection",features:f});
+  const pt=(x,y,p)=>({type:"Feature",properties:p||{},geometry:{type:"Point",coordinates:[x,y]}});
+
+  src("boats",fc([])); src("birds",fc([])); src("train",fc([]));
+  if(!MAP.getLayer("wake-l")) MAP.addLayer({id:"wake-l",type:"circle",source:"boats",
+    paint:{"circle-radius":["interpolate",["linear"],["zoom"],10,4,15,12],
+           "circle-color":"#FFFFFF","circle-opacity":.10,"circle-blur":.6}});
+  if(!MAP.getLayer("boats-l")) MAP.addLayer({id:"boats-l",type:"symbol",source:"boats",
+    layout:{"icon-image":"boat","icon-allow-overlap":true,"icon-rotation-alignment":"map",
+            "icon-rotate":["get","hdg"],
+            "icon-size":["interpolate",["linear"],["zoom"],10,.35,15,.85]}});
+  if(!MAP.getLayer("birds-l")) MAP.addLayer({id:"birds-l",type:"symbol",source:"birds",
+    layout:{"icon-image":"gull","icon-allow-overlap":true,"icon-rotation-alignment":"map",
+            "icon-rotate":["get","hdg"],
+            "icon-size":["interpolate",["linear"],["zoom"],10,.3,15,.7]},
+    paint:{"icon-opacity":["get","o"]}});
+  if(!MAP.getLayer("train-l")) MAP.addLayer({id:"train-l",type:"symbol",source:"train",
+    layout:{"icon-image":"train","icon-allow-overlap":true,"icon-rotation-alignment":"map",
+            "icon-rotate":["get","hdg"],
+            "icon-size":["interpolate",["linear"],["zoom"],10,.45,15,1]}});
+
+  let t0=null, seg=0;
+  const bearing=(a,b)=>{                       // degrees clockwise from north
+    const dx=(b[0]-a[0])*Math.cos((a[1]+b[1])/2*Math.PI/180), dy=b[1]-a[1];
+    return (Math.atan2(dx,dy)*180/Math.PI+360)%360;
+  };
+  /* cumulative distance along the BART alignment, so the train can be moved by
+     metres rather than by vertex index (vertices are unevenly spaced) */
+  let cum=[0], total=0;
+  if(path) for(let i=1;i<path.length;i++){
+    const dx=(path[i][0]-path[i-1][0])*M_LON, dy=(path[i][1]-path[i-1][1])*M_LAT;
+    total+=Math.hypot(dx,dy); cum.push(total);
+  }
+  /* Station positions along that distance, so the train can dwell there.
+     Rockridge sits ~1.7 km off this alignment (it is on the Orinda line, not
+     Richmond), so only stations actually on the track count as stops. */
+  const stops=(MAPDATA.bartSt&&MAPDATA.bartSt.features||[]).map(f=>{
+    const [sx,sy]=f.geometry.coordinates; let best=0,bd=1e9;
+    for(let i=0;i<(path||[]).length;i++){
+      const dx=(path[i][0]-sx)*M_LON, dy=(path[i][1]-sy)*M_LAT, d=Math.hypot(dx,dy);
+      if(d<bd){bd=d;best=i;}
+    }
+    return {along:cum[best],off:bd};
+  }).filter(s=>s.off<150).map(s=>s.along).sort((a,b)=>a-b);
+
+  const TRAIN_MPS=25, DWELL=2.2, ACCEL=280;   // m/s, seconds at a platform, m of ramp
+  let dist=0, dwellLeft=0, lastStop=-1, prev=null;
+
+  AMB=requestAnimationFrame(function step(ts){
+    if(t0===null) t0=ts;
+    const real=Math.min((ts-(prev??ts))/1000,0.1); // real seconds since last frame
+    const dt=real*TIME_SCALE;                      // scene seconds
+    const clock=(ts-t0)/1000; prev=ts;
+
+    src("boats",fc(boats.map(b=>{
+      /* heading drifts at real-time rate, not scene rate: time-lapsing the turn
+         as well makes them spiral instead of holding a course */
+      b.hdg=(b.hdg+b.turn*real+360)%360;
+      const r=b.hdg*Math.PI/180, px=b.x, py=b.y;
+      b.x+=mps(b.spd,"lon")*Math.sin(r)*dt;
+      b.y+=mps(b.spd,"lat")*Math.cos(r)*dt;
+      if(b.x>BAY[1]){b.x=BAY[0];} if(b.x<BAY[0]){b.x=BAY[1];}
+      if(b.y>BAY[3]||b.y<BAY[2]) b.turn=-b.turn;              // ease away from the edge
+      const bob=Math.sin(clock*0.35+b.ph)*0.00004;            // gentle swell
+      return pt(b.x,b.y+bob,{hdg:bearing([px,py],[b.x,b.y])});
+    })));
+
+    src("birds",fc(birds.map(b=>{
+      b.hdg=(b.hdg+Math.sin(clock*0.22+b.ph)*b.wob*real*14+360)%360;
+      const r=b.hdg*Math.PI/180, px=b.x, py=b.y;
+      b.x+=mps(b.spd,"lon")*Math.sin(r)*dt;
+      b.y+=mps(b.spd,"lat")*Math.cos(r)*dt;
+      if(b.x>-122.255){b.x=BAY[0];} if(b.x<BAY[0]-0.01){b.x=-122.26;}
+      if(b.y>BAY[3]+0.01){b.y=BAY[2];} if(b.y<BAY[2]-0.01){b.y=BAY[3];}
+      return pt(b.x,b.y,{o:.5+.3*Math.abs(Math.sin(clock*b.flap+b.ph)),
+                         hdg:bearing([px,py],[b.x,b.y])});
+    })));
+
+    if(path&&path.length>1&&total>0){
+      if(dwellLeft>0){ dwellLeft-=real; }   // dwell is a visible pause, not scaled
+      else{
+        /* ease down into the next station and back out of the last one */
+        const next=stops.find(s=>s>dist+1), near=Math.min(
+          next!==undefined?Math.abs(next-dist):1e9,
+          lastStop>=0?Math.abs(dist-stops[lastStop]):1e9);
+        const ease=Math.max(0.25,Math.min(1,near/ACCEL));
+        dist+=TRAIN_MPS*ease*dt;
+        const hit=stops.findIndex(s=>s>0&&Math.abs(s-dist)<8);
+        if(hit>=0&&hit!==lastStop){ dwellLeft=DWELL; lastStop=hit; }
+      }
+      if(dist>total){ dist=0; lastStop=-1; }
+      let i=cum.findIndex(c=>c>dist)-1; if(i<0) i=0;
+      const f=(dist-cum[i])/Math.max(cum[i+1]-cum[i],1e-9);
+      const a=path[i], b=path[Math.min(i+1,path.length-1)];
+      src("train",fc([pt(a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f, {hdg:bearing(a,b)})]));
+    }
+    AMB=requestAnimationFrame(step);
+  });
+}
+
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+async function gj(url,params){
+  const p=new URLSearchParams({...params,outSR:"4326",f:"geojson"});
+  const r=await fetch(`${url}?${p}`); if(!r.ok) throw new Error("GIS "+r.status);
+  return r.json();
+}
+/* fetch parcel polygons for a list of APNs, chunked to keep URLs sane */
+async function parcelsFor(apns){
+  const out=[]; const CH=55;
+  for(let i=0;i<apns.length;i+=CH){
+    const list=apns.slice(i,i+CH).map(a=>`'${a.replace(/'/g,"''")}'`).join(",");
+    try{
+      const j=await gj(PARCEL_Q,{where:`APN_SORT IN (${list})`,outFields:"APN_SORT",returnGeometry:"true"});
+      out.push(...(j.features||[]));
+    }catch(e){ /* skip chunk */ }
+  }
+  return out;
+}
+async function buildMap(){
+  if(MAPBUILT||typeof maplibregl==="undefined") return; MAPBUILT=true;
+  const ms=$("#mapstatus");
+  const dark=()=>{const t=document.documentElement.getAttribute("data-theme");
+    return t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches;};
+
+  /* Fully custom vector style on OpenFreeMap (free, keyless, OpenMapTiles schema)
+     so water, landcover and roads can be tinted to the page palette rather than
+     dropping someone else's basemap into the middle of the design. Terrain DEM
+     from AWS terrarium, also keyless. */
+  const OFM="https://tiles.openfreemap.org";
+  MAPSTYLE=function baseStyle(d){
+    const c = d ? {
+      land:"#12100D", water:"#132A3A", waterline:"#1B3B50", wood:"#16241A", grass:"#1A2A1C",
+      park:"#17281B", sand:"#2A2418", wetland:"#152628", built:"#1A1713", bldg:"#221D18",
+      road:"#3A332A", roadHi:"#4C4237", rail:"#2A251F", label:"#B8B0A2", labelHalo:"#0C0A08",
+      sky:"#0A1420", horizon:"#2A2C33", fog:"#14120F", shadow:"#000000", hi:"#463C30"
+    } : {
+      land:"#EDE7DA", water:"#B4CBD8", waterline:"#9DBAC9", wood:"#CBD8C0", grass:"#D6E0C8",
+      park:"#CDDCC2", sand:"#E8DFC6", wetland:"#CEDAD5", built:"#E7E0D1", bldg:"#DFD7C6",
+      road:"#FFFFFF", roadHi:"#FFFFFF", rail:"#CFC6B4", label:"#4A4238", labelHalo:"#F5F1E8",
+      sky:"#BBD3E4", horizon:"#E4D9C4", fog:"#EDE7DA", shadow:"#7A6E5C", hi:"#FFFFFF"
+    };
+    const road=(id,filter,w,color,minz)=>({id,type:"line",source:"omt","source-layer":"transportation",
+      filter,minzoom:minz||0,layout:{"line-cap":"round","line-join":"round"},
+      paint:{"line-color":color,"line-width":w}});
+    return {version:8, glyphs:`${OFM}/fonts/{fontstack}/{range}.pbf`,
+      sources:{
+        omt:{type:"vector",url:`${OFM}/planet`,attribution:"© OpenStreetMap contributors"},
+        topo:{type:"raster",tiles:[`https://a.tile.opentopomap.org/{z}/{x}/{y}.png`,
+                                   `https://b.tile.opentopomap.org/{z}/{x}/{y}.png`],
+              tileSize:256,maxzoom:16,attribution:"© OpenTopoMap (CC-BY-SA)"},
+        dem:{type:"raster-dem",
+             tiles:["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"],
+             encoding:"terrarium",tileSize:256,maxzoom:14,attribution:"Terrain: Mapzen / AWS"}
+      },
+      sky:{"sky-color":c.sky,"horizon-color":c.horizon,"fog-color":c.fog,
+           "fog-ground-blend":0.4,"horizon-fog-blend":0.6,"sky-horizon-blend":0.7,
+           "atmosphere-blend":["interpolate",["linear"],["zoom"],0,1,10,1,14,0.5]},
+      light:{anchor:"viewport",color:"#ffffff",intensity:d?0.35:0.5,position:[1.4,200,40]},
+      layers:[
+        {id:"land",type:"background",paint:{"background-color":c.land}},
+        {id:"landuse-built",type:"fill",source:"omt","source-layer":"landuse",
+         filter:["in","class","residential","commercial","retail","industrial"],
+         paint:{"fill-color":c.built,"fill-opacity":.55}},
+        {id:"lc-wood",type:"fill",source:"omt","source-layer":"landcover",
+         filter:["in","class","wood","forest"],paint:{"fill-color":c.wood,"fill-opacity":.85}},
+        {id:"lc-grass",type:"fill",source:"omt","source-layer":"landcover",
+         filter:["in","class","grass","farmland","scrub"],paint:{"fill-color":c.grass,"fill-opacity":.8}},
+        {id:"lc-sand",type:"fill",source:"omt","source-layer":"landcover",
+         filter:["==","class","sand"],paint:{"fill-color":c.sand}},
+        {id:"lc-wet",type:"fill",source:"omt","source-layer":"landcover",
+         filter:["==","class","wetland"],paint:{"fill-color":c.wetland,"fill-opacity":.7}},
+        {id:"park",type:"fill",source:"omt","source-layer":"park",
+         paint:{"fill-color":c.park,"fill-opacity":.7}},
+        {id:"water",type:"fill",source:"omt","source-layer":"water",
+         filter:["!=","brunnel","tunnel"],paint:{"fill-color":c.water}},
+        {id:"water-edge",type:"line",source:"omt","source-layer":"water",
+         paint:{"line-color":c.waterline,"line-width":.8}},
+        {id:"waterway",type:"line",source:"omt","source-layer":"waterway",
+         paint:{"line-color":c.water,"line-width":["interpolate",["linear"],["zoom"],10,.6,16,2.4]}},
+        {id:"bldg-flat",type:"fill",source:"omt","source-layer":"building",minzoom:14,
+         paint:{"fill-color":c.bldg,"fill-opacity":d?.5:.55}},
+        road("rd-minor",["in","class","minor","service","track"],
+          ["interpolate",["linear"],["zoom"],12,.4,16,2.2],c.road,12),
+        road("rd-sec",["in","class","secondary","tertiary"],
+          ["interpolate",["linear"],["zoom"],10,.7,16,4],c.road),
+        road("rd-main",["in","class","primary","trunk"],
+          ["interpolate",["linear"],["zoom"],9,1,16,5.5],c.roadHi),
+        road("rd-motor",["==","class","motorway"],
+          ["interpolate",["linear"],["zoom"],8,1.2,16,7],c.roadHi),
+        {id:"rail",type:"line",source:"omt","source-layer":"transportation",
+         filter:["==","class","rail"],minzoom:12,
+         paint:{"line-color":c.rail,"line-width":1,"line-dasharray":[3,2]}},
+        {id:"topo-r",type:"raster",source:"topo",layout:{visibility:"none"},paint:{"raster-opacity":.75}},
+        {id:"hill",type:"hillshade",source:"dem",
+         paint:{"hillshade-exaggeration":d?.5:.38,
+                "hillshade-shadow-color":c.shadow,"hillshade-highlight-color":c.hi,
+                "hillshade-accent-color":c.shadow}},
+        {id:"road-labels",type:"symbol",source:"omt","source-layer":"transportation_name",minzoom:14,
+         layout:{"symbol-placement":"line","text-field":["get","name"],
+                 "text-font":["Noto Sans Regular"],"text-size":10,"text-letter-spacing":.06},
+         paint:{"text-color":c.label,"text-halo-color":c.labelHalo,"text-halo-width":1.2}},
+        {id:"place-labels",type:"symbol",source:"omt","source-layer":"place",
+         filter:["in","class","city","town","suburb","neighbourhood"],
+         layout:{"text-field":["get","name"],"text-font":["Noto Sans Regular"],
+                 "text-size":["interpolate",["linear"],["zoom"],10,10,15,14],
+                 "text-letter-spacing":.14,"text-transform":"uppercase"},
+         paint:{"text-color":c.label,"text-halo-color":c.labelHalo,"text-halo-width":1.4}}
+      ],
+      terrain:{source:"dem",exaggeration:1.25}
+    };
+  };
+  const baseStyle=MAPSTYLE;
+  MAP=new maplibregl.Map({
+    container:"map", attributionControl:false, maxPitch:80,
+    style:baseStyle(dark()),
+    center:[-122.2730,37.8700], zoom:13.4, pitch:58, bearing:-18, antialias:true,
+    preserveDrawingBuffer:true   // lets the canvas be captured / exported as an image
+  });
+  MAP.addControl(new maplibregl.NavigationControl({visualizePitch:true}),"bottom-right");
+
+  MAP.on("load",async()=>{
+    try{
+      /* Prefer a baked snapshot. Berkeley's ArcGIS server rate-limits hard, and
+         parcel boundaries change on the order of years, there is no reason to
+         make every visitor re-query it. Live fetch is the fallback only. */
+      const cached=async p=>{try{const r=await fetch(p);return r.ok?await r.json():null;}catch{return null;}};
+      ms.textContent="Loading parcels…";
+      let [bound,sites,parcels,bart,bartSt]=await Promise.all([
+        cached("geo/boundary.json"), cached("geo/sites.json"), cached("geo/parcels.json"),
+        cached("geo/bart.json"), cached("geo/bart_stations.json")]);
+      let live=false;
+
+      const waitAPNs =WAIT.map(t=>t.raw).filter(Boolean);
+      const builtSet =new Set([...PARCELS.values()].filter(t=>t.co&&t.units>0)
+                        .sort((a,b)=>b.units-a.units).slice(0,120).map(t=>norm(t.raw||t.apn)));
+
+      if(!parcels){
+        live=true; ms.textContent="No snapshot, querying Berkeley GIS…";
+        const [b2,s2,pw2,pb2]=await Promise.all([
+          bound||gj(BOUND_Q,{where:"1=1",returnGeometry:"true"}).catch(()=>null),
+          sites||gj(`${GIS}/Public/Portal_Planning/MapServer/22/query`,
+             {where:"1=1",outFields:"APN_1,Category,RHNA_5",returnGeometry:"true"}).catch(()=>null),
+          parcelsFor(waitAPNs),
+          parcelsFor([...builtSet].map(k=>[...PARCELS.values()].find(t=>norm(t.raw||t.apn)===k)?.raw).filter(Boolean))
+        ]);
+        bound=b2; sites=s2; parcels={type:"FeatureCollection",features:[...pw2,...pb2]};
+      }
+      const feats=parcels.features||[];
+      const pw=feats.filter(f=>!builtSet.has(norm(f.properties.APN_SORT)));
+      const pb=feats.filter(f=> builtSet.has(norm(f.properties.APN_SORT)));
+
+      const byApn=new Map([...PARCELS.values()].map(t=>[norm(t.raw||t.apn),t]));
+      const deco=(feats,kind)=>({type:"FeatureCollection",features:feats.map(f=>{
+        const t=byApn.get(norm(f.properties.APN_SORT))||{};
+        const y=t.ent?yrs(t.ent,new Date()):0;
+        return {...f,properties:{apn:t.raw||f.properties.APN_SORT,addr:t.addr||"-",
+          units:t.units||0,aff:t.aff||0,yrs:+y.toFixed(1),kind,
+          h:Math.max(12,(t.units||0)*M_PER_HOME)}};
+      })});
+
+      /* keep the decorated data so the layers can be re-added after a restyle */
+      MAPDATA={bound,sites,bart,bartSt,built:deco(pb,"built"),wait:deco(pw,"wait")};
+      addDataLayers();
+
+      const pop=new maplibregl.Popup({closeButton:false,closeOnClick:false,offset:8});
+      for(const id of ["wait-3d","built-3d"]){
+        MAP.on("mousemove",id,e=>{
+          MAP.getCanvas().style.cursor="pointer";
+          const p=e.features[0].properties;
+          pop.setLngLat(e.lngLat).setHTML(
+            `<b>${p.addr}</b><br>${fmt(p.units)} homes${p.aff>0?` · ${fmt(p.aff)} affordable`:""}<br>`+
+            (p.kind==="wait"?`waiting ${p.yrs} years`:`completed`)+`<br><i>click for record</i>`).addTo(MAP);
+        });
+        MAP.on("mouseleave",id,()=>{MAP.getCanvas().style.cursor="";pop.remove();});
+        MAP.on("click",id,e=>{const p=e.features[0].properties;
+          showParcel(p.apn,p.addr);
+          document.querySelector("#card").scrollIntoView({behavior:"smooth",block:"center"});});
+      }
+
+      const tog=(btn,ids)=>{const b=$(btn); b.onclick=()=>{
+        const off=b.classList.toggle("off");
+        ids.forEach(i=>MAP.getLayer(i)&&MAP.setLayoutProperty(i,"visibility",off?"none":"visible"));};};
+      tog("#mb-wait",["wait-3d"]); tog("#mb-built",["built-3d"]); tog("#mb-sites",["sites-f","sites-o"]);
+      $("#mb-reset").onclick=()=>MAP.easeTo({center:[-122.2730,37.8700],zoom:13.4,pitch:58,bearing:-18,duration:900});
+
+      /* roads basemap vs topographic contours */
+      let topo=false;
+      $("#mb-topo").onclick=()=>{
+        topo=!topo;
+        MAP.setLayoutProperty("topo-r","visibility",topo?"visible":"none");
+        for(const id of ["landuse-built","lc-wood","lc-grass","lc-sand","lc-wet","park",
+                         "water","water-edge","waterway","bldg-flat","rd-minor","rd-sec",
+                         "rd-main","rd-motor","rail"])
+          if(MAP.getLayer(id)) MAP.setLayoutProperty(id,"visibility",topo?"none":"visible");
+        $("#mb-topo").textContent=topo?"◼ Topo":"◻ Topo";
+      };
+      /* terrain exaggeration: Berkeley's hills climb ~500 m behind downtown */
+      let terr=true;
+      $("#mb-terrain").onclick=()=>{
+        terr=!terr;
+        MAP.setTerrain(terr?{source:"dem",exaggeration:1.25}:null);
+        $("#mb-terrain").classList.toggle("off",!terr);
+      };
+
+      ms.textContent=`${pw.length} waiting · ${pb.length} built · 1 home = ${M_PER_HOME} m`
+        + (live?" · live from GIS":" · cached parcels");
+    }catch(err){
+      ms.textContent="Parcel geometry unavailable, Berkeley GIS did not respond";
+    }
+  });
+}
+
+/* ── boot ──────────────────────────────────────────────────── */
+(async function(){
+  const dot=$("#dot"), st=$("#status");
+  try{
+    const t0=performance.now();
+    const [A,A2]=await Promise.all([ckan(RES_A),ckan(RES_A2)]);
+    const ms=Math.round(performance.now()-t0);
+
+    PARCELS=buildModel(A,A2);
+    const rows=[...PARCELS.values()].filter(t=>t.units>0);
+    const small=rows.filter(t=>!isBig(t)), big=rows.filter(isBig);
+    const GROUPS=[
+      {title:"Multifamily, 5 homes or more", sub:`${big.filter(t=>t.ent).length} approvals`, stages:[
+        stageStats(big,"app","ent","Application to approval"),
+        stageStats(big,"ent","bp","Approval to building permit",true),
+        stageStats(big,"bp","co","Permit to move-in")]},
+      {title:"Small, under 5 homes", sub:`${small.filter(t=>t.ent).length} approvals, mostly ministerial`, stages:[
+        stageStats(small,"app","ent","Application to approval"),
+        stageStats(small,"ent","bp","Approval to building permit"),
+        stageStats(small,"bp","co","Permit to move-in")]}
+    ];
+    window.__MED_ENT_BP__=GROUPS[0].stages[1].median;
+    renderClock(GROUPS);
+
+    const now=new Date();
+    /* Only count parcels the City actually approved. 20 parcels carrying
+       APPLICATION_STATUS "Pending" are still in review, not stalled after
+       approval, and counting them overstates the total by ~40%. */
+    const allStuck=[...PARCELS.values()].filter(t=>t.ent&&!t.bp&&t.units>0)
+      .map(t=>({...t,y:yrs(t.ent,now)})).filter(t=>t.y>0);
+    PENDING=allStuck.filter(t=>(t.status||"").toLowerCase()==="pending");
+    WAIT=allStuck.filter(t=>(t.status||"").toLowerCase()!=="pending")
+      .sort((a,b)=>b.units-a.units);
+    renderWait();
+    $("#w-pending").textContent=fmt(PENDING.reduce((a,r)=>a+r.units,0));
+    const withWhy=WAIT.filter(r=>stallReason(r)[1]).length;
+    $("#w-why").textContent=`${withWhy} of ${WAIT.length}`;
+    $("#wmore").onclick=()=>{SHOWALL=!SHOWALL;renderWait();};
+
+    /* corridors: normalise the street name off the address, then split
+       approved homes into permitted vs never-permitted */
+    const street=a=>{
+      let s=(a||"").replace(/^\s*[\d-]+\s*/,"").split(",")[0].trim().toUpperCase();
+      s=s.replace(/\b(AVENUE|AVE)\b/,"").replace(/\b(STREET|ST)\b/,"")
+         .replace(/\b(WAY|BLVD|BOULEVARD|ROAD|RD|PLACE|PL|DRIVE|DR)\b/,"");
+      return s.trim();
+    };
+    const corr=new Map();
+    for(const t of PARCELS.values()){
+      if(!t.ent||t.units<=0) continue;
+      const k=street(t.addr); if(!k) continue;
+      const c=corr.get(k)||{name:k,tot:0,stuck:0}; c.tot+=t.units;
+      if(!t.bp) c.stuck+=t.units;
+      corr.set(k,c);
+    }
+    const CORR=[...corr.values()].filter(c=>c.tot>=60).sort((a,b)=>b.stuck-a.stuck).slice(0,10);
+    const cmax=Math.max(...CORR.map(c=>c.tot),1);
+    $("#corrlist").innerHTML=CORR.map(c=>`
+      <div class="corr">
+        <span class="cname">${c.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase())}</span>
+        <span class="cstack">
+          <i style="width:${c.tot/cmax*100}%;background:var(--s2);opacity:.45"></i>
+          <i class="st" style="width:${c.stuck/cmax*100}%"></i>
+        </span>
+        <span class="cpct" style="color:${c.stuck/c.tot>.8?"var(--stall)":"inherit"}">${Math.round(100*c.stuck/c.tot)}%</span>
+      </div>`).join("");
+    document.querySelectorAll("#corrlist .corr").forEach((el,i)=>{const c=CORR[i];
+      hover(el,`<b>${c.name}</b><br>${fmt(c.tot)} homes approved<br>${fmt(c.stuck)} never permitted (${Math.round(100*c.stuck/c.tot)}%)`);});
+
+    /* attrition: homes approved 4+ years ago that never got a permit */
+    const oldCohort=[...PARCELS.values()].filter(t=>t.ent&&t.units>0&&t.ent.getFullYear()<=2021);
+    const neverU=oldCohort.filter(t=>!t.bp).reduce((a,t)=>a+t.units,0);
+    const cohU=oldCohort.reduce((a,t)=>a+t.units,0);
+    $("#w-never").textContent=Math.round(100*neverU/cohU)+"%";
+    hover($("#w-never").parentElement,
+      `<b>Attrition</b><br>${fmt(cohU)} homes approved 2018-2021<br>${fmt(neverU)} still have no building permit`);
+
+    const Y=renderYears(A2);
+    renderScore(Y);
+    buildMap();
+
+    const years=Y.map(y=>y.year), lastY=years[years.length-1];
+    $("#cover").textContent=`${years[0]}-${lastY} · ${fmt(PARCELS.size)} parcels`;
+    $("#f-hcd").textContent=`Data to CY${lastY}`;
+    $("#f-gis").textContent="Live";
+    dot.classList.add("on");
+    st.textContent=`Live · ${fmt(A.length+A2.length)} records in ${ms} ms`;
+
+    const mf=GROUPS[0].stages;   // multifamily, the figure that actually matters
+    $("#lede").innerHTML=`Berkeley approves an apartment building in a median of
+      <strong>${(mf[0].median*12).toFixed(0)} months</strong>. Then it waits
+      <strong>${mf[1].median.toFixed(1)} years</strong> for a building permit, and
+      <strong>${fmt(WAIT.reduce((a,r)=>a+r.units,0))} approved homes</strong> are still waiting.`;
+  }catch(err){
+    dot.classList.add("err"); st.textContent="Live data unavailable";
+    $("#clock").innerHTML=`<div class="err">Could not reach the California Open Data Portal.<br>${err.message}
+      <br><br>If you opened this file directly, try serving it: <code>python3 -m http.server</code></div>`;
+  }
+})();
+
+$("#tt").onclick=()=>{
+  const cur=document.documentElement.getAttribute("data-theme")
+    ||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+  const next=cur==="dark"?"light":"dark";
+  document.documentElement.setAttribute("data-theme",next);
+  if(MAP&&MAPSTYLE){                       // setStyle drops added layers, so re-add
+    MAP.once("styledata",()=>{ MAP.setTerrain({source:"dem",exaggeration:1.25}); addDataLayers(); });
+    MAP.setStyle(MAPSTYLE(next==="dark"));
+  }
+};
+</script>
+</body>
+</html>
