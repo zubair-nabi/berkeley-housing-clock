@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <title>The Berkeley Housing Clock</title>
+  <!-- Warm paper ground so the mark holds on both light and dark browser chrome -->
+  <rect width="32" height="32" rx="6" fill="#F2EEE6"/>
+  <!-- Face -->
+  <circle cx="16" cy="16" r="10.5" fill="none" stroke="#17140F" stroke-width="2.4"/>
+  <!-- Hands frozen at three o'clock: minute hand up, hour hand right -->
+  <g stroke="#C2392B" stroke-width="2.6" stroke-linecap="round">
+    <line x1="16" y1="16" x2="16" y2="8.4"/>
+    <line x1="16" y1="16" x2="22.2" y2="16"/>
+  </g>
+  <circle cx="16" cy="16" r="1.5" fill="#17140F"/>
+  <style>
+    @media (prefers-color-scheme: dark) {
+      rect { fill: #16130F }
+      circle[stroke] { stroke: #F4F0E8 }
+      circle[fill="#17140F"] { fill: #F4F0E8 }
+      g { stroke: #D8624F }
+    }
+  </style>
+</svg>
