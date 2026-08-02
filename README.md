@@ -30,8 +30,10 @@ Three things the same file records and nobody prints: **75% of approved homes ca
 through a state density bonus**, **18% of permits issued are accessory dwelling
 units**, and **97% of what gets built is rental**.
 
-- **Address lookup** matches any Berkeley address to its parcel number, then to
-  every housing record the State holds for that parcel.
+- **Address lookup** sits in a bar that follows you down the page, matching any
+  Berkeley address to its parcel number and then to every housing record the State
+  holds for it, including anything upcoming. Selecting a project anywhere on the page
+  fills it in, and one control clears everything.
 - **The Clock** measures each stage of the pipeline, split between multifamily and
   small projects, because small projects are ministerial and are approved and
   permitted on the same day. It then runs the same measurement against five

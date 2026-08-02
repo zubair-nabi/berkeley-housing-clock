@@ -48,6 +48,33 @@ body{margin:0;background:var(--paper);color:var(--ink);
                    radial-gradient(760px 420px at 4% 2%,color-mix(in srgb,var(--accent) 9%,transparent),transparent 60%);
   background-attachment:fixed}
 .wrap{max-width:1120px;margin:0 auto;padding:0 28px 100px}
+/* The lookup follows the reader instead of sitting in a section they scroll
+   past once. It only pins after the masthead has gone by. */
+.lookbar{position:sticky;top:0;z-index:60;margin:0 -28px;padding:10px 28px;
+  background:color-mix(in srgb,var(--paper) 86%,transparent);backdrop-filter:blur(14px);
+  border-bottom:1px solid transparent;transition:border-color .2s,padding .2s}
+.lookbar.pinned{border-bottom-color:var(--rule)}
+.lookinner{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center}
+.lookmark{font-family:"Instrument Serif",serif;font-size:1.15rem;white-space:nowrap;opacity:0;
+  transition:opacity .25s}
+.lookbar.pinned .lookmark{opacity:1}
+.lookinner .hint{margin:0;white-space:nowrap}
+#card{margin:0}
+#card.on{margin:18px 0 6px}
+@media(max-width:820px){.lookinner{grid-template-columns:1fr}
+  .lookmark,.lookinner .hint{display:none}}
+
+/* Where you are, on a page ten thousand pixels long. */
+.secnav{position:sticky;top:66px;z-index:55;display:flex;gap:6px;flex-wrap:wrap;
+  padding:12px 0 6px;margin-bottom:8px;background:linear-gradient(180deg,var(--paper) 70%,transparent)}
+.secnav a{font-family:"Geist Mono",monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);text-decoration:none;border:1px solid transparent;border-radius:100px;padding:6px 11px;
+  transition:color .18s,border-color .18s,background .18s;white-space:nowrap}
+.secnav a:hover{color:var(--ink);border-color:var(--rule)}
+.secnav a.here{color:var(--ink);border-color:var(--rule);background:color-mix(in srgb,var(--ink) 5%,transparent)}
+@media(max-width:820px){.secnav{overflow-x:auto;flex-wrap:nowrap;top:58px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none}.secnav::-webkit-scrollbar{display:none}}
+
 .reveal{opacity:0;transform:translateY(14px);animation:up .7s cubic-bezier(.22,1,.36,1) forwards}
 @keyframes up{to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.reveal{animation:none;opacity:1;transform:none}}
@@ -388,6 +415,21 @@ footer{padding:34px 0 0;font-family:"Geist Mono",monospace;font-size:11px;color:
     </div>
   </header>
 
+  <div class="lookbar" id="lookbar">
+    <div class="lookinner">
+      <span class="lookmark">Housing&nbsp;Clock</span>
+      <div class="searchbox">
+        <input id="q" type="text" placeholder="Look up any Berkeley address" autocomplete="off" spellcheck="false">
+        <button id="qclear" type="button" aria-label="Clear address" hidden>&times;</button>
+        <div id="res"></div>
+      </div>
+      <span class="hint" id="qhint">62,000 addresses</span>
+    </div>
+  </div>
+  <div id="card"></div>
+
+  <nav class="secnav" id="secnav" aria-label="Sections"></nav>
+
   <div class="lede">
     <p class="lede-main reveal" id="lede" style="animation-delay:.18s">Berkeley approves new housing in about <strong>four months</strong>. Then it waits <strong>a year or more</strong> for anything to be built.</p>
     <div class="lede-side">
@@ -397,19 +439,7 @@ footer{padding:34px 0 0;font-family:"Geist Mono",monospace;font-size:11px;color:
   </div>
 
   <section>
-    <div class="sec-head"><span class="sec-num">01</span><h2>Look up an address</h2></div>
-    <p class="sec-sub">Any Berkeley address. We match it to its parcel number, then to every housing record the State holds for that parcel.</p>
-    <div class="searchbox">
-      <input id="q" type="text" placeholder="e.g. 2128 Oxford St" autocomplete="off" spellcheck="false">
-      <button id="qclear" type="button" aria-label="Clear address" hidden>&times;</button>
-      <div id="res"></div>
-    </div>
-    <div class="hint" id="qhint">62,000 addresses · live from Berkeley GIS</div>
-    <div id="card"></div>
-  </section>
-
-  <section>
-    <div class="sec-head"><span class="sec-num">02</span><h2>How long each stage takes</h2></div>
+    <div class="sec-head"><span class="sec-num">01</span><h2 data-nav="How long">How long each stage takes</h2></div>
     <p class="sec-sub">Median duration per stage, with the middle 50% shaded and the 90th percentile marked. Only projects with both dates on record are counted.</p>
     <div class="clock" id="clock"><div class="skel">Computing…</div></div>
     <div class="axis"><div></div><div class="axis-in" id="axis"></div><div></div></div>
@@ -423,29 +453,7 @@ footer{padding:34px 0 0;font-family:"Geist Mono",monospace;font-size:11px;color:
   </section>
 
   <section>
-    <div class="sec-head"><span class="sec-num">03</span><h2>What is happening now</h2></div>
-    <p class="sec-sub">The State's file stops at the end of 2025. These two sources do not: the Zoning
-      Adjustments Board publishes its agenda before every meeting, and environmental filings appear in the
-      State clearinghouse within days. This is the only part of the page that knows about 2026.</p>
-    <div class="nowgrid">
-      <div class="nowcol">
-        <h4>Next at the Zoning Adjustments Board <span id="zab-when"></span></h4>
-        <div id="zablist" class="skel">Loading agendas...</div>
-      </div>
-      <div class="nowcol">
-        <h4>Filed with the State clearinghouse <span id="ceqa-when"></span></h4>
-        <div id="ceqalist" class="skel">Loading filings...</div>
-      </div>
-    </div>
-    <p class="nowkey"><span class="nowtag hit">ZP2022-0179</span> a case number in red is a project that is
-      already in the waiting room below, back before the board or filing again.</p>
-    <p class="hint" style="margin-top:16px">ZAB agendas are parsed from the City's published PDFs twice a week
-      and committed to this repository, because berkeleyca.gov sends no CORS header and a browser cannot read
-      them directly. CEQAnet is queried live. Case numbers and addresses are extracted text, not a City feed.</p>
-  </section>
-
-  <section>
-    <div class="sec-head"><span class="sec-num">04</span><h2>The waiting room</h2></div>
+    <div class="sec-head"><span class="sec-num">02</span><h2 data-nav="Waiting room">The waiting room</h2></div>
     <p class="sec-sub">Projects the City approved that have no building permit on record. They are legal to build and nothing is happening. Projects still under review are excluded, because they are not stalled, they are simply not decided yet.</p>
     <div class="stats">
       <div class="stat hot"><div class="v" id="w-units">-</div><div class="k">Approved homes<br>not yet permitted</div></div>
@@ -471,15 +479,12 @@ footer{padding:34px 0 0;font-family:"Geist Mono",monospace;font-size:11px;color:
   </section>
 
   <section>
-    <div class="sec-head"><span class="sec-num">05</span><h2>Where it is stuck</h2></div>
-    <p class="sec-sub">Approved homes by street, and how many of them have no building permit. Berkeley's downtown core has approved thousands of homes and built almost none of them.</p>
+    <div class="sec-head"><span class="sec-num">03</span><h2 data-nav="Where">Where it is stuck</h2></div>
+    <p class="sec-sub">Every approved-but-unbuilt project, drawn on its real parcel and extruded by the number of homes it would contain. Blue is what actually got built. Berkeley's landmarks are drawn as their real footprints from OpenStreetMap, so the Campanile, the stadium bowl and the Greek Theatre are the shapes they actually are. The Campanile is the only one with a recorded height, 94 m; the others are worked out from floor count and drawn slightly translucent to admit it. Together they are the one thing here at true scale: the tallest tower on this map is 739 homes and draws about twelve Campaniles. Drag to rotate, scroll to zoom, click any block.</p>
+<p class="sec-sub">Approved homes by street, and how many of them have no building permit. Berkeley's downtown core has approved thousands of homes and built almost none of them.</p>
     <div class="corr hd"><span>Street</span><span>Approved homes, red is stalled</span><span style="text-align:right">Stalled</span></div>
     <div id="corrlist"></div>
-  </section>
 
-  <section>
-    <div class="sec-head"><span class="sec-num">06</span><h2>The skyline that isn't there</h2></div>
-    <p class="sec-sub">Every approved-but-unbuilt project, drawn on its real parcel and extruded by the number of homes it would contain. Blue is what actually got built. Berkeley's landmarks are drawn as their real footprints from OpenStreetMap, so the Campanile, the stadium bowl and the Greek Theatre are the shapes they actually are. The Campanile is the only one with a recorded height, 94 m; the others are worked out from floor count and drawn slightly translucent to admit it. Together they are the one thing here at true scale: the tallest tower on this map is 739 homes and draws about twelve Campaniles. Drag to rotate, scroll to zoom, click any block.</p>
     <div class="mapwrap">
       <div id="map"></div>
       <div class="mapstatus" id="mapstatus">Loading parcels…</div>
@@ -510,24 +515,7 @@ footer{padding:34px 0 0;font-family:"Geist Mono",monospace;font-size:11px;color:
   </section>
 
   <section>
-    <div class="sec-head"><span class="sec-num">07</span><h2>Where the pipeline leaks</h2></div>
-    <p class="sec-sub">Homes approved, permitted, and completed each year, as reported by the City to the State.</p>
-    <div class="legend">
-      <span class="lg"><span class="sw" style="background:var(--s1)"></span>Approved</span>
-      <span class="lg"><span class="sw" style="background:var(--s2)"></span>Permitted</span>
-      <span class="lg"><span class="sw" style="background:var(--s3)"></span>Completed</span>
-    </div>
-    <div class="years" id="years"></div>
-    <div class="ylabels" id="ylabels"></div>
-
-    <div class="findings">
-      <h4>Three things the same file says, that nobody prints</h4>
-      <div id="findlist"></div>
-    </div>
-  </section>
-
-  <section>
-    <div class="sec-head"><span class="sec-num">08</span><h2>The scoreboard</h2></div>
+    <div class="sec-head"><span class="sec-num">04</span><h2 data-nav="Scoreboard">The scoreboard</h2></div>
     <p class="sec-sub">Berkeley must permit 8,934 homes between 2023 and 2031 under its state allocation. Progress counts building permits issued, not approvals.</p>
     <div class="score">
       <div class="sc-top">
@@ -549,15 +537,56 @@ footer{padding:34px 0 0;font-family:"Geist Mono",monospace;font-size:11px;color:
         <div id="needbox"></div>
       </div>
 
-      <div class="tiers">
-        <h4>And the part the City does not count</h4>
-        <div id="ucbox"></div>
+
       </div>
+    </div>
+
+<p class="sec-sub" style="margin-top:34px">Homes approved, permitted, and completed each year, as reported by the City to the State.</p>
+    <div class="legend">
+      <span class="lg"><span class="sw" style="background:var(--s1)"></span>Approved</span>
+      <span class="lg"><span class="sw" style="background:var(--s2)"></span>Permitted</span>
+      <span class="lg"><span class="sw" style="background:var(--s3)"></span>Completed</span>
+    </div>
+    <div class="years" id="years"></div>
+    <div class="ylabels" id="ylabels"></div>
+
+    <div class="findings">
+      <h4>Three things the same file says, that nobody prints</h4>
+      <div id="findlist"></div>
     </div>
   </section>
 
+  <section>
+    <div class="sec-head"><span class="sec-num">05</span><h2 data-nav="Not counted">What the scoreboard does not count</h2></div>
+    <p class="sec-sub">Every figure above is a City figure. UC Berkeley is a state agency, takes no city
+      permits, and so appears in none of them, while building student housing in Berkeley all the same.</p>
+    <div id="ucbox"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">06</span><h2 data-nav="Now">What is happening now</h2></div>
+    <p class="sec-sub">The State's file stops at the end of 2025. These two sources do not: the Zoning
+      Adjustments Board publishes its agenda before every meeting, and environmental filings appear in the
+      State clearinghouse within days. This is the only part of the page that knows about 2026.</p>
+    <div class="nowgrid">
+      <div class="nowcol">
+        <h4>Next at the Zoning Adjustments Board <span id="zab-when"></span></h4>
+        <div id="zablist" class="skel">Loading agendas...</div>
+      </div>
+      <div class="nowcol">
+        <h4>Filed with the State clearinghouse <span id="ceqa-when"></span></h4>
+        <div id="ceqalist" class="skel">Loading filings...</div>
+      </div>
+    </div>
+    <p class="nowkey"><span class="nowtag hit">ZP2022-0179</span> a case number in red is a project that is
+      already in the waiting room below, back before the board or filing again.</p>
+    <p class="hint" style="margin-top:16px">ZAB agendas are parsed from the City's published PDFs twice a week
+      and committed to this repository, because berkeleyca.gov sends no CORS header and a browser cannot read
+      them directly. CEQAnet is queried live. Case numbers and addresses are extracted text, not a City feed.</p>
+  </section>
+
   <section style="border-bottom:none">
-    <div class="sec-head"><span class="sec-num">09</span><h2>Where this comes from</h2></div>
+    <div class="sec-head"><span class="sec-num">07</span><h2 data-nav="Sources">Where this comes from</h2></div>
     <p class="sec-sub">Six sources. Most are queried in your browser as the page loads. Two are not, for
       reasons given below, and both say so.</p>
     <div class="src">
@@ -971,6 +1000,12 @@ async function showParcel(apn,addr,gis){
      what is selected and one control that clears it. */
   if(addr){ $("#q").value=addr; }
   $("#qclear").hidden=false;
+  requestAnimationFrame(()=>{
+    const c=$("#card");
+    if(!c.classList.contains("on")) return;
+    const top=c.getBoundingClientRect().top+scrollY-118;   // clear the sticky bar
+    if(Math.abs(scrollY-top)>120) scrollTo({top,behavior:"smooth"});
+  });
   $("#qhint").textContent="Showing one parcel · press Escape or the cross to clear";
   const t=PARCELS.get(norm(apn));
   const card=$("#card"); card.classList.add("on");
@@ -1041,7 +1076,14 @@ async function showParcel(apn,addr,gis){
   const waitY=stalled?yrs(t.ent,new Date()):null;
   const tl=steps.map(([n,d],i)=>`<div class="tlstep ${d?"done":""} ${i===lastIdx?"last":""} ${stalled&&i===2?"stall":""}">
       <span class="n">${n}</span><span class="d">${d?d.toISOString().slice(0,10):"-"}</span></div>`).join("");
-  const dur=(a,b)=>a&&b?`${yrs(a,b).toFixed(2)} yr`:"-";
+  const dur=(a,b)=>{
+    if(!a||!b) return "-";
+    const v=yrs(a,b);
+    /* Out of order means the parcel has more than one filing and these two
+       dates belong to different ones. Better to show nothing than a negative. */
+    return v<0 ? '<span title="dates come from different filings on this parcel">n/a</span>'
+               : `${v.toFixed(2)} yr`;
+  };
   $("#pcb").innerHTML=`
     <div class="tl">${tl}</div>
     <div class="kv">
@@ -2210,6 +2252,34 @@ async function buildMap(){
     $("#clock").innerHTML=`<div class="err">Could not reach the California Open Data Portal.<br>${err.message}
       <br><br>If you opened this file directly, try serving it: <code>python3 -m http.server</code></div>`;
   }
+})();
+
+/* Build the nav from the sections themselves, and pin the bar once the
+   masthead has scrolled by. */
+(function(){
+  const nav=$("#secnav"), bar=$("#lookbar"), mast=document.querySelector(".mast");
+  if(!nav||!bar||!mast) return;
+  const secs=[...document.querySelectorAll("section")].filter(s=>s.querySelector("h2"));
+  secs.forEach((s,i)=>{
+    if(!s.id) s.id="sec"+(i+1);
+    const a=document.createElement("a");
+    a.href="#"+s.id;
+    const hh=s.querySelector("h2");
+    a.textContent=hh.dataset.nav||hh.textContent.trim();
+    a.addEventListener("click",e=>{e.preventDefault();
+      scrollTo({top:s.getBoundingClientRect().top+scrollY-124,behavior:"smooth"});});
+    nav.appendChild(a);
+  });
+  const links=[...nav.querySelectorAll("a")];
+  const mark=()=>{
+    bar.classList.toggle("pinned", scrollY > mast.offsetHeight - 20);
+    let cur=0;
+    secs.forEach((s,i)=>{ if(s.getBoundingClientRect().top<=170) cur=i; });
+    links.forEach((a,i)=>a.classList.toggle("here",i===cur));
+  };
+  addEventListener("scroll",mark,{passive:true});
+  addEventListener("resize",mark,{passive:true});
+  mark();
 })();
 
 $("#tt").onclick=()=>{
