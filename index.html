@@ -111,6 +111,15 @@ h2{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:900;margin:0;letter-spacing:
 .kv div{border-top:1px solid var(--rule);padding-top:9px}
 .kv .k{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
 .kv .v{font-family:"IBM Plex Mono",monospace;font-size:17px;font-weight:600;margin-top:3px}
+.upcoming{margin-top:20px;border-left:3px solid var(--muted);padding:2px 0 2px 16px}
+.upcoming.soon{border-color:#F5A623}
+.upcoming h5{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--muted);margin:0 0 9px;font-weight:600}
+.upitem{padding:5px 0;font-size:13px}
+.upitem a{color:var(--ink);font-weight:500;text-decoration:none}
+.upitem a:hover{color:var(--accent);text-decoration:underline}
+.upwhen{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);float:right}
+.upwhat{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.4}
 .verdict{margin-top:20px;padding:14px 16px;border-left:3px solid var(--stall);background:var(--stall-soft);font-size:14px}
 
 .clock{display:flex;flex-direction:column;gap:22px;margin-bottom:8px}
@@ -405,6 +414,7 @@ footer{padding:34px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;col
         <button id="mb-wait">◼ Waiting</button>
         <button id="mb-built">◼ Built</button>
         <button id="mb-sites">◼ Sites</button>
+        <button id="mb-now">◼ Upcoming</button>
         <button id="mb-topo">◻ Topo</button>
         <button id="mb-terrain">◼ Terrain</button>
         <button id="mb-reset">↺ Reset view</button>
@@ -414,7 +424,8 @@ footer{padding:34px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;col
         <span><i style="background:var(--stall)"></i>Approved, not built</span><br>
         <span><i style="background:var(--s2)"></i>Completed</span><br>
         <span><i style="background:var(--muted);opacity:.5"></i>Housing element site</span><br>
-        <span><i style="background:#F5A623"></i>BART, real alignment</span>
+        <span><i style="background:#F5A623"></i>BART, real alignment</span><br>
+        <span><i style="background:#F5A623;border-radius:50%"></i>On an agenda or newly filed</span>
       </div>
     </div>
     <div class="sitecheck" id="sitecheck"></div>
@@ -560,7 +571,7 @@ let PARCELS=new Map(), WAIT=[], PENDING=[], SHOWALL=false;
 function buildModel(A,A2){
   const P=new Map();
   const get=(k,raw)=>{ if(!P.has(k)) P.set(k,{apn:k,raw:raw,addr:null,units:0,aff:0,app:null,ent:null,bp:null,co:null,
-                 rows:0,status:null,notes:new Set(),fin:null,trk:new Set()});
+                 rows:0,status:null,notes:new Set(),fin:null,trk:new Set(),lat:null,lon:null});
                  return P.get(k); };
   for(const r of A){
     const k=norm(r.APN); if(!k) continue; const t=get(k,(r.APN||"").trim()); t.rows++;
@@ -570,6 +581,8 @@ function buildModel(A,A2){
     const k1=(r.JURS_TRACKING_ID||"").trim().toUpperCase().replace(/\s/g,"");
     if(k1&&k1!=="NULL") t.trk.add(k1);
     const n=(r.NOTES||"").trim(); if(n&&n!=="-") t.notes.add(n);
+    const la=parseFloat(r.LATITUDE), lo=parseFloat(r.LONGITUDE);
+    if(Number.isFinite(la)&&Number.isFinite(lo)&&t.lat===null){ t.lat=la; t.lon=lo; }
     const d=pdate(r.APP_SUBMIT_DT); if(d&&(!t.app||d<t.app)) t.app=d;
   }
   for(const r of A2){
@@ -847,6 +860,32 @@ async function showParcel(apn,addr,gis){
     </div><div class="pc-b" id="pcb"><span class="skel">Checking state records…</span></div></div>`;
   card.scrollIntoView({behavior:"smooth",block:"nearest"});
 
+  /* Anything upcoming for this parcel. HCD stops at CY2025, so without this a
+     reader sees a full history and no hint that it is on next month's agenda. */
+  const nk=norm(apn);
+  const mine=[];
+  for(const m of NOW.zab){
+    const t=matchParcel(m.cases.join(" "),m.addresses);
+    if(t&&norm(t.raw||t.apn)===nk)
+      mine.push({kind:"Zoning Adjustments Board", when:new Date(m.date+"T12:00:00"),
+                 what:m.cases.join(", ")||"on the agenda", href:m.url});
+  }
+  for(const x of NOW.ceqa){
+    const t=matchParcel(x.title,[]);
+    if(t&&norm(t.raw||t.apn)===nk)
+      mine.push({kind:"State clearinghouse", when:x.when, what:`${x.type}: ${x.title}`, href:x.href});
+  }
+  mine.sort((a,b)=>b.when-a.when);
+  const today=new Date(); today.setHours(0,0,0,0);
+  const upcoming=mine.filter(m=>m.when>=today);
+  const nowLine=mine.length?`<div class="upcoming${upcoming.length?" soon":""}">
+      <h5>${upcoming.length?"Coming up":"Since the State's file closed"}</h5>
+      ${mine.slice(0,4).map(m=>`<div class="upitem">
+        <span class="upwhen">${fmtDay(m.when)}</span>
+        <a href="${m.href}" target="_blank" rel="noopener">${m.kind}</a>
+        <div class="upwhat">${m.what.slice(0,120)}</div></div>`).join("")}
+    </div>`:"";
+
   const site=await sitesFor(apn);
   /* The sites inventory is a fixed 2023 Housing Element artifact, so its
      category is stated in the past tense. Category_I is used rather than
@@ -872,7 +911,8 @@ async function showParcel(apn,addr,gis){
 
   if(!t){
     $("#pcb").innerHTML=`<p class="pc-empty">No housing development record for this parcel in the State's 2018-2025 filings.
-      That usually means no multi-unit project has been proposed here, small permits and repairs are not reported to the State.</p>${siteLine}`;
+      That usually means no multi-unit project has been proposed here, small permits and repairs are not reported to the State.</p>
+      ${nowLine}${siteLine}`;
     return;
   }
   const steps=[["Applied",t.app],["Approved",t.ent],["Permitted",t.bp],["Moved in",t.co]];
@@ -896,7 +936,7 @@ async function showParcel(apn,addr,gis){
        ${window.__MED_ENT_BP__?window.__MED_ENT_BP__.toFixed(2):"-"} years.</div>`:""}
     ${t.co?`<div class="verdict" style="border-color:var(--s2);background:none"><b>Completed.</b> Took
        ${t.app&&t.co?yrs(t.app,t.co).toFixed(1):"-"} years from first application to occupancy.</div>`:""}
-    ${siteLine}`;
+    ${nowLine}${siteLine}`;
 }
 
 /* ── what is happening now ─────────────────────────────────
@@ -906,6 +946,32 @@ async function showParcel(apn,addr,gis){
    either are matched against the waiting room so a reader can see when
    something already stalled comes back around. */
 const CEQA="https://ceqanet.lci.ca.gov/Search?LeadAgency=";
+let NOW={zab:[],ceqa:[]};   // populated by renderNow, reused by the card and the map
+
+/* Match an agenda item or a filing back to a parcel we already know about.
+   Case number first, since that is exact; address only as a fallback. */
+const naddr=s=>(s||"").toLowerCase().replace(/[.,]/g,"")
+  .replace(/\b(avenue|ave)\b/,"ave").replace(/\b(street|st)\b/,"st")
+  .replace(/\b(boulevard|blvd)\b/,"blvd").replace(/\b(road|rd)\b/,"rd")
+  .replace(/\b(drive|dr)\b/,"dr").replace(/\s+/g," ").trim();
+let CASEIDX=null, ADDRIDX=null;
+function buildIdx(){
+  if(CASEIDX) return;
+  CASEIDX=new Map(); ADDRIDX=new Map();
+  for(const t of PARCELS.values()){
+    for(const c of (t.trk||[])) CASEIDX.set(c,t);
+    if(t.addr) ADDRIDX.set(naddr(t.addr),t);
+  }
+}
+function matchParcel(text,addrs){
+  buildIdx();
+  for(const m of String(text||"").matchAll(caseRe)){
+    const t=CASEIDX.get(m[1].replace(/\s/g,"").toUpperCase()); if(t) return t;
+  }
+  for(const a of (addrs||[])){ const t=ADDRIDX.get(naddr(a)); if(t) return t; }
+  const am=String(text||"").match(/\b\d{2,5}\s+[A-Za-z][A-Za-z\s]{2,24}?(Ave|St|Way|Blvd|Rd|Dr)\b/);
+  return am ? (ADDRIDX.get(naddr(am[0]))||null) : null;
+}
 const caseRe=/\b((?:ZP|PLN|LMSAP)\s?20\d{2}-\d{3,5})\b/ig;
 const fmtDay=d=>d.toLocaleDateString("en-US",{day:"numeric",month:"short",year:"numeric"});
 
@@ -927,6 +993,7 @@ async function renderNow(){
   /* ZAB, from the committed parse */
   try{
     const z=await (await fetch("data/zab.json")).json();
+    NOW.zab=z.meetings;
     const today=new Date(); today.setHours(0,0,0,0);
     const upcoming=z.meetings.filter(m=>new Date(m.date+"T12:00:00")>=today);
     const shown=(upcoming.length?upcoming:z.meetings).slice(0,5);
@@ -962,13 +1029,16 @@ async function renderNow(){
                 href:a?"https://ceqanet.lci.ca.gov"+a.getAttribute("href"):null};
       }).filter(x=>x.when&&x.title);
     };
-    const all=(await Promise.all([
+    const every=(await Promise.all([
       grab("Berkeley, City of","City"),
       grab("University of California, Berkeley","UC Berkeley")
-    ])).flat().sort((a,b)=>b.when-a.when).slice(0,6);
+    ])).flat().sort((a,b)=>b.when-a.when);
+    NOW.ceqa=every;
+    const all=every.slice(0,6);
     $("#ceqa-when").textContent="live";
     if(all[0]) $("#f-ceqa").textContent="Filings to "+fmtDay(all[0].when);
     $("#ceqalist").className="";
+    addNowToMap();
     $("#ceqalist").innerHTML=all.map(x=>{
       const cs=[...x.title.matchAll(caseRe)].map(m=>m[1].replace(/\s/g,"").toUpperCase());
       return `<div class="nowitem">
@@ -983,11 +1053,64 @@ async function renderNow(){
   }
 }
 
+/* Put agenda items and recent filings on the map, but only where they can be
+   tied to a parcel we already hold coordinates for. An item we cannot place is
+   left off the map rather than guessed at; it still appears in section 03. */
+function addNowToMap(){
+  /* Wait on the map's own load handler, not on isStyleLoaded() or "idle".
+     Terrain streams DEM tiles continuously so isStyleLoaded() never returns
+     true, and the ornament's animation loop means "idle" never fires either.
+     Both earlier guards were unsatisfiable, which is why nothing appeared. */
+  if(!MAPREADY){ setTimeout(addNowToMap,400); return; }
+  const feats=[], seen=new Set(), cutoff=new Date(); cutoff.setMonth(cutoff.getMonth()-9);
+  const push=(t,label,kind,when,href)=>{
+    if(!t||t.lat==null) return;
+    const k=kind+"|"+t.apn; if(seen.has(k)) return; seen.add(k);
+    feats.push({type:"Feature",properties:{label,kind,apn:t.raw||t.apn,addr:t.addr||label,
+      when:when?when.toISOString().slice(0,10):"", href:href||""},
+      geometry:{type:"Point",coordinates:[t.lon,t.lat]}});
+  };
+  for(const m of NOW.zab){
+    const d=new Date(m.date+"T12:00:00"); if(d<cutoff) continue;
+    push(matchParcel(m.cases.join(" "),m.addresses),
+         m.addresses[0]||m.cases[0]||"ZAB item","agenda",d,m.url);
+  }
+  for(const x of NOW.ceqa){
+    if(!x.when||x.when<cutoff) continue;
+    push(matchParcel(x.title,[]), x.title,"filing",x.when,x.href);
+  }
+  const fc={type:"FeatureCollection",features:feats};
+  if(MAP.getSource("now")) { MAP.getSource("now").setData(fc); }
+  else{
+    MAP.addSource("now",{type:"geojson",data:fc});
+    MAP.addLayer({id:"now-halo",type:"circle",source:"now",paint:{
+      "circle-radius":["interpolate",["linear"],["zoom"],11,7,16,20],
+      "circle-color":"#F5A623","circle-opacity":.16,"circle-blur":.5}});
+    MAP.addLayer({id:"now-dot",type:"circle",source:"now",paint:{
+      "circle-radius":["interpolate",["linear"],["zoom"],11,3.5,16,7],
+      "circle-color":"#F5A623","circle-stroke-width":1.6,
+      "circle-stroke-color":"rgba(20,16,10,.7)"}});
+    const pop=new maplibregl.Popup({closeButton:false,closeOnClick:false,offset:10});
+    MAP.on("mousemove","now-dot",e=>{
+      MAP.getCanvas().style.cursor="pointer";
+      const p=e.features[0].properties;
+      pop.setLngLat(e.lngLat).setHTML(
+        `<b>${p.addr}</b><br>${p.kind==="agenda"?"On a ZAB agenda":"Filed with the State"} ${p.when}`
+        +`<br><i>notice of intent, not a count of homes</i>`).addTo(MAP);
+    });
+    MAP.on("mouseleave","now-dot",()=>{MAP.getCanvas().style.cursor="";pop.remove();});
+    MAP.on("click","now-dot",e=>{const p=e.features[0].properties; showParcel(p.apn,p.addr);
+      document.querySelector("#card").scrollIntoView({behavior:"smooth",block:"center"});});
+  }
+  const btn=$("#mb-now");
+  if(btn) btn.textContent=`◼ Upcoming (${feats.length})`;
+}
+
 /* ── 3D map ────────────────────────────────────────────────── */
 const PARCEL_Q=`${GIS}/Public/Portal_Planning/MapServer/6/query`;
 const BOUND_Q =`${GIS}/Public/Portal_Planning/MapServer/8/query`;
 const M_PER_HOME=1.6;             // vertical scale: 1 home = 1.6 m
-let MAP=null, MAPBUILT=false, MAPDATA=null, MAPSTYLE=null;
+let MAP=null, MAPBUILT=false, MAPDATA=null, MAPSTYLE=null, MAPREADY=false;
 
 /* (Re)attach the data layers. Called on first load and again after a theme
    restyle, since setStyle() drops everything the page added. */
@@ -1026,6 +1149,7 @@ function addDataLayers(){
       {type:"circle",paint:{"circle-radius":5,"circle-color":"#F5A623",
         "circle-stroke-width":2,"circle-stroke-color":c("--paper"),"circle-opacity":.95}});
   }
+  MAPREADY=true;
   startAmbient();
 }
 
@@ -1481,6 +1605,7 @@ async function buildMap(){
         const off=b.classList.toggle("off");
         ids.forEach(i=>MAP.getLayer(i)&&MAP.setLayoutProperty(i,"visibility",off?"none":"visible"));};};
       tog("#mb-wait",["wait-3d"]); tog("#mb-built",["built-3d"]); tog("#mb-sites",["sites-f","sites-o"]);
+      tog("#mb-now",["now-dot","now-halo"]);
       $("#mb-reset").onclick=()=>MAP.easeTo({center:[-122.2730,37.8700],zoom:13.4,pitch:58,bearing:-18,duration:900});
 
       /* roads basemap vs topographic contours */
