@@ -321,6 +321,17 @@ h2{font-size:clamp(1.9rem,3.9vw,2.8rem);font-weight:400;margin:0;letter-spacing:
   color:var(--muted);border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:4px}
 .xhead:nth-of-type(even){background:none}
 .xnum{font-family:"Geist Mono",monospace;text-align:right}
+/* Two headline numbers side by side, for the censored-vs-completed comparison. */
+.twoup{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:0 0 4px}
+@media(max-width:620px){.twoup{grid-template-columns:1fr}}
+/* RAND's production-time table. */
+.brow{display:grid;grid-template-columns:1fr 84px 84px 84px;gap:12px;align-items:center;
+  padding:7px 8px;border-radius:3px;font-size:13.5px}
+.brow:nth-of-type(even){background:color-mix(in srgb,var(--ink) 3%,transparent)}
+.bhead{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--muted);border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:4px}
+.bhead:nth-of-type(even){background:none}
+.btot{border-top:1px solid var(--rule);font-weight:500}
 .xflag{font-family:"Geist Mono",monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase}
 .xbad{color:var(--stall)}
 .xdim{color:var(--muted)}
@@ -455,6 +466,29 @@ footer{padding:34px 0 0;font-family:"Geist Mono",monospace;font-size:11px;color:
     <p class="sec-sub">Median duration per stage, with the middle 50% shaded and the 90th percentile marked. Only projects with both dates on record are counted.</p>
     <div class="clock" id="clock"><div class="skel">Computing…</div></div>
     <div class="axis"><div></div><div class="axis-in" id="axis"></div><div></div></div>
+
+    <div class="peers">
+      <h4>The bars above are a floor <span id="censor-state"></span></h4>
+      <p class="peernote">A stage can only be measured on projects that finished it. Every project still
+        waiting for a permit is left out of the bar above, and it is left out precisely because it is slow,
+        so the median of the survivors understates the real wait. The standard fix is to keep the waiting
+        projects in the count until they leave it, which is what the second figure does.</p>
+      <div class="twoup" id="censorbox"></div>
+      <p class="rnote" id="censornote"></p>
+    </div>
+
+    <div class="peers">
+      <h4>What a month costs <span>RAND Corporation, April 2025</span></h4>
+      <p class="peernote">RAND priced production time across 140 completed projects in California, Colorado
+        and Texas. Their California figures are measured the same way as the bar above, on finished projects
+        only, so these are the numbers to compare against Berkeley's approval-to-permit median rather than
+        against the survival-adjusted one.</p>
+      <div class="brow bhead"><span>Average production time</span><span class="xnum">Calif.</span><span class="xnum">Colo.</span><span class="xnum">Texas</span></div>
+      <div class="brow"><span>Predevelopment</span><span class="xnum">27.9</span><span class="xnum">20.9</span><span class="xnum">13.1</span></div>
+      <div class="brow"><span>Construction</span><span class="xnum">21.0</span><span class="xnum">15.9</span><span class="xnum">13.9</span></div>
+      <div class="brow btot"><span>Total, months</span><span class="xnum">48.9</span><span class="xnum">36.8</span><span class="xnum">27.0</span></div>
+      <p class="rnote" id="benchnote"></p>
+    </div>
 
     <div class="peers">
       <h4>Is that normal? <span id="peer-state"></span></h4>
@@ -766,6 +800,63 @@ function stageStats(rows,a,b,label,hot){
   const L=rows.filter(t=>t[a]&&t[b]).map(t=>yrs(t[a],t[b]))
           .filter(v=>v>=0&&v<15).sort((x,y)=>x-y);
   return {label,hot,n:L.length,median:q(L,.5),p25:q(L,.25),p75:q(L,.75),p90:q(L,.9)};
+}
+
+/* Kaplan-Meier. A project that has not got its permit yet is not missing data,
+   it is an observation that has not finished: we know the wait is *at least*
+   this long. Dropping those is right-censoring, and it biases the median down,
+   because the projects that never finish are exactly the slow ones. This keeps
+   them in the denominator until they leave it. Ties are not handled specially;
+   with ~90 distinct dates there are effectively none. */
+function kmMedian(done,waiting){
+  const all=[...done.map(m=>({m,ev:1})),...waiting.map(m=>({m,ev:0}))]
+    .filter(x=>isFinite(x.m)&&x.m>=0).sort((a,b)=>a.m-b.m);
+  let S=1,median=null;
+  for(let i=0;i<all.length;i++){
+    if(all[i].ev!==1) continue;
+    S*=1-1/(all.length-i);
+    if(median===null&&S<=0.5) median=all[i].m;   // keep going: S must run to the end
+  }
+  return {median,surv:S,n:all.length};           // median null => most never finish
+}
+const MONTH=365.2425*864e5/12;
+function renderCensor(){
+  const now=new Date();
+  const big=[...PARCELS.values()].filter(t=>t.units>=5&&t.ent);
+  const done=big.filter(t=>t.bp).map(t=>(t.bp-t.ent)/MONTH).filter(v=>v>=0);
+  const waiting=big.filter(t=>!t.bp&&!t.co).map(t=>(now-t.ent)/MONTH).filter(v=>v>=0);
+  if(!done.length) return;
+  const mid=a=>a.slice().sort((x,y)=>x-y)[Math.floor(a.length/2)];
+  const km=kmMedian(done,waiting), naive=mid(done);
+  const yr=m=>(m/12).toFixed(1);
+  $("#censor-state").textContent=`${big.length} multifamily approvals`;
+  $("#censorbox").innerHTML=`
+    <div class="stat"><div class="v">${yr(naive)}<span style="font-size:.42em"> yr</span></div>
+      <div class="k">Median for the ${done.length} projects<br>that did get a permit</div></div>
+    <div class="stat hot"><div class="v">${km.median?yr(km.median):"—"}<span style="font-size:.42em"> yr</span></div>
+      <div class="k">Median counting the ${waiting.length}<br>still waiting</div></div>`;
+  $("#censornote").innerHTML=`Those ${waiting.length} are <b>${Math.round(100*waiting.length/big.length)}%</b> of every
+    multifamily project Berkeley has approved since 2018, and they have already been waiting a median of
+    <b>${mid(waiting).toFixed(0)} months</b> — the longest <b>${(Math.max(...waiting)/12).toFixed(1)} years</b>.
+    Both figures are above because they answer different questions: the first is how long it took
+    the projects that made it, the second is how long approval to permit actually takes. Only the first is
+    comparable to the neighbouring cities below, which are measured the same way.`;
+  window.__KM_ENT_BP__=km.median;
+}
+function renderBenchNote(){
+  const naive=window.__MED_ENT_BP__?window.__MED_ENT_BP__*12:null;
+  if(!naive) return;
+  $("#benchnote").innerHTML=`Berkeley's approval-to-permit wait alone, <b>${naive.toFixed(1)} months</b>, is longer
+    than the <b>13.1 months</b> a Texas project takes for the whole of predevelopment — every step from concept to
+    breaking ground. RAND estimates each additional month costs <b>$1,284 per home</b> in California, and that
+    cutting the state's timeline to Texas's would save $28,248 a home, 8.2% of total development cost. For scale,
+    municipal impact fees in the San Francisco Bay Area average <b>$30,712 per home</b>, so on these estimates the
+    time Berkeley's approved projects spend waiting costs about what every impact fee combined costs.
+    <span style="color:var(--muted)">Two caveats worth stating: the per-home figure is an association, not a causal
+    estimate, and at p = 0.116 it sits just outside significance at the 90% level, though the per-square-foot
+    version it is derived from is significant at 95%. And the comparison above is against the
+    ${naive.toFixed(1)}-month figure, not the survival-adjusted one, because RAND measured completed projects
+    too.</span>`;
 }
 
 /* ── render ────────────────────────────────────────────────── */
@@ -2233,6 +2324,8 @@ async function buildMap(){
     ];
     window.__MED_ENT_BP__=GROUPS[0].stages[1].median;
     renderClock(GROUPS);
+    renderCensor();
+    renderBenchNote();
 
     const now=new Date();
     /* Only count parcels the City actually approved, which means the ones
