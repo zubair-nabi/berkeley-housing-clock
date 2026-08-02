@@ -50,6 +50,7 @@ approximately; it still appears in section 03.
 | [ZAB agendas](https://berkeleyca.gov/your-government/boards-commissions/zoning-adjustments-board) | What the board is hearing next | PDFs parsed in CI into `data/zab.json` |
 | [CEQAnet](https://ceqanet.lci.ca.gov/) | Environmental filings, City and UC | HTML fetched live in the browser |
 | [BART GTFS](https://www.bart.gov/dev/schedules/google_transit.zip) | Richmond line alignment and stations | Extracted once into `geo/bart.json` |
+| [OpenStreetMap via Overpass](https://overpass-api.de/) | AC Transit bus routes, weighted by how many routes share each street | Extracted once into `geo/bus.json` |
 | [OpenFreeMap](https://openfreemap.org) / OpenStreetMap | Basemap vector tiles | Live |
 | Mapzen / AWS terrain tiles | Elevation for 3D terrain and hillshade | Live |
 
@@ -118,8 +119,12 @@ HCD allows any origin, but the cached `geo/` files need to be served over HTTP.
 
 ## Refreshing the cached geometry
 
-`geo/` holds parcel polygons, Housing Element sites, the city boundary and the BART
-alignment. To rebuild it, query Berkeley's ArcGIS server for the parcels whose
+`geo/` holds parcel polygons, Housing Element sites, the city boundary, the BART
+alignment and the AC Transit network. AC Transit's own API needs a token and the
+GTFS aggregators need keys, so the bus geometry comes from OpenStreetMap through
+Overpass, which needs neither. Each segment carries `n`, the number of routes that
+use it, which is what makes the trunk corridors draw heavier than a residential
+loop. To rebuild it, query Berkeley's ArcGIS server for the parcels whose
 `APN_SORT` matches the APNs in the current HCD extract, in small batches with a
 pause between them. `APN_SORT` is byte identical to HCD's `APN` field, which is what
 makes the join work at all; the parcel layer's own `APN` column uses a different

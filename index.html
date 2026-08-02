@@ -414,6 +414,7 @@ footer{padding:34px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;col
         <button id="mb-wait">◼ Waiting</button>
         <button id="mb-built">◼ Built</button>
         <button id="mb-sites">◼ Sites</button>
+        <button id="mb-transit">◼ Transit</button>
         <button id="mb-now">◼ Upcoming</button>
         <button id="mb-topo">◻ Topo</button>
         <button id="mb-terrain">◼ Terrain</button>
@@ -424,7 +425,8 @@ footer{padding:34px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;col
         <span><i style="background:var(--stall)"></i>Approved, not built</span><br>
         <span><i style="background:var(--s2)"></i>Completed</span><br>
         <span><i style="background:var(--muted);opacity:.5"></i>Housing element site</span><br>
-        <span><i style="background:#F5A623"></i>BART, real alignment</span><br>
+        <span><i style="background:#7FA8B8"></i>AC Transit, heavier = more routes</span><br>
+        <span><i style="background:#F5A623"></i>BART and its stations</span><br>
         <span><i style="background:#F5A623;border-radius:50%"></i>On an agenda or newly filed</span>
       </div>
     </div>
@@ -1146,8 +1148,25 @@ function addDataLayers(){
   }
   if(MAPDATA.bartSt){
     add("bart-st",{id:"bartst",data:MAPDATA.bartSt},
-      {type:"circle",paint:{"circle-radius":5,"circle-color":"#F5A623",
-        "circle-stroke-width":2,"circle-stroke-color":c("--paper"),"circle-opacity":.95}});
+      {type:"symbol",
+       layout:{"icon-image":"station","icon-allow-overlap":true,
+               "icon-size":["interpolate",["linear"],["zoom"],11,.45,16,1],
+               "text-field":["get","name"],"text-font":["Noto Sans Regular"],
+               "text-offset":[0,1.5],"text-anchor":"top","text-size":10.5,
+               "text-letter-spacing":.06,"text-optional":true},
+       paint:{"text-color":"#F5A623","text-halo-color":c("--paper"),"text-halo-width":1.4}});
+  }
+
+  /* AC Transit, weighted by how many routes share each street, so the trunk
+     corridors read heavier than a residential loop. Drawn under BART. */
+  if(MAPDATA.bus){
+    add("bus-l",{id:"bus",data:MAPDATA.bus},
+      {type:"line",layout:{"line-cap":"round","line-join":"round"},
+       paint:{"line-color":"#7FA8B8",
+              "line-opacity":["interpolate",["linear"],["get","n"],1,.28,6,.5,12,.7],
+              "line-width":["interpolate",["linear"],["zoom"],
+                 11,["interpolate",["linear"],["get","n"],1,.4,6,1.2,20,2.4],
+                 16,["interpolate",["linear"],["get","n"],1,1.2,6,3.2,20,6]]}});
   }
   MAPREADY=true;
   startAmbient();
@@ -1310,6 +1329,31 @@ function startAmbient(){
         x.beginPath(); x.arc(w-2.6,y+5.2,.85,0,Math.PI*2); x.fill();
       }
     }
+    x.restore();
+  });
+
+  sprite("station",28,28,(x)=>{
+    x.save(); x.translate(14,14);
+    x.beginPath(); x.arc(0,0,11,0,Math.PI*2);            // amber halo
+    x.fillStyle="rgba(245,166,35,.22)"; x.fill();
+    x.beginPath(); x.arc(0,0,8.2,0,Math.PI*2);           // white disc, amber ring
+    x.fillStyle="#F7F3EA"; x.fill();
+    x.lineWidth=2.2; x.strokeStyle="#F5A623"; x.stroke();
+    // train car glyph: body, windscreen band, two lamps
+    x.fillStyle="#20242B";
+    const w=4.6,hh=6.2,r=1.5;
+    x.beginPath();
+    x.moveTo(-w+r,-hh); x.lineTo(w-r,-hh); x.quadraticCurveTo(w,-hh,w,-hh+r);
+    x.lineTo(w,hh-r); x.quadraticCurveTo(w,hh,w-r,hh);
+    x.lineTo(-w+r,hh); x.quadraticCurveTo(-w,hh,-w,hh-r);
+    x.lineTo(-w,-hh+r); x.quadraticCurveTo(-w,-hh,-w+r,-hh);
+    x.closePath(); x.fill();
+    x.fillStyle="#F7F3EA";
+    x.fillRect(-3.2,-4.4,6.4,2.6);                        // windscreen
+    x.fillRect(-3.2,-0.6,2.4,2.0); x.fillRect(0.8,-0.6,2.4,2.0);
+    x.fillStyle="rgba(255,235,180,.95)";
+    x.beginPath(); x.arc(-2.6,4.6,.85,0,Math.PI*2); x.fill();
+    x.beginPath(); x.arc(2.6,4.6,.85,0,Math.PI*2); x.fill();
     x.restore();
   });
 
@@ -1546,9 +1590,9 @@ async function buildMap(){
          make every visitor re-query it. Live fetch is the fallback only. */
       const cached=async p=>{try{const r=await fetch(p);return r.ok?await r.json():null;}catch{return null;}};
       ms.textContent="Loading parcels…";
-      let [bound,sites,parcels,bart,bartSt]=await Promise.all([
+      let [bound,sites,parcels,bart,bartSt,bus]=await Promise.all([
         cached("geo/boundary.json"), cached("geo/sites.json"), cached("geo/parcels.json"),
-        cached("geo/bart.json"), cached("geo/bart_stations.json")]);
+        cached("geo/bart.json"), cached("geo/bart_stations.json"), cached("geo/bus.json")]);
       let live=false;
 
       const waitAPNs =WAIT.map(t=>t.raw).filter(Boolean);
@@ -1583,7 +1627,7 @@ async function buildMap(){
       })});
 
       /* keep the decorated data so the layers can be re-added after a restyle */
-      MAPDATA={bound,sites,bart,bartSt,built:deco(pb,"built"),wait:deco(pw,"wait")};
+      MAPDATA={bound,sites,bart,bartSt,bus,built:deco(pb,"built"),wait:deco(pw,"wait")};
       addDataLayers();
 
       const pop=new maplibregl.Popup({closeButton:false,closeOnClick:false,offset:8});
@@ -1606,6 +1650,7 @@ async function buildMap(){
         ids.forEach(i=>MAP.getLayer(i)&&MAP.setLayoutProperty(i,"visibility",off?"none":"visible"));};};
       tog("#mb-wait",["wait-3d"]); tog("#mb-built",["built-3d"]); tog("#mb-sites",["sites-f","sites-o"]);
       tog("#mb-now",["now-dot","now-halo"]);
+      tog("#mb-transit",["bus-l","bart-glow","bart-line","bart-st"]);
       $("#mb-reset").onclick=()=>MAP.easeTo({center:[-122.2730,37.8700],zoom:13.4,pitch:58,bearing:-18,duration:900});
 
       /* roads basemap vs topographic contours */
