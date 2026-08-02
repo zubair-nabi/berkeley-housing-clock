@@ -425,7 +425,7 @@ footer{padding:34px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;col
         <span><i style="background:var(--stall)"></i>Approved, not built</span><br>
         <span><i style="background:var(--s2)"></i>Completed</span><br>
         <span><i style="background:var(--muted);opacity:.5"></i>Housing element site</span><br>
-        <span><i style="background:#7FA8B8"></i>AC Transit, heavier = more routes</span><br>
+        <span><i style="background:#3E6B78"></i>AC Transit, heavier = more routes</span><br>
         <span><i style="background:#F5A623"></i>BART and its stations</span><br>
         <span><i style="background:#F5A623;border-radius:50%"></i>On an agenda or newly filed</span>
       </div>
@@ -1160,9 +1160,11 @@ function addDataLayers(){
   /* AC Transit, weighted by how many routes share each street, so the trunk
      corridors read heavier than a residential loop. Drawn under BART. */
   if(MAPDATA.bus){
+    const isDark=(document.documentElement.getAttribute("data-theme")
+      ||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"))==="dark";
     add("bus-l",{id:"bus",data:MAPDATA.bus},
       {type:"line",layout:{"line-cap":"round","line-join":"round"},
-       paint:{"line-color":"#7FA8B8",
+       paint:{"line-color":isDark?"#3E6B78":"#5E8494",
               "line-opacity":["interpolate",["linear"],["get","n"],1,.28,6,.5,12,.7],
               "line-width":["interpolate",["linear"],["zoom"],
                  11,["interpolate",["linear"],["get","n"],1,.4,6,1.2,20,2.4],
@@ -1332,6 +1334,31 @@ function startAmbient(){
     x.restore();
   });
 
+  sprite("bus",16,34,(x)=>{
+    x.save(); x.translate(8,17);
+    const w=4.4,L=12,r=1.8;
+    x.beginPath();
+    x.moveTo(-w+r,-L); x.quadraticCurveTo(0,-L-1.4,w-r,-L);
+    x.quadraticCurveTo(w,-L,w,-L+r); x.lineTo(w,L-r);
+    x.quadraticCurveTo(w,L,w-r,L); x.lineTo(-w+r,L);
+    x.quadraticCurveTo(-w,L,-w,L-r); x.lineTo(-w,-L+r);
+    x.quadraticCurveTo(-w,-L,-w+r,-L); x.closePath();
+    const g=x.createLinearGradient(-w,0,w,0);
+    g.addColorStop(0,"#5C6B72"); g.addColorStop(.4,"#C9D3D7");
+    g.addColorStop(.75,"#A8B5BB"); g.addColorStop(1,"#5C6B72");
+    x.fillStyle=g; x.fill();
+    x.strokeStyle="rgba(16,14,11,.6)"; x.lineWidth=.8; x.stroke();
+    x.fillStyle="rgba(24,30,38,.82)";
+    x.beginPath(); x.moveTo(-w+1.1,-L+1.6); x.quadraticCurveTo(0,-L+.3,w-1.1,-L+1.6);
+    x.lineTo(w-1.4,-L+3.4); x.lineTo(-w+1.4,-L+3.4); x.closePath(); x.fill();
+    for(let i=0;i<4;i++){ x.fillRect(-w+1.0,-L+5.4+i*4.1,1.1,2.6);
+                          x.fillRect(w-2.1,-L+5.4+i*4.1,1.1,2.6); }
+    x.fillStyle="rgba(255,238,190,.9)";
+    x.beginPath(); x.arc(-w+1.5,-L+1.2,.7,0,Math.PI*2); x.fill();
+    x.beginPath(); x.arc(w-1.5,-L+1.2,.7,0,Math.PI*2); x.fill();
+    x.restore();
+  });
+
   sprite("station",28,28,(x)=>{
     x.save(); x.translate(14,14);
     x.beginPath(); x.arc(0,0,11,0,Math.PI*2);            // amber halo
@@ -1362,7 +1389,7 @@ function startAmbient(){
   const fc=f=>({type:"FeatureCollection",features:f});
   const pt=(x,y,p)=>({type:"Feature",properties:p||{},geometry:{type:"Point",coordinates:[x,y]}});
 
-  src("boats",fc([])); src("birds",fc([])); src("train",fc([]));
+  src("boats",fc([])); src("birds",fc([])); src("train",fc([])); src("buses",fc([]));
   if(!MAP.getLayer("wake-l")) MAP.addLayer({id:"wake-l",type:"circle",source:"boats",
     paint:{"circle-radius":["interpolate",["linear"],["zoom"],10,4,15,12],
            "circle-color":"#FFFFFF","circle-opacity":.10,"circle-blur":.6}});
@@ -1376,6 +1403,10 @@ function startAmbient(){
             "icon-rotate":["get","hdg"],
             "icon-size":["interpolate",["linear"],["zoom"],10,.28,15,.62]},
     paint:{"icon-opacity":["get","o"]}});
+  if(!MAP.getLayer("buses-l")) MAP.addLayer({id:"buses-l",type:"symbol",source:"buses",
+    layout:{"icon-image":"bus","icon-allow-overlap":true,"icon-rotation-alignment":"map",
+            "icon-rotate":["get","hdg"],
+            "icon-size":["interpolate",["linear"],["zoom"],12,.3,16,.75]}});
   if(!MAP.getLayer("train-l")) MAP.addLayer({id:"train-l",type:"symbol",source:"train",
     layout:{"icon-image":"train","icon-allow-overlap":true,"icon-rotation-alignment":"map",
             "icon-rotate":["get","hdg"],
@@ -1404,6 +1435,21 @@ function startAmbient(){
     }
     return {along:cum[best],off:bd};
   }).filter(s=>s.off<150).map(s=>s.along).sort((a,b)=>a-b);
+
+  /* Buses run along the highest-frequency street segments. These are individual
+     streets rather than whole routes, so a bus traverses one and reappears at
+     the other end; the point is movement on the corridors that carry the
+     network, not simulated service. */
+  const BUS_MPS=8;                              // about 18 mph, a city bus in traffic
+  const busPaths=((MAPDATA.bus&&MAPDATA.bus.features)||[])
+    .filter(f=>f.properties.n>=6 && f.geometry.coordinates.length>=4)
+    .map(f=>f.geometry.coordinates)
+    .sort((a,b)=>b.length-a.length).slice(0,10);
+  const buses=busPaths.map((p,i)=>({p, d:(i*0.13)%1, dir:i%2?1:-1}));
+  const pathLen=p=>{let t=0;const c=[0];
+    for(let i=1;i<p.length;i++){t+=Math.hypot((p[i][0]-p[i-1][0])*M_LON,(p[i][1]-p[i-1][1])*M_LAT);c.push(t);}
+    return {t,c};};
+  buses.forEach(b=>{const{t,c}=pathLen(b.p); b.len=t; b.cum=c;});
 
   const TRAIN_MPS=25, DWELL=2.2, ACCEL=280;   // m/s, seconds at a platform, m of ramp
   let dist=0, dwellLeft=0, lastStop=-1, prev=null;
@@ -1440,6 +1486,22 @@ function startAmbient(){
       return pt(b.x,b.y,{icon:"gull"+frame, o:.72+.18*Math.abs(Math.sin(clock*b.flap+b.ph)),
                          hdg:bearing([px,py],[b.x,b.y])});
     })));
+
+    if(buses.length){
+      src("buses",fc(buses.map(b=>{
+        b.d+=(BUS_MPS*dt*b.dir)/Math.max(b.len,1);
+        /* turn around at the end of the corridor rather than wrapping, which
+           would read as the bus teleporting back to where it started */
+        if(b.d>1){ b.d=1; b.dir=-1; }
+        if(b.d<0){ b.d=0; b.dir=1; }
+        const want=b.d*b.len;
+        let i=b.cum.findIndex(c=>c>want)-1; if(i<0) i=0;
+        const f=(want-b.cum[i])/Math.max(b.cum[i+1]-b.cum[i],1e-9);
+        const a=b.p[i], q=b.p[Math.min(i+1,b.p.length-1)];
+        return pt(a[0]+(q[0]-a[0])*f, a[1]+(q[1]-a[1])*f,
+                  {hdg:b.dir>0?bearing(a,q):bearing(q,a)});
+      })));
+    }
 
     if(path&&path.length>1&&total>0){
       if(dwellLeft>0){ dwellLeft-=real; }   // dwell is a visible pause, not scaled
