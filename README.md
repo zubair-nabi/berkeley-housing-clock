@@ -12,9 +12,9 @@ a browser is not allowed to read.
 ## What it shows
 
 Berkeley approves an apartment building in a median of about **6 months**, then it
-waits roughly **1.6 years** for a building permit. Around **3,594 approved homes**
-currently have no building permit on record, and of the homes approved between 2018
-and 2021, **32% still have no permit** four or more years later.
+waits roughly **1.6 years** for a building permit. Around **3,243 approved homes**
+currently have no building permit on record and were never occupied, and of the homes
+approved between 2018 and 2021, **22% are still in that state** four or more years later.
 
 Against its state allocation, Berkeley has permitted **30% of its market-rate
 target and 10% of its combined affordable target** over the three years of the
@@ -89,9 +89,11 @@ that half stays live.
 
 - **HCD data reaches CY2025.** Reports are filed each April for the prior year, so
   nothing from 2026 appears in the state file until roughly April 2027.
-- **The state file drops real filings.** Some completions Berkeley filed are absent
-  from the state copy, so a project shown as "waiting" may hold a permit that was
-  never reported upward. Corrections are welcome.
+- **The state file drops real filings**, in both directions. Some completions Berkeley
+  filed are absent from the state copy, and some occupied buildings have no permit
+  recorded at all. A completion therefore overrides a missing permit everywhere on
+  this page: a building people live in is not waiting to be built. A project shown as
+  waiting may still hold a permit that was never reported upward. Corrections welcome.
 - **We can rarely say why a project is stalled.** Financing, interest rates and
   construction costs are in no public dataset. Where the record gives a reason, such
   as an incomplete financing stack or a closed application, it is shown.
