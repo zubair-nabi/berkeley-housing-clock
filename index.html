@@ -127,6 +127,30 @@ h2{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:900;margin:0;letter-spacing:
 .ctitle{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;
   color:var(--ink);border-bottom:1px solid var(--rule);padding:0 10px 7px;margin-bottom:6px;font-weight:600}
 .ctitle span{float:right;color:var(--muted);font-weight:400;letter-spacing:.08em}
+.peers{margin-top:34px;padding-top:22px;border-top:1px solid var(--rule)}
+.peers h4,.findings h4{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink);margin:0 0 8px;font-weight:600}
+.peers h4 span{color:var(--muted);font-weight:400;letter-spacing:.06em;text-transform:none;margin-left:8px}
+.peernote{font-size:14px;color:var(--ink-2);max-width:64ch;margin:0 0 18px}
+.peer{display:grid;grid-template-columns:126px 1fr 62px 92px;gap:14px;align-items:center;padding:6px 0;font-size:13.5px}
+.peer.me{font-weight:600}
+.peer.hd{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);border-bottom:1px solid var(--rule);padding-bottom:7px;margin-bottom:4px}
+.ptrack{position:relative;height:15px;background:var(--grid);border-radius:3px;overflow:hidden}
+.pfill{position:absolute;left:0;top:0;height:100%;border-radius:0 4px 4px 0;background:var(--s2)}
+.peer.me .pfill{background:var(--stall)}
+.pval{font-family:"IBM Plex Mono",monospace;font-size:13px;text-align:right}
+.pstall{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);text-align:right}
+.findings{margin-top:34px;padding-top:22px;border-top:1px solid var(--rule)}
+.finding{display:grid;grid-template-columns:132px 1fr;gap:20px;padding:14px 0;border-bottom:1px solid var(--grid);align-items:baseline}
+.finding:last-child{border-bottom:none}
+.fnum{font-family:"Fraunces",serif;font-size:2rem;font-weight:900;letter-spacing:-.03em;color:var(--stall);line-height:1}
+.fnum em{display:block;font-family:"IBM Plex Mono",monospace;font-size:9.5px;font-style:normal;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:5px;font-weight:400}
+.ftext{font-size:14.5px;color:var(--ink-2);line-height:1.55}
+.ftext b{color:var(--ink);font-weight:600}
+@media(max-width:820px){.peer{grid-template-columns:96px 1fr 54px}.pstall{display:none}
+  .finding{grid-template-columns:1fr;gap:8px}}
 .corr{display:grid;grid-template-columns:150px 1fr 96px;gap:14px;align-items:center;padding:8px 10px;border-radius:3px}
 .corr:hover{background:var(--card)}
 .corr.hd{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
@@ -347,6 +371,13 @@ footer{padding:34px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;col
     <p class="sec-sub">Median duration per stage, with the middle 50% shaded and the 90th percentile marked. Only projects with both dates on record are counted.</p>
     <div class="clock" id="clock"><div class="skel">Computing…</div></div>
     <div class="axis"><div></div><div class="axis-in" id="axis"></div><div></div></div>
+
+    <div class="peers">
+      <h4>Is that normal? <span id="peer-state"></span></h4>
+      <p class="peernote">The same measurement, run against neighbouring cities' filings to the same State
+        database. Without a baseline there is no way to know whether 1.6 years is slow.</p>
+      <div id="peerlist"></div>
+    </div>
   </section>
 
   <section>
@@ -446,6 +477,11 @@ footer{padding:34px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;col
     </div>
     <div class="years" id="years"></div>
     <div class="ylabels" id="ylabels"></div>
+
+    <div class="findings">
+      <h4>Three things the same file says, that nobody prints</h4>
+      <div id="findlist"></div>
+    </div>
   </section>
 
   <section>
@@ -941,6 +977,102 @@ async function showParcel(apn,addr,gis){
     ${t.co?`<div class="verdict" style="border-color:var(--s2);background:none"><b>Completed.</b> Took
        ${t.app&&t.co?yrs(t.app,t.co).toFixed(1):"-"} years from first application to occupancy.</div>`:""}
     ${nowLine}${siteLine}`;
+}
+
+/* ── peers and findings ─────────────────────────────────────
+   The peer run is the same measurement against neighbouring cities' filings to
+   the same database. It loads after the page has rendered, because it is five
+   more queries and nothing above it should wait on them. */
+const PEERS=["OAKLAND","ALAMEDA","EMERYVILLE","ALBANY","SAN LEANDRO"];
+async function renderPeers(){
+  const el=$("#peerlist"); if(!el) return;
+  const cols="APN,NO_ENTITLEMENTS,NO_BUILDING_PERMITS,ENT_APPROVE_DT1,BP_ISSUE_DT1";
+  const measure=recs=>{
+    const P=new Map();
+    for(const r of recs){
+      const k=(r.APN||"").trim(); if(!k) continue;
+      const t=P.get(k)||{u:0,ent:null,bp:null};
+      t.u=Math.max(t.u,num(r.NO_ENTITLEMENTS),num(r.NO_BUILDING_PERMITS));
+      for(const [s,kk] of [["ENT_APPROVE_DT1","ent"],["BP_ISSUE_DT1","bp"]]){
+        const d=pdate(r[s]); if(d&&(!t[kk]||d<t[kk])) t[kk]=d;
+      }
+      P.set(k,t);
+    }
+    const big=[...P.values()].filter(t=>t.u>=5), ent=big.filter(t=>t.ent);
+    const lag=ent.filter(t=>t.bp).map(t=>yrs(t.ent,t.bp))
+      .filter(v=>v>=0&&v<15).sort((a,b)=>a-b);
+    const uAll=ent.reduce((a,t)=>a+t.u,0), uStuck=ent.filter(t=>!t.bp).reduce((a,t)=>a+t.u,0);
+    return {n:lag.length, projects:ent.length,
+            median: lag.length? lag[Math.floor(lag.length/2)] : null,
+            stalled: uAll? uStuck/uAll : null};
+  };
+  const rows=[];
+  try{
+    const me=measure([...PARCELS.values()].length ? await (async()=>{
+      const u=`${CKAN}?resource_id=${RES_A2}&limit=10000&fields=${encodeURIComponent(cols)}`
+        +`&filters=${encodeURIComponent(JSON.stringify({JURIS_NAME:"BERKELEY"}))}`;
+      return (await (await fetch(u)).json()).result.records; })() : []);
+    rows.push({city:"Berkeley", me:true, ...me});
+    for(const c of PEERS){
+      const u=`${CKAN}?resource_id=${RES_A2}&limit=10000&fields=${encodeURIComponent(cols)}`
+        +`&filters=${encodeURIComponent(JSON.stringify({JURIS_NAME:c}))}`;
+      const recs=(await (await fetch(u)).json()).result.records;
+      const m=measure(recs);
+      if(m.median!=null&&m.n>=3)
+        rows.push({city:c.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase()), ...m});
+    }
+  }catch(e){ el.innerHTML=`<div class="peer" style="color:var(--muted)">Peer data unavailable.</div>`; return; }
+
+  rows.sort((a,b)=>a.median-b.median);
+  const max=Math.max(...rows.map(r=>r.median));
+  $("#peer-state").textContent=`${rows.length} cities, same database`;
+  el.innerHTML=`<div class="peer hd"><span>City</span><span>Median approval to permit</span>
+      <span style="text-align:right">Years</span><span style="text-align:right">Homes stalled</span></div>`
+    + rows.map(r=>`<div class="peer${r.me?" me":""}">
+        <span>${r.city}</span>
+        <span class="ptrack"><i class="pfill" style="width:${r.median/max*100}%"></i></span>
+        <span class="pval">${r.median.toFixed(2)}</span>
+        <span class="pstall">${Math.round(r.stalled*100)}%</span>
+      </div>`).join("");
+  document.querySelectorAll("#peerlist .peer:not(.hd)").forEach((elx,i)=>{
+    const r=rows[i];
+    hover(elx,`<b>${r.city}</b><br>median ${r.median.toFixed(2)} yr from approval to permit<br>`+
+              `${r.projects} multifamily approvals, n=${r.n} with both dates<br>`+
+              `${Math.round(r.stalled*100)}% of approved homes have no permit`);
+  });
+  const me=rows.find(r=>r.me), rank=rows.indexOf(me)+1;
+  $(".peernote").innerHTML=`The same measurement, run against neighbouring cities' filings to the same
+    State database. Berkeley sits <b>${rank}${["st","nd","rd"][rank-1]||"th"} of ${rows.length}</b>,
+    slower than Oakland and faster than Alameda and Emeryville. Without a baseline there is no way to
+    know whether 1.6 years is slow.`;
+}
+
+/* Three things sitting in fields the rest of the page never reads. */
+function renderFindings(A2){
+  const S=f=>A2.reduce((a,r)=>a+num(r[f]),0);
+  const entAll=S("NO_ENTITLEMENTS"), bpAll=S("NO_BUILDING_PERMITS");
+  const dbUnits=A2.filter(r=>(r.DR_TYPE||"").includes("DB")).reduce((a,r)=>a+num(r.NO_ENTITLEMENTS),0);
+  const cat={}; for(const r of A2){const c=(r.UNIT_CAT||"?").trim()||"?"; cat[c]=(cat[c]||0)+num(r.NO_BUILDING_PERMITS);}
+  const adu=cat["ADU"]||0;
+  const ten={}; for(const r of A2){const t=(r.TENURE||"").trim(); if(t) ten[t]=(ten[t]||0)+num(r.NO_BUILDING_PERMITS);}
+  const rent=ten["Renter"]||0, own=ten["Owner"]||0;
+  const demo=S("DEM_DES_UNITS")||S("DEM_OR_DES_UNITS");
+  const items=[
+    {v:Math.round(100*dbUnits/entAll)+"%", k:"of approved homes",
+     t:`<b>${fmt(dbUnits)} of ${fmt(entAll)} approved homes</b> came through a density bonus, the state
+        provision that lets a builder exceed local limits in exchange for affordable units. Three
+        quarters of Berkeley's approved housing depends on a rule the City did not write.`},
+    {v:Math.round(100*adu/bpAll)+"%", k:"of permits issued",
+     t:`<b>${fmt(adu)} of ${fmt(bpAll)} permitted homes</b> are accessory dwelling units, backyard
+        cottages and conversions. Against ${fmt(cat["5+"]||0)} in buildings of five or more, roughly a
+        fifth of what Berkeley permits is someone extending their own lot.`},
+    {v:Math.round(100*rent/(rent+own))+"%", k:"built to rent",
+     t:`<b>${fmt(rent)} rental homes against ${fmt(own)} for ownership.</b> Whatever else is
+        contested about Berkeley housing, almost none of what gets built is for sale. The same file
+        also records <b>${fmt(demo)} homes demolished</b>, so net completions are ${fmt(S("NO_OTHER_FORMS_OF_READINESS")-demo)}, not ${fmt(S("NO_OTHER_FORMS_OF_READINESS"))}.`}
+  ];
+  $("#findlist").innerHTML=items.map(i=>
+    `<div class="finding"><span class="fnum">${i.v}<em>${i.k}</em></span><span class="ftext">${i.t}</span></div>`).join("");
 }
 
 /* ── what is happening now ─────────────────────────────────
@@ -1886,6 +2018,8 @@ async function buildMap(){
     renderTiers(A2,cycleYears);
     renderSiteCheck();
     renderNow();
+    renderFindings(A2);
+    renderPeers();
     buildMap();
 
     const years=Y.map(y=>y.year), lastY=years[years.length-1];
