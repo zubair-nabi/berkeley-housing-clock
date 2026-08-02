@@ -13,7 +13,11 @@ Open `index.html` and it fetches its own data.
 Berkeley approves an apartment building in a median of about **6 months**, then it
 waits roughly **1.6 years** for a building permit. Around **3,594 approved homes**
 currently have no building permit on record, and of the homes approved between 2018
-and 2021, **43% still have no permit** four or more years later.
+and 2021, **32% still have no permit** four or more years later.
+
+Against its state allocation, Berkeley has permitted **30% of its market-rate
+target and 10% of its combined affordable target** over the three years of the
+cycle the State has published.
 
 - **Address lookup** matches any Berkeley address to its parcel number, then to
   every housing record the State holds for that parcel.
@@ -60,8 +64,14 @@ that half stays live.
 - **We can rarely say why a project is stalled.** Financing, interest rates and
   construction costs are in no public dataset. Where the record gives a reason, such
   as an incomplete financing stack or a closed application, it is shown.
-- **Projects still under review are excluded** from the waiting room. Counting them
-  would overstate the figure by about 40%.
+- **Projects still under review are excluded** everywhere, not just from the waiting
+  room. A project the City has not decided on is not stalled. Counting them would
+  overstate the waiting room by about 40%, and the same filter is applied to the
+  corridor table, the attrition figure and the map so that "stalled" means one thing
+  throughout.
+- **The scoreboard paces against published years, not the calendar.** Permits exist
+  for 2023 to 2025; 2026 will not appear until HCD publishes in April 2027. Pacing
+  to today's date would make every bar look further behind than the record shows.
 - **UC Berkeley is not in this data.** Roughly 2,150 student beds are exempt from
   city permitting and appear in no source used here.
 - **The map covers about 86% of waiting homes.** Some parcel numbers in the state
