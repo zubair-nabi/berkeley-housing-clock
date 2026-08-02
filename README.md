@@ -36,6 +36,11 @@ cycle the State has published.
   reappearing before the board is flagged.
 - **The scoreboard** tracks progress against Berkeley's 8,934 home state allocation.
 
+Agenda items and filings are matched back to parcels by case number, so they also
+appear as markers on the map and as a "coming up" block in the address lookup. An
+item that cannot be tied to a known parcel is left off the map rather than placed
+approximately; it still appears in section 03.
+
 ## Sources
 
 | Source | Used for | Access |
