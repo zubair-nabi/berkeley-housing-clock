@@ -5,8 +5,9 @@ housing is never built at all.
 
 **Live: https://zubair-nabi.github.io/berkeley-housing-clock/**
 
-A single static HTML file. No build step, no framework, no API keys, no server.
-Open `index.html` and it fetches its own data.
+A single static HTML page. No framework, no API keys, no server. Most of it fetches
+its own data in the browser; one scheduled job parses the City's agenda PDFs, which
+a browser is not allowed to read.
 
 ## What it shows
 
@@ -29,6 +30,10 @@ cycle the State has published.
 - **Where it is stuck** breaks the same figure down by street.
 - **The skyline that isn't there** draws every approved-but-unbuilt project on its
   real parcel, extruded by the number of homes it would contain.
+- **What is happening now** is the only current section: upcoming ZAB agendas and
+  environmental filings from the State clearinghouse, both reaching into 2026. Case
+  numbers found there are matched against the waiting room, so a stalled project
+  reappearing before the board is flagged.
 - **The scoreboard** tracks progress against Berkeley's 8,934 home state allocation.
 
 ## Sources
@@ -37,12 +42,26 @@ cycle the State has published.
 |---|---|---|
 | [HCD Annual Progress Reports](https://data.ca.gov/dataset/housing-element-annual-progress-report-apr-data-by-jurisdiction-and-year) | Applications, approvals, permits, completions, affordability | CKAN API, fetched live in the browser |
 | [Berkeley GIS](https://gis.cityofberkeley.info/arcgis/rest/services) | 62,000 address points, parcels, Housing Element sites, city boundary | ArcGIS REST, live for lookup and cached in `geo/` for the map |
+| [ZAB agendas](https://berkeleyca.gov/your-government/boards-commissions/zoning-adjustments-board) | What the board is hearing next | PDFs parsed in CI into `data/zab.json` |
+| [CEQAnet](https://ceqanet.lci.ca.gov/) | Environmental filings, City and UC | HTML fetched live in the browser |
 | [BART GTFS](https://www.bart.gov/dev/schedules/google_transit.zip) | Richmond line alignment and stations | Extracted once into `geo/bart.json` |
 | [OpenFreeMap](https://openfreemap.org) / OpenStreetMap | Basemap vector tiles | Live |
 | Mapzen / AWS terrain tiles | Elevation for 3D terrain and hillshade | Live |
 
 Everything derives from HCD's filings and Berkeley's own GIS. Every figure on the
 page is computed in the browser at load time from those records, not hand entered.
+
+### Why ZAB is built in CI but CEQAnet is not
+
+CEQAnet sends `Access-Control-Allow-Origin: *`, so the browser can fetch and parse
+it directly and the section is genuinely live. `berkeleyca.gov` sends no CORS header
+at all, so a browser cannot read the agenda PDFs however it asks. Those are parsed
+by `tools/fetch_zab.py` in a scheduled GitHub Action, twice a week, which commits
+`data/zab.json`. The Brown Act requires an agenda 72 hours before a meeting and ZAB
+meets about monthly, so twice a week catches every agenda with room to spare.
+
+The workflow refuses to commit if it parses fewer than three meetings or finds no
+case numbers at all, so a broken parse cannot silently replace good data.
 
 ### Why `geo/` is cached rather than fetched live
 
