@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-02T03:08:42Z",
+ "generated": "2026-08-02T03:14:23Z",
  "source": "https://berkeleyca.gov/your-government/boards-commissions/zoning-adjustments-board",
  "note": "Parsed from Berkeley's published ZAB agenda PDFs. Case numbers and addresses are extracted text, not a City data feed.",
  "meetings": [
@@ -44,7 +44,7 @@
     "1522 Josephine St"
    ],
    "maxUnitsMentioned": null,
-   "chars": 12778
+   "chars": 12779
   },
   {
    "date": "2026-04-09",
