@@ -1,0 +1,255 @@
+{
+ "generated": "2026-08-02T03:08:42Z",
+ "source": "https://berkeleyca.gov/your-government/boards-commissions/zoning-adjustments-board",
+ "note": "Parsed from Berkeley's published ZAB agenda PDFs. Case numbers and addresses are extracted text, not a City data feed.",
+ "meetings": [
+  {
+   "date": "2026-07-09",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2026-07-09_ZAB_Agenda_Linked.pdf",
+   "cases": [
+    "ZP2025-0056",
+    "ZP2024-0058"
+   ],
+   "addresses": [
+    "841 Folger Ave",
+    "2614 Telegraph Ave",
+    "2417 Carleton St",
+    "2700 Shattuck Ave"
+   ],
+   "maxUnitsMentioned": 359,
+   "chars": 13513
+  },
+  {
+   "date": "2026-06-11",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2026-06-11_ZAB_Agenda_Linked_revised.pdf",
+   "cases": [
+    "ZP2025-0084"
+   ],
+   "addresses": [
+    "2620 Telegraph Ave",
+    "2616 Telegraph Ave"
+   ],
+   "maxUnitsMentioned": null,
+   "chars": 11436
+  },
+  {
+   "date": "2026-05-14",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2026-05-14_ZAB_Agenda_Linked.pdf",
+   "cases": [
+    "ZP2025-0103",
+    "ZP2025-0014"
+   ],
+   "addresses": [
+    "1101 University Ave",
+    "1522 Josephine St"
+   ],
+   "maxUnitsMentioned": null,
+   "chars": 12778
+  },
+  {
+   "date": "2026-04-09",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2026-04-09_ZAB_Agenda_Linked.pdf",
+   "cases": [
+    "ZP2025-0113",
+    "ZP2022-0135",
+    "ZP2025-0105",
+    "ZP2022-0179",
+    "ZP2025-0096"
+   ],
+   "addresses": [
+    "2128 Oxford St",
+    "2712 Telegraph Ave",
+    "830 Bancroft Way"
+   ],
+   "maxUnitsMentioned": 433,
+   "chars": 14229
+  },
+  {
+   "date": "2026-03-12",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2026-03-12_ZAB_Agenda_Linked_0.pdf",
+   "cases": [
+    "ZP2024-0067",
+    "ZP2025-0064"
+   ],
+   "addresses": [
+    "2276 Shattuck Ave",
+    "600 Gilman St"
+   ],
+   "maxUnitsMentioned": 134,
+   "chars": 12950
+  },
+  {
+   "date": "2026-02-26",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2026-02-26_ZAB%20Agenda_Linked_Revised_0.pdf",
+   "cases": [
+    "ZP2024-0138",
+    "ZP2022-0021",
+    "ZP2024-0111",
+    "ZP2018-0235",
+    "ZP2017-0004",
+    "ZP2024-0059",
+    "ZP2026-0014"
+   ],
+   "addresses": [
+    "2145 Grant St",
+    "4172 Cobblestone Dr",
+    "2449 Dwight Way",
+    "1810 Sixth St",
+    "6226 La Salle Ave",
+    "2009 Addison St",
+    "999 Harrison St",
+    "2204 Dwight Way",
+    "9101 Burning Tree Rd",
+    "201 University Ave"
+   ],
+   "maxUnitsMentioned": 63,
+   "chars": 17118
+  },
+  {
+   "date": "2026-01-22",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2026-01-22_ZAB_Agenda_Linked.pdf",
+   "cases": [
+    "ZP2025-0046",
+    "ZP2022-0011",
+    "ZP2025-0080",
+    "ZP2025-0079",
+    "ZP2024-0075"
+   ],
+   "addresses": [
+    "1752 Shattuck Ave",
+    "2108 Eunice St",
+    "1740 University Ave",
+    "1899 Oxford St",
+    "1827 Oxford St"
+   ],
+   "maxUnitsMentioned": 222,
+   "chars": 14373
+  },
+  {
+   "date": "2025-12-11",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2025-12-11_ZAB_Agenda_Linked.pdf",
+   "cases": [
+    "ZP2025-0054",
+    "ZP2021-0112",
+    "ZP2025-0040",
+    "ZP2024-0183"
+   ],
+   "addresses": [
+    "2709 San Pablo Ave",
+    "10648 Industrial Ave",
+    "2061 Allston Way",
+    "2150 Shattuck Ave",
+    "1890 Alcatraz Ave"
+   ],
+   "maxUnitsMentioned": null,
+   "chars": 13594
+  },
+  {
+   "date": "2025-11-13",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2025-11-13_ZAB%20Agenda_Linked_1.pdf",
+   "cases": [
+    "ZP2024-0181",
+    "ZP2024-0182",
+    "ZP2024-0112"
+   ],
+   "addresses": [
+    "2029 University Ave",
+    "3035 Colby St"
+   ],
+   "maxUnitsMentioned": 240,
+   "chars": 13964
+  },
+  {
+   "date": "2025-10-30",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2025-10-30_ZAB%20Agenda_Linked_Revised.pdf",
+   "cases": [
+    "ZP2024-0169",
+    "ZP2024-0126"
+   ],
+   "addresses": [
+    "2372 Ellsworth St",
+    "2298 Durant Ave",
+    "2360 Ellsworth St"
+   ],
+   "maxUnitsMentioned": 65,
+   "chars": 12435
+  },
+  {
+   "date": "2025-10-09",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2025-10-09_ZAB%20Agenda_Linked.pdf",
+   "cases": [
+    "ZP2024-0162",
+    "ZP2024-0164"
+   ],
+   "addresses": [
+    "2425 Durant Ave",
+    "1250 Addison St",
+    "29 Orinda Way",
+    "314 Pacific Ave"
+   ],
+   "maxUnitsMentioned": 169,
+   "chars": 12590
+  },
+  {
+   "date": "2025-09-25",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2025_09-25_FINAL_ZAB%20Agenda_Linked_0.pdf",
+   "cases": [
+    "ZP2024-0115",
+    "ZP2025-0048",
+    "ZP2022-0097",
+    "ZP2025-0020",
+    "ZP2024-0114"
+   ],
+   "addresses": [
+    "2952 Sacramento St",
+    "2948 Sacramento St",
+    "1304 Estudillo Ave",
+    "2538 Durant Ave",
+    "1810 Sixth St",
+    "1917 Tenth St",
+    "801 Camelia St",
+    "1117 Virginia St",
+    "2138 Kittredge St",
+    "164 Oak Rd"
+   ],
+   "maxUnitsMentioned": 66,
+   "chars": 14239
+  },
+  {
+   "date": "2025-09-11",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2025-09-11_ZAB_Agenda_Linked.pdf",
+   "cases": [
+    "ZP2024-0096",
+    "ZP2022-0113",
+    "ZP2025-0027",
+    "ZP2024-0066"
+   ],
+   "addresses": [
+    "2105 Los Angeles Ave",
+    "226 Delfino Ave",
+    "2109 Virginia St",
+    "2421 Fourth St",
+    "1683 Shattuck Ave"
+   ],
+   "maxUnitsMentioned": 110,
+   "chars": 14312
+  },
+  {
+   "date": "2025-08-14",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2025-08-14_ZAB_Agenda_Linked_0.pdf",
+   "cases": [
+    "ZP2022-0136",
+    "ZP2024-0060"
+   ],
+   "addresses": [
+    "2942 College Ave",
+    "1810 Sixth St",
+    "2437 Durant Ave",
+    "2201 Blake St",
+    "9101 Burning Tree Rd"
+   ],
+   "maxUnitsMentioned": null,
+   "chars": 13087
+  }
+ ]
+}

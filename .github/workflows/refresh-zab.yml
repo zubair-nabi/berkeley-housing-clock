@@ -1,0 +1,74 @@
+name: Refresh ZAB agendas
+
+# Berkeley publishes its Zoning Adjustments Board agendas as PDFs from a server
+# that sends no CORS header, so the browser cannot read them. This does the
+# parsing in CI instead and commits the result, which GitHub Pages then serves.
+#
+# ZAB meets about monthly and the Brown Act requires the agenda 72 hours ahead,
+# so a twice-weekly run is enough to catch every agenda well before its meeting.
+
+on:
+  schedule:
+    - cron: "17 11 * * 1,4"   # Mondays and Thursdays, 11:17 UTC
+  workflow_dispatch:
+    inputs:
+      all_years:
+        description: "Rebuild from 2021 instead of the last two years"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-zab
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install --quiet pypdf
+
+      - name: Parse the agendas
+        run: |
+          if [ "${{ inputs.all_years }}" = "true" ]; then
+            python3 tools/fetch_zab.py --all
+          else
+            python3 tools/fetch_zab.py
+          fi
+
+      - name: Sanity check before committing
+        run: |
+          python3 - <<'PY'
+          import json, sys
+          d = json.load(open("data/zab.json"))
+          m = d["meetings"]
+          # Refuse to commit an empty or obviously broken parse over good data.
+          if len(m) < 3:
+              sys.exit(f"only {len(m)} meetings parsed, refusing to overwrite")
+          if not any(x["cases"] for x in m):
+              sys.exit("no case numbers found in any agenda, parser is probably broken")
+          print(f"ok: {len(m)} meetings, {sum(len(x['cases']) for x in m)} case numbers")
+          PY
+
+      - name: Commit if anything changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # ignore the generated timestamp when deciding whether anything really moved
+          if git diff --quiet -- data/zab.json; then
+            echo "no change"; exit 0
+          fi
+          if [ -z "$(git diff -- data/zab.json | grep -E '^[+-]' | grep -v '^[+-][+-]' | grep -v '"generated"')" ]; then
+            echo "timestamp only, discarding"; git checkout -- data/zab.json; exit 0
+          fi
+          git add data/zab.json
+          git commit -m "Refresh ZAB agendas"
+          git push
