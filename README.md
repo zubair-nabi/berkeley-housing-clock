@@ -50,7 +50,7 @@ approximately; it still appears in section 03.
 | [ZAB agendas](https://berkeleyca.gov/your-government/boards-commissions/zoning-adjustments-board) | What the board is hearing next | PDFs parsed in CI into `data/zab.json` |
 | [CEQAnet](https://ceqanet.lci.ca.gov/) | Environmental filings, City and UC | HTML fetched live in the browser |
 | [BART GTFS](https://www.bart.gov/dev/schedules/google_transit.zip) | Richmond line alignment and stations | Extracted once into `geo/bart.json` |
-| [OpenStreetMap via Overpass](https://overpass-api.de/) | AC Transit bus routes, weighted by how many routes share each street; 17 landmarks | Extracted once into `geo/bus.json` and `geo/landmarks.json` |
+| [OpenStreetMap via Overpass](https://overpass-api.de/) | AC Transit bus routes, weighted by how many routes share each street; 17 landmarks with their real building footprints | Extracted once into `geo/bus.json`, `geo/landmarks.json` and `geo/landmark_shapes.json` |
 | [OpenFreeMap](https://openfreemap.org) / OpenStreetMap | Basemap vector tiles | Live |
 | Mapzen / AWS terrain tiles | Elevation for 3D terrain and hillshade | Live |
 
@@ -102,10 +102,12 @@ that half stays live.
 - **The map covers about 86% of waiting homes.** Some parcel numbers in the state
   file are not present in Berkeley's parcel layer, likely lot splits or mergers.
   The figures in the tables are the authoritative ones.
-- **The extrusion scale is symbolic, except for one building.** Projects are drawn
-  at 1.6 m per home, which is not a physical height. The Campanile is drawn at its
-  real 93.6 m on a footprint its real size, as a yardstick: the tallest tower on the
-  map is 739 homes, roughly twelve Campaniles.
+- **The extrusion scale is symbolic; the landmarks are not.** Projects are drawn at
+  1.6 m per home, which is not a physical height. Landmarks use their real OSM
+  footprints, so the Greek Theatre and the stadium bowl are the shapes they actually
+  are. Only the Campanile has a recorded height, 93.6 m; the rest are derived from
+  floor count and drawn translucent to say so. The tallest tower on the map is 739
+  homes, roughly twelve Campaniles.
 - **The moving train, the boats and the birds are decoration.** The BART alignment
   and station positions are real, taken from the agency's published GTFS feed, but
   the train's position is a loop, not a live feed.
