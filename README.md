@@ -20,11 +20,17 @@ Against its state allocation, Berkeley has permitted **30% of its market-rate
 target and 10% of its combined affordable target** over the three years of the
 cycle the State has published.
 
+Three things the same file records and nobody prints: **75% of approved homes came
+through a state density bonus**, **18% of permits issued are accessory dwelling
+units**, and **97% of what gets built is rental**.
+
 - **Address lookup** matches any Berkeley address to its parcel number, then to
   every housing record the State holds for that parcel.
 - **The Clock** measures each stage of the pipeline, split between multifamily and
   small projects, because small projects are ministerial and are approved and
-  permitted on the same day.
+  permitted on the same day. It then runs the same measurement against five
+  neighbouring cities, since without a baseline there is no way to judge 1.6 years.
+  Berkeley comes third of six: slower than Oakland, faster than Alameda.
 - **The waiting room** lists approved projects with no building permit, aged, with
   a reason where the record gives one.
 - **Where it is stuck** breaks the same figure down by street.
