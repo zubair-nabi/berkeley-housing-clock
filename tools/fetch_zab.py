@@ -10,7 +10,7 @@ Deliberately gentle: the listing page is fetched once per year requested and eac
 PDF once, with a pause between. Berkeley's servers have rate limited us before.
 """
 import io, json, os, re, sys, time, urllib.parse, urllib.request
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 
 BASE = "https://berkeleyca.gov"
 LIST = BASE + "/your-government/boards-commissions/zoning-adjustments-board"
@@ -91,8 +91,7 @@ def parse_agenda(pdf_bytes):
 
     units = [int(u) for u in UNITS.findall(text) if 0 < int(u) <= 2000]
     return {"cases": cases, "addresses": addrs,
-            "maxUnitsMentioned": max(units) if units else None,
-            "chars": len(text)}
+            "maxUnitsMentioned": max(units) if units else None}
 
 
 def main():
@@ -116,11 +115,24 @@ def main():
         out.append({"date": iso, "url": url, **p})
         print(f"  {iso}  {len(p['cases'])} case(s), {len(p['addresses'])} address(es)")
 
-    doc = {"generated": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+    meetings = sorted(out, key=lambda m: m["date"], reverse=True)
+
+    # Keep the previous timestamp if nothing substantive changed. Otherwise every
+    # run produces a diff and the schedule fills the history with noise.
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    try:
+        prev = json.load(open("data/zab.json"))
+        if prev.get("meetings") == meetings:
+            stamp = prev.get("generated", stamp)
+            print("no change since last run")
+    except Exception:
+        pass
+
+    doc = {"generated": stamp,
            "source": LIST,
            "note": "Parsed from Berkeley's published ZAB agenda PDFs. Case numbers and "
                    "addresses are extracted text, not a City data feed.",
-           "meetings": sorted(out, key=lambda m: m["date"], reverse=True)}
+           "meetings": meetings}
     os.makedirs("data", exist_ok=True)
     with open("data/zab.json", "w") as f:
         json.dump(doc, f, indent=1)
