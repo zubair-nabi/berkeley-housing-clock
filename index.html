@@ -312,6 +312,18 @@ h2{font-size:clamp(1.9rem,3.9vw,2.8rem);font-weight:400;margin:0;letter-spacing:
 .whead{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
   border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:4px;cursor:default}
 .whead:hover{background:none}
+/* Cross-check panel. Council reads Berkeley's own permit system, this page reads
+   the State's copy of it, and on building permits the two flatly disagree. */
+.xrow{display:grid;grid-template-columns:1fr 68px 68px 108px;gap:12px;align-items:center;
+  padding:7px 8px;border-radius:3px;font-size:13.5px}
+.xrow:nth-of-type(even){background:color-mix(in srgb,var(--ink) 3%,transparent)}
+.xhead{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--muted);border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:4px}
+.xhead:nth-of-type(even){background:none}
+.xnum{font-family:"Geist Mono",monospace;text-align:right}
+.xflag{font-family:"Geist Mono",monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase}
+.xbad{color:var(--stall)}
+.xdim{color:var(--muted)}
 .waddr{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .waff{font-family:"Geist Mono",monospace;font-size:10.5px;color:var(--muted);font-weight:400}
 .why{display:inline-block;font-family:"Geist Mono",monospace;font-size:9.5px;letter-spacing:.06em;
@@ -454,14 +466,14 @@ footer{padding:34px 0 0;font-family:"Geist Mono",monospace;font-size:11px;color:
 
   <section>
     <div class="sec-head"><span class="sec-num">02</span><h2 data-nav="Waiting room">The waiting room</h2></div>
-    <p class="sec-sub">Projects the City approved that have no building permit on record. They are legal to build and nothing is happening. Projects still under review are excluded, because they are not stalled, they are simply not decided yet.</p>
+    <p class="sec-sub">Projects the City approved for which no building permit has been reported to the State. They are legal to build and nothing is happening. Read that phrase literally: Berkeley files these records with Sacramento and the filings are demonstrably incomplete, so some of these projects do hold a permit the State never received. The cross-check below measures how often that happens. Projects with no approval date are excluded throughout, because they have not been decided yet.</p>
     <div class="stats">
       <div class="stat hot"><div class="v" id="w-units">-</div><div class="k">Approved homes<br>not yet permitted</div></div>
       <div class="stat"><div class="v" id="w-parcels">-</div><div class="k">Sites waiting</div></div>
       <div class="stat hot"><div class="v" id="w-old">?</div><div class="k">Waiting more<br>than three years</div></div>
       <div class="stat"><div class="v" id="w-oldest">?</div><div class="k">Longest wait<br>(years)</div></div>
       <!-- six tiles exactly, so the grid never orphans one onto its own row -->
-      <div class="stat"><div class="v" id="w-pending">?</div><div class="k">Homes still in<br>review, excluded</div></div>
+      <div class="stat"><div class="v" id="w-pending">?</div><div class="k">Homes not yet<br>decided, excluded</div></div>
       <div class="stat hot"><div class="v" id="w-never">?</div><div class="k">Approved 2018-2021<br>and never permitted</div></div>
     </div>
     <div class="rwrap">
@@ -473,6 +485,13 @@ footer{padding:34px 0 0;font-family:"Geist Mono",monospace;font-size:11px;color:
         standing in for one. Nothing here captures interest rates or construction costs.</p>
     </div>
 
+    <div class="rwrap">
+      <div class="rlabel">Cross-check · the City's own downtown list</div>
+      <div class="xrow xhead"><span>Project</span><span class="xnum">Council</span><span class="xnum">State</span><span>Building permit</span></div>
+      <div id="xclist"></div>
+      <p class="rnote" id="xcnote"></p>
+    </div>
+
     <div class="wrow whead"><span>Address</span><span style="text-align:right">Homes</span><span>Years since approval</span><span style="text-align:right">Yrs</span></div>
     <div id="wlist"><div class="skel" style="padding:12px 8px">Computing…</div></div>
     <button class="more" id="wmore" style="display:none">Show all</button>
@@ -481,7 +500,7 @@ footer{padding:34px 0 0;font-family:"Geist Mono",monospace;font-size:11px;color:
   <section>
     <div class="sec-head"><span class="sec-num">03</span><h2 data-nav="Where">Where it is stuck</h2></div>
     <p class="sec-sub">Every approved-but-unbuilt project, drawn on its real parcel and extruded by the number of homes it would contain. Blue is what actually got built. Berkeley's landmarks are drawn as their real footprints from OpenStreetMap, so the Campanile, the stadium bowl and the Greek Theatre are the shapes they actually are. The Campanile is the only one with a recorded height, 94 m; the others are worked out from floor count and drawn slightly translucent to admit it. Together they are the one thing here at true scale: the tallest tower on this map is 739 homes and draws about twelve Campaniles. Drag to rotate, scroll to zoom, click any block.</p>
-<p class="sec-sub">Approved homes by street, and how many of them have no building permit. Berkeley's downtown core has approved thousands of homes and built almost none of them.</p>
+<p class="sec-sub">Approved homes by street, and how many of them have no building permit reported to the State. Berkeley's downtown core has approved thousands of homes and built almost none of them.</p>
     <div class="corr hd"><span>Street</span><span>Approved homes, red is stalled</span><span style="text-align:right">Stalled</span></div>
     <div id="corrlist"></div>
 
@@ -724,15 +743,25 @@ const q=(arr,p)=>arr.length?arr[Math.min(arr.length-1,Math.max(0,Math.floor(p*ar
    permitted on the same day. Blending them with multifamily hides the real wait,
    so every stage is measured separately for the two. */
 const isBig=t=>t.units>=5;
-/* A project the City has not decided on yet is not stalled. Every section that
-   says "stalled" filters on this, so the word means one thing on the page. */
+/* HCD's APPLICATION_STATUS is not a usable "still under review" flag. Thirty
+   parcels carry an approval date and a Pending status at the same time, among
+   them 2190 Shattuck, approved February 2019, and 3000 Shattuck, approved
+   September 2018. Nothing is under review for seven years. So the date fields
+   govern: a parcel holding an entitlement date was approved, whatever the status
+   column says, and Pending survives only as a label on the card. This also
+   settles a disagreement with the City. Council's April 2026 downtown referral
+   names 2128 Oxford, 2190 Shattuck and 2100 Milvia as stalled; the old filter
+   dropped all three because HCD calls them Pending. */
 const isPending=t=>(t.status||"").toLowerCase()==="pending";
+/* A parcel with no approval date at all genuinely has not been decided, and is
+   excluded everywhere. That is the rule the status column was standing in for. */
+const isUndecided=t=>!t.ent;
 /* Approved, no permit on record, and never occupied. The last clause matters:
    HCD demonstrably drops permit filings, so a building people already live in
    can have no permit in the state file. Without it the page claimed 2012
    Berkeley Way had been waiting 7.6 years directly above a line saying its
    residents moved in during 2022. A completion is proof a permit existed. */
-const isStalled=t=>!!t.ent && !t.bp && !t.co && t.units>0 && !isPending(t);
+const isStalled=t=>!!t.ent && !t.bp && !t.co && t.units>0;
 function stageStats(rows,a,b,label,hot){
   const L=rows.filter(t=>t[a]&&t[b]).map(t=>yrs(t[a],t[b]))
           .filter(v=>v>=0&&v<15).sort((x,y)=>x-y);
@@ -830,6 +859,50 @@ function stallReason(t){
   if(/only .*funding has been secured/i.test(notes)) return ["financing incomplete","f"];
   if(t.fin)                                  return ["awaiting public financing","f"];
   return ["no reason on record",""];
+}
+/* Council referral of 14 April 2026, Exhibit 1: nine downtown rental projects
+   holding a zoning permit that have not broken ground. The authors sourced it from
+   Berkeley's own permit system and record five of the nine as also holding a
+   building permit. HCD's file records one for none of them. Hard coded because it
+   is a citation, not a feed: [address, units, zoning permit, City records a BP]. */
+const COUNCIL9=[
+  ["2128 Oxford",456,"2024-10-04",true],  ["2190 Shattuck",325,"2023-04-28",true],
+  ["2274 Shattuck",277,"2025-04-22",false],["2015 Blake",219,"2023-09-25",false],
+  ["2100 Milvia",205,"2025-07-01",false], ["2065 Kittredge",189,"2023-02-22",true],
+  ["2037 Durant",74,"2024-06-19",false],  ["2138 Kittredge",66,"2025-10-20",true],
+  ["2210 Harold Way",38,"2020-12-10",true]];
+const xnorm=s=>(s||"").toLowerCase().replace(/[.,]/g,"")
+  .replace(/\b(avenue|ave|street|st|way|blvd|boulevard|road|rd|drive|dr|place|pl)\b/g,"")
+  .replace(/\s+/g," ").trim();
+function renderXCheck(){
+  const idx=new Map();
+  for(const t of PARCELS.values()){const k=xnorm(t.addr); if(!k) continue;
+    (idx.get(k)||idx.set(k,[]).get(k)).push(t);}
+  let disagree=0, councilTot=0, shown=0, multi=false;
+  const rows=COUNCIL9.map(([addr,units,zp,cityBP])=>{
+    const m=idx.get(xnorm(addr))||[];
+    const hcdU=Math.round(m.reduce((a,t)=>a+t.units,0));
+    const hcdBP=m.some(t=>t.bp);
+    const inWait=m.some(t=>WAIT.some(w=>w.apn===t.apn));
+    councilTot+=units; if(inWait) shown++;
+    if(cityBP&&!hcdBP) disagree++;
+    if(m.length>1) multi=true;
+    return `<div class="xrow" title="Zoning permit ${zp}${m.length>1?` · ${m.length} separate filings in the State's file`:""}">
+      <span class="waddr">${addr}${inWait?"":' <span class="xflag xdim">not listed here</span>'}</span>
+      <span class="xnum">${fmt(units)}</span>
+      <span class="xnum${hcdU&&Math.abs(hcdU-units)/units>.05?" xbad":""}">${hcdU?fmt(hcdU):"—"}${m.length>1?'<span class="xdim">*</span>':""}</span>
+      <span class="xflag ${cityBP&&!hcdBP?"xbad":"xdim"}">${cityBP?(hcdBP?"both agree":"City only"):"neither"}</span>
+    </div>`;}).join("");
+  $("#xclist").innerHTML=rows;
+  $("#xcnote").innerHTML=`Council's referral of 14 April 2026 names these nine downtown projects as
+    stalled, ${fmt(councilTot)} homes between them, reading Berkeley's own permit system. This page reads
+    the State's copy of that same system, and ${shown===9?"all nine":`${shown} of the nine`} appear in the
+    waiting room above.
+    On unit counts the two records mostly agree. On building permits they do not: the City records one for
+    <b>${disagree} of the nine</b>, the State for <b>none</b>. That is why every figure here says a permit was
+    not <em>reported to the State</em> rather than that none exists.${multi?` An asterisk marks an address
+    where the State holds more than one filing on adjacent parcel numbers, probably one project apiece;
+    they are left as filed rather than merged on a guess.`:""}`;
 }
 function renderWait(){
   const rows=SHOWALL?WAIT:WAIT.slice(0,25);
@@ -1090,9 +1163,12 @@ async function showParcel(apn,addr,gis){
       <div><div class="k">Approve → permit</div><div class="v">${dur(t.ent,t.bp)}</div></div>
       <div><div class="k">Permit → move-in</div><div class="v">${dur(t.bp,t.co)}</div></div>
     </div>
-    ${stalled?`<div class="verdict"><b>Approved but not permitted.</b> This project has been legal to build for
-       <b>${waitY.toFixed(1)} years</b>. The citywide median wait from approval to building permit is
-       ${window.__MED_ENT_BP__?window.__MED_ENT_BP__.toFixed(2):"-"} years.</div>`:""}
+    ${stalled?`<div class="verdict"><b>Approved, no permit in the State's file.</b> This project has been legal to
+       build for <b>${waitY.toFixed(1)} years</b>. The citywide median wait from approval to building permit is
+       ${window.__MED_ENT_BP__?window.__MED_ENT_BP__.toFixed(2):"-"} years.
+       ${isPending(t)?`<br><span style="color:var(--muted)">HCD's status column still reads "Pending" for this
+       parcel even though it carries an approval date, so the column is not used to decide what counts as
+       stalled here.</span>`:""}</div>`:""}
     ${t.co?`<div class="verdict" style="border-color:var(--s2);background:none"><b>Completed.</b> Took
        ${t.app&&t.co?yrs(t.app,t.co).toFixed(1):"-"} years from first application to occupancy.
        ${!t.bp?`<br><span style="color:var(--muted)">No building permit appears in the State's file for this
@@ -2159,19 +2235,21 @@ async function buildMap(){
     renderClock(GROUPS);
 
     const now=new Date();
-    /* Only count parcels the City actually approved. Parcels carrying
-       APPLICATION_STATUS "Pending" are still in review, not stalled after
-       approval, and counting them overstates the total by ~40%.
-       isPending is the single definition every section on the page uses, so
-       "stalled" cannot mean one thing in the waiting room and another in the
-       corridor table. */
-    const allStuck=[...PARCELS.values()].filter(t=>t.ent&&!t.bp&&!t.co&&t.units>0)
+    /* Only count parcels the City actually approved, which means the ones
+       carrying an approval date. isStalled is the single definition every
+       section uses, so "stalled" cannot mean one thing in the waiting room and
+       another in the corridor table. */
+    const allStuck=[...PARCELS.values()].filter(isStalled)
       .map(t=>({...t,y:yrs(t.ent,now)})).filter(t=>t.y>0);
-    PENDING=allStuck.filter(isPending);
-    WAIT=allStuck.filter(t=>!isPending(t)).sort((a,b)=>b.units-a.units);
+    /* Genuinely undecided: an application on file with no approval date. These
+       are excluded from every figure on the page and counted here only so the
+       size of what is being left out is visible. */
+    PENDING=[...PARCELS.values()].filter(t=>isUndecided(t)&&!t.bp&&!t.co&&t.units>0);
+    WAIT=allStuck.sort((a,b)=>b.units-a.units);
     renderWait();
     $("#w-pending").textContent=fmt(PENDING.reduce((a,r)=>a+r.units,0));
     renderReasons();
+    renderXCheck();
     $("#wmore").onclick=()=>{SHOWALL=!SHOWALL;renderWait();};
 
     /* corridors: normalise the street name off the address, then split
@@ -2184,7 +2262,7 @@ async function buildMap(){
     };
     const corr=new Map();
     for(const t of PARCELS.values()){
-      if(!t.ent||t.units<=0||isPending(t)) continue;   // match the waiting room
+      if(!t.ent||t.units<=0) continue;   // match the waiting room
       const stuck=isStalled(t);
       const k=street(t.addr); if(!k) continue;
       const c=corr.get(k)||{name:k,tot:0,stuck:0}; c.tot+=t.units;
@@ -2206,12 +2284,12 @@ async function buildMap(){
       hover(el,`<b>${c.name}</b><br>${fmt(c.tot)} homes approved<br>${fmt(c.stuck)} never permitted (${Math.round(100*c.stuck/c.tot)}%)`);});
 
     /* attrition: homes approved 4+ years ago that never got a permit */
-    const oldCohort=[...PARCELS.values()].filter(t=>t.ent&&t.units>0&&!isPending(t)&&t.ent.getFullYear()<=2021);
+    const oldCohort=[...PARCELS.values()].filter(t=>t.ent&&t.units>0&&t.ent.getFullYear()<=2021);
     const neverU=oldCohort.filter(t=>!t.bp&&!t.co).reduce((a,t)=>a+t.units,0);
     const cohU=oldCohort.reduce((a,t)=>a+t.units,0);
     $("#w-never").textContent=Math.round(100*neverU/cohU)+"%";
     hover($("#w-never").parentElement,
-      `<b>Attrition</b><br>${fmt(cohU)} homes approved 2018-2021<br>${fmt(neverU)} still have no building permit`);
+      `<b>Attrition</b><br>${fmt(cohU)} homes approved 2018-2021<br>${fmt(neverU)} still have no building permit reported to the State`);
 
     const Y=renderYears(A2);
     renderScore(Y);

@@ -12,9 +12,10 @@ a browser is not allowed to read.
 ## What it shows
 
 Berkeley approves an apartment building in a median of about **6 months**, then it
-waits roughly **1.6 years** for a building permit. Around **3,243 approved homes**
-currently have no building permit on record and were never occupied, and of the homes
-approved between 2018 and 2021, **22% are still in that state** four or more years later.
+waits roughly **1.6 years** for a building permit. Around **5,636 approved homes**
+across 97 sites have no building permit reported to the State and were never occupied,
+and of the homes approved between 2018 and 2021, **34% are still in that state** four
+or more years later.
 
 Against its state allocation, Berkeley has permitted **30% of its market-rate
 target and 10% of its combined affordable target** over the three years of the
@@ -39,8 +40,8 @@ units**, and **97% of what gets built is rental**.
   permitted on the same day. It then runs the same measurement against five
   neighbouring cities, since without a baseline there is no way to judge 1.6 years.
   Berkeley comes third of six: slower than Oakland, faster than Alameda.
-- **The waiting room** lists approved projects with no building permit, aged, with
-  a reason where the record gives one.
+- **The waiting room** lists approved projects with no building permit reported to the
+  State, aged, with a reason where the record gives one.
 - **Where it is stuck** breaks the same figure down by street.
 - **The skyline that isn't there** draws every approved-but-unbuilt project on its
   real parcel, extruded by the number of homes it would contain.
@@ -103,20 +104,38 @@ that half stays live.
   recorded at all. A completion therefore overrides a missing permit everywhere on
   this page: a building people live in is not waiting to be built. A project shown as
   waiting may still hold a permit that was never reported upward. Corrections welcome.
+
+  The size of this gap is now measurable. A City Council referral of 14 April 2026
+  lists nine stalled downtown projects, sourced from Berkeley's own permit system, and
+  states that five of them hold building permits: 2128 Oxford, 2190 Shattuck, 2065
+  Kittredge, 2138 Kittredge and 2210 Harold Way. HCD's file records a building permit
+  for **none** of the nine. That is why this page says "no building permit reported to
+  the State" and not "no building permit".
+- **Two addresses are counted twice**, 2015 Blake and 3233 Ellis, because HCD holds
+  separate filings on adjacent parcel numbers that are probably one project apiece.
+  At 2015 Blake the 219-home record approved in September 2023 matches Council's
+  figure exactly and a 161-home record approved in September 2021 sits beside it,
+  most likely the superseded earlier version. They are left as filed rather than
+  merged on a guess. Together they overstate the waiting room by 164 homes, 2.9%.
 - **We can rarely say why a project is stalled.** Financing, interest rates and
   construction costs are in no public dataset. Where the record gives a reason, such
   as an incomplete financing stack or a closed application, it is shown.
-- **Projects still under review are excluded** everywhere, not just from the waiting
-  room. A project the City has not decided on is not stalled. Counting them would
-  overstate the waiting room by about 40%, and the same filter is applied to the
-  corridor table, the attrition figure and the map so that "stalled" means one thing
-  throughout.
+- **Undecided projects are excluded** everywhere, not just from the waiting room, and
+  "undecided" means the record carries no approval date. It used to mean HCD's
+  `APPLICATION_STATUS` column read "Pending", which turned out to be unusable: thirty
+  parcels carry an approval date and a Pending status at once, including 2190 Shattuck,
+  approved in February 2019, and 3000 Shattuck, approved in September 2018. Nothing is
+  under review for seven years. Filtering on that column also dropped three of the nine
+  projects Council itself calls stalled. The date fields now govern and the status
+  column survives only as a note on the parcel card. The same rule drives the corridor
+  table, the attrition figure and the map, so "stalled" still means one thing
+  throughout. It moved the waiting room from 3,243 homes to 5,636.
 - **The scoreboard paces against published years, not the calendar.** Permits exist
   for 2023 to 2025; 2026 will not appear until HCD publishes in April 2027. Pacing
   to today's date would make every bar look further behind than the record shows.
 - **UC Berkeley is not in this data.** Roughly 2,150 student beds are exempt from
   city permitting and appear in no source used here.
-- **The map covers about 86% of waiting homes.** Some parcel numbers in the state
+- **The map covers about 88% of waiting homes**, 82 of 97 sites. Some parcel numbers in the state
   file are not present in Berkeley's parcel layer, likely lot splits or mergers.
   The figures in the tables are the authoritative ones.
 - **The extrusion scale is symbolic; the landmarks are not.** Projects are drawn at
