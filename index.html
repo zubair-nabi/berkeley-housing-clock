@@ -401,10 +401,10 @@ footer{padding:34px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;col
     <div class="score">
       <div class="sc-top">
         <div><div class="sc-big" id="rh-pct">-</div><div class="sc-of" id="rh-of">-</div></div>
-        <div style="text-align:right"><div class="sc-of">Cycle elapsed</div><div class="sc-big" style="font-size:2rem" id="rh-time">-</div></div>
+        <div style="text-align:right"><div class="sc-of">Years published</div><div class="sc-big" style="font-size:2rem" id="rh-time">-</div></div>
       </div>
       <div class="sc-track"><div class="sc-fill" id="rh-fill"></div><div class="sc-pace" id="rh-pace"></div></div>
-      <div class="sc-legend"><span>2023</span><span style="color:var(--stall)">▲ where it should be today</span><span>2031 · 8,934</span></div>
+      <div class="sc-legend"><span>2023</span><span style="color:var(--stall)">▲ on pace for the years published</span><span>2031 · 8,934</span></div>
       <div class="sc-note">At the current rate of <b id="rh-rate">-</b> permits a year, Berkeley reaches roughly <b id="rh-proj">-</b> of its allocation by 2031.</div>
 
       <div class="tiers">
@@ -529,6 +529,9 @@ const q=(arr,p)=>arr.length?arr[Math.min(arr.length-1,Math.max(0,Math.floor(p*ar
    permitted on the same day. Blending them with multifamily hides the real wait,
    so every stage is measured separately for the two. */
 const isBig=t=>t.units>=5;
+/* A project the City has not decided on yet is not stalled. Every section that
+   says "stalled" filters on this, so the word means one thing on the page. */
+const isPending=t=>(t.status||"").toLowerCase()==="pending";
 function stageStats(rows,a,b,label,hot){
   const L=rows.filter(t=>t[a]&&t[b]).map(t=>yrs(t[a],t[b]))
           .filter(v=>v>=0&&v<15).sort((x,y)=>x-y);
@@ -675,7 +678,7 @@ function renderYears(A2){
 /* Permits issued so far this cycle, split by the same four income tiers the
    allocation uses. A single citywide percentage hides that market-rate is
    roughly on pace while the affordable tiers are nowhere near it. */
-function renderTiers(A2){
+function renderTiers(A2,reportedYears){
   const T={vlow:0,low:0,mod:0,above:0};
   for(const r of A2){
     if(+r.YEAR < RHNA.start) continue;
@@ -686,8 +689,12 @@ function renderTiers(A2){
     T.mod  += num(r.BP_MOD_INCOME_DR)+num(r.BP_MOD_INCOME_NDR);
     T.above+= num(r.BP_ABOVE_MOD_INCOME);
   }
-  const now=new Date(), span=RHNA.end-RHNA.start;
-  const elapsed=Math.min(1,((now.getFullYear()+now.getMonth()/12)-RHNA.start)/span);
+  /* Measure the cycle against the years the data actually covers, not against
+     today's date. Permits for 2026 do not exist until HCD publishes in April
+     2027, so pacing to the calendar makes every bar look further behind than
+     the record can show. */
+  const span=RHNA.end-RHNA.start;
+  const elapsed=Math.min(1,reportedYears/span);
   $("#tierlist").innerHTML=RHNA.tiers.map(t=>{
     const pct=T[t.key]/t.alloc, behind=pct < elapsed*0.6;
     return `<div class="tier">
@@ -705,14 +712,16 @@ function renderTiers(A2){
              `${Math.round(100*T[t.key]/t.alloc)}% of target, ${Math.round(elapsed*100)}% of the cycle gone`);
   });
   const aff=(T.vlow+T.low+T.mod)/(2446+1408+1416), mkt=T.above/3664;
-  $("#tiernote").innerHTML=`With <b>${Math.round(elapsed*100)}%</b> of the cycle elapsed, Berkeley has permitted
+  $("#tiernote").innerHTML=`Through <b>${RHNA.start}-${RHNA.start+reportedYears-1}</b>, the
+    <b>${reportedYears} of ${span}</b> years the State has published, Berkeley has permitted
     <b>${Math.round(mkt*100)}%</b> of its market-rate target and <b>${Math.round(aff*100)}%</b> of its
-    combined affordable target. The red marker is where each bar would need to reach to be on pace.`;
+    combined affordable target. The red marker is on-pace for those years, not for today's date:
+    2026 permits will not appear until April 2027.`;
 }
 function renderScore(Y){
   const cyc=Y.filter(y=>+y.year>=RHNA.start);
   const permitted=cyc.reduce((a,y)=>a+y.bp,0), span=RHNA.end-RHNA.start;
-  const now=new Date(), elapsed=Math.min(span,(now.getFullYear()+now.getMonth()/12)-RHNA.start);
+  const elapsed=Math.min(span,cyc.length);   // years published, not calendar years
   const pct=permitted/RHNA.target, rate=cyc.length?permitted/cyc.length:0;
   $("#rh-pct").textContent=Math.round(pct*100)+"%";
   $("#rh-of").textContent=`${fmt(permitted)} of ${fmt(RHNA.target)} permitted`;
@@ -1285,8 +1294,11 @@ async function buildMap(){
         ]);
         bound=b2; sites=s2; parcels={type:"FeatureCollection",features:[...pw2,...pb2]};
       }
+      /* The red towers must be the same set the waiting room lists, otherwise
+         the map contradicts the table two sections above it. */
+      const waitSet=new Set(WAIT.map(t=>norm(t.raw||t.apn)));
       const feats=parcels.features||[];
-      const pw=feats.filter(f=>!builtSet.has(norm(f.properties.APN_SORT)));
+      const pw=feats.filter(f=> waitSet.has(norm(f.properties.APN_SORT)));
       const pb=feats.filter(f=> builtSet.has(norm(f.properties.APN_SORT)));
 
       const byApn=new Map([...PARCELS.values()].map(t=>[norm(t.raw||t.apn),t]));
@@ -1342,8 +1354,11 @@ async function buildMap(){
         $("#mb-terrain").classList.toggle("off",!terr);
       };
 
-      ms.textContent=`${pw.length} waiting · ${pb.length} built · 1 home = ${M_PER_HOME} m`
-        + (live?" · live from GIS":" · cached parcels");
+      /* Say the coverage gap out loud: not every parcel in the waiting room has
+         a polygon in Berkeley's layer, usually a lot split or merger since it
+         was cut, so the map under-draws what the table counts. */
+      ms.textContent=`${pw.length} of ${WAIT.length} waiting sites mapped · ${pb.length} built`
+        + ` · 1 home = ${M_PER_HOME} m` + (live?" · live from GIS":" · cached");
     }catch(err){
       ms.textContent="Parcel geometry unavailable, Berkeley GIS did not respond";
     }
@@ -1375,14 +1390,16 @@ async function buildMap(){
     renderClock(GROUPS);
 
     const now=new Date();
-    /* Only count parcels the City actually approved. 20 parcels carrying
+    /* Only count parcels the City actually approved. Parcels carrying
        APPLICATION_STATUS "Pending" are still in review, not stalled after
-       approval, and counting them overstates the total by ~40%. */
+       approval, and counting them overstates the total by ~40%.
+       isPending is the single definition every section on the page uses, so
+       "stalled" cannot mean one thing in the waiting room and another in the
+       corridor table. */
     const allStuck=[...PARCELS.values()].filter(t=>t.ent&&!t.bp&&t.units>0)
       .map(t=>({...t,y:yrs(t.ent,now)})).filter(t=>t.y>0);
-    PENDING=allStuck.filter(t=>(t.status||"").toLowerCase()==="pending");
-    WAIT=allStuck.filter(t=>(t.status||"").toLowerCase()!=="pending")
-      .sort((a,b)=>b.units-a.units);
+    PENDING=allStuck.filter(isPending);
+    WAIT=allStuck.filter(t=>!isPending(t)).sort((a,b)=>b.units-a.units);
     renderWait();
     $("#w-pending").textContent=fmt(PENDING.reduce((a,r)=>a+r.units,0));
     renderReasons();
@@ -1398,7 +1415,7 @@ async function buildMap(){
     };
     const corr=new Map();
     for(const t of PARCELS.values()){
-      if(!t.ent||t.units<=0) continue;
+      if(!t.ent||t.units<=0||isPending(t)) continue;   // match the waiting room
       const k=street(t.addr); if(!k) continue;
       const c=corr.get(k)||{name:k,tot:0,stuck:0}; c.tot+=t.units;
       if(!t.bp) c.stuck+=t.units;
@@ -1419,7 +1436,7 @@ async function buildMap(){
       hover(el,`<b>${c.name}</b><br>${fmt(c.tot)} homes approved<br>${fmt(c.stuck)} never permitted (${Math.round(100*c.stuck/c.tot)}%)`);});
 
     /* attrition: homes approved 4+ years ago that never got a permit */
-    const oldCohort=[...PARCELS.values()].filter(t=>t.ent&&t.units>0&&t.ent.getFullYear()<=2021);
+    const oldCohort=[...PARCELS.values()].filter(t=>t.ent&&t.units>0&&!isPending(t)&&t.ent.getFullYear()<=2021);
     const neverU=oldCohort.filter(t=>!t.bp).reduce((a,t)=>a+t.units,0);
     const cohU=oldCohort.reduce((a,t)=>a+t.units,0);
     $("#w-never").textContent=Math.round(100*neverU/cohU)+"%";
@@ -1428,7 +1445,8 @@ async function buildMap(){
 
     const Y=renderYears(A2);
     renderScore(Y);
-    renderTiers(A2);
+    const cycleYears=new Set(A2.filter(r=>+r.YEAR>=RHNA.start).map(r=>r.YEAR)).size;
+    renderTiers(A2,cycleYears);
     renderSiteCheck();
     buildMap();
 
