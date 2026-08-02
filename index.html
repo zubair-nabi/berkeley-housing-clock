@@ -151,6 +151,33 @@ h2{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:900;margin:0;letter-spacing:
 .stat.hot .v{color:var(--stall)}
 .stat .k{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-top:9px;line-height:1.4}
 
+.tiers{margin-top:26px;padding-top:20px;border-top:1px solid var(--rule)}
+.tiers h4{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 14px;font-weight:600}
+.tier{display:grid;grid-template-columns:168px 1fr 48px 104px;gap:14px;align-items:center;padding:6px 0}
+.tname{font-size:13.5px;font-weight:500;line-height:1.25}
+.tname em{display:block;font-family:"IBM Plex Mono",monospace;font-style:normal;font-size:10px;
+  color:var(--muted);letter-spacing:.05em;margin-top:1px}
+.ttrack{position:relative;height:16px;background:var(--grid);border-radius:3px;overflow:hidden}
+.tfill{position:absolute;left:0;top:0;height:100%;border-radius:0 4px 4px 0;display:block}
+.tpace{position:absolute;top:-3px;width:2px;height:22px;background:var(--stall);display:block}
+.tpct{font-family:"IBM Plex Mono",monospace;font-size:14px;font-weight:600;text-align:right}
+.tnum{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);text-align:right}
+.tiernote{margin:16px 0 0;font-size:14px;color:var(--ink-2);max-width:66ch}
+.tiernote b{color:var(--ink);font-weight:600}
+@media(max-width:820px){.tier{grid-template-columns:110px 1fr 40px;gap:9px}.tnum{display:none}}
+.sitecheck{margin-top:22px;border-left:3px solid var(--muted);padding:2px 0 2px 18px}
+.sitecheck h4{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);margin:0 0 10px;font-weight:600}
+.sitecheck p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2);max-width:66ch}
+.sitecheck b{color:var(--ink);font-weight:600}
+.sitecheck .big{font-family:"Fraunces",serif;font-size:1.9rem;font-weight:900;color:var(--stall);
+  letter-spacing:-.02em;display:block;margin-bottom:4px}
+.sitecheck table{border-collapse:collapse;margin:14px 0 12px;font-family:"IBM Plex Mono",monospace;font-size:12px}
+.sitecheck td,.sitecheck th{padding:5px 18px 5px 0;text-align:left;font-weight:400;color:var(--ink-2)}
+.sitecheck th{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  border-bottom:1px solid var(--rule)}
+.sitecheck td:first-child{color:var(--ink)}
 .rwrap{margin:8px 0 34px}
 .rlabel{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
   color:var(--muted);margin-bottom:9px}
@@ -352,6 +379,7 @@ footer{padding:34px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;col
         <span><i style="background:#F5A623"></i>BART, real alignment</span>
       </div>
     </div>
+    <div class="sitecheck" id="sitecheck"></div>
     <p class="hint" style="margin-top:12px">Parcels and Housing Element sites from Berkeley GIS, joined to state records by parcel number · streets and landcover © OpenStreetMap contributors, tiles by OpenFreeMap · BART alignment and stations from BART's published GTFS feed · <b>the moving train, boats and birds are decoration, not live positions</b> · contours © OpenTopoMap (CC-BY-SA) · elevation Mapzen/AWS</p>
   </section>
 
@@ -378,6 +406,12 @@ footer{padding:34px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;col
       <div class="sc-track"><div class="sc-fill" id="rh-fill"></div><div class="sc-pace" id="rh-pace"></div></div>
       <div class="sc-legend"><span>2023</span><span style="color:var(--stall)">▲ where it should be today</span><span>2031 · 8,934</span></div>
       <div class="sc-note">At the current rate of <b id="rh-rate">-</b> permits a year, Berkeley reaches roughly <b id="rh-proj">-</b> of its allocation by 2031.</div>
+
+      <div class="tiers">
+        <h4>The allocation is not one number, it is four</h4>
+        <div id="tierlist"></div>
+        <p class="tiernote" id="tiernote"></p>
+      </div>
     </div>
   </section>
 
@@ -420,7 +454,14 @@ const RES_A2="fe505d9b-8c36-42ba-ba30-08bc4f34e022";   // APR Table A2, entitlem
 const GIS="https://gis.cityofberkeley.info/arcgis/rest/services";
 const ADDR=`${GIS}/Public/GISportal/MapServer/0/query`;
 const SITES=`${GIS}/Public/Portal_Planning/MapServer/22/query`;
-const RHNA={target:8934,start:2023,end:2031};
+/* ABAG Final RHNA Plan, San Francisco Bay Area 2023-2031, adopted 16 Dec 2021,
+   page 24 (Alameda County table). Berkeley's row reads
+   2,446 / 1,408 / 1,416 / 3,664 / 8,934. */
+const RHNA={target:8934,start:2023,end:2031,
+  tiers:[{key:"vlow", label:"Very low income",  sub:"under 50% of area median", alloc:2446},
+         {key:"low",  label:"Low income",       sub:"50 to 80%",                alloc:1408},
+         {key:"mod",  label:"Moderate income",  sub:"80 to 120%",               alloc:1416},
+         {key:"above",label:"Above moderate",   sub:"over 120%",                alloc:3664}]};
 
 const $=s=>document.querySelector(s), tip=$("#tip");
 const fmt=n=>Math.round(n).toLocaleString("en-US");
@@ -515,6 +556,39 @@ function renderClock(groups){
   document.querySelectorAll(".crow").forEach((el,i)=>{const s=all[i];
     hover(el,`<b>${s.label}</b><br>median ${s.median.toFixed(2)} yr, middle 50% ${s.p25.toFixed(2)} to ${s.p75.toFixed(2)}<br>90th pct ${s.p90.toFixed(2)} yr, n=${s.n}`);});
 }
+/* How the 2023 housing element's own categories have held up. The sites layer
+   is a fixed snapshot, which is correct for a housing element, but it means the
+   labels describe 2022 expectations rather than current status. */
+async function renderSiteCheck(){
+  const el=$("#sitecheck"); if(!el) return;
+  try{
+    const p=new URLSearchParams({where:"1=1",outFields:"APN_1,Category",returnGeometry:"false",
+      resultRecordCount:"2000",f:"json"});
+    const sites=(await (await fetch(`${SITES}?${p}`)).json()).features.map(x=>x.attributes);
+    const G={};
+    for(const s of sites){
+      const c=s.Category||"Other"; const t=PARCELS.get(norm(s.APN_1));
+      G[c]=G[c]||{n:0,inHCD:0,done:0};
+      G[c].n++; if(t){G[c].inHCD++; if(t.co) G[c].done++;}
+    }
+    const order=["Pipeline","Likely","Opportunity"].filter(k=>G[k]);
+    const opp=G.Opportunity;
+    el.innerHTML=`<h4>How the 2023 plan has held up</h4>
+      <p><span class="big">${opp?fmt(opp.n-opp.inHCD):"?"} of ${opp?fmt(opp.n):"?"}</span>
+        sites Berkeley identified as opportunity capacity have no housing development
+        reported to the State between 2018 and 2025.</p>
+      <table><tr><th>Listed in 2023 as</th><th>Sites</th><th>Any state record</th><th>Completed</th></tr>
+      ${order.map(k=>`<tr><td>${k}</td><td>${G[k].n}</td><td>${G[k].inHCD}</td><td>${G[k].done}</td></tr>`).join("")}
+      </table>
+      <p>The labels have not aged evenly: sites called <b>pipeline</b> have completed at a lower rate than
+        those called <b>likely</b>. A housing element inventory is meant to be a fixed snapshot, so this is
+        not an error in the plan, but it does mean the categories describe 2022 expectations.</p>
+      <p style="font-size:13px;color:var(--muted)">Berkeley GIS sites inventory joined to HCD records by parcel
+        number. Measures what was reported to the State, not what exists; the state file is known to omit some
+        real filings.</p>`;
+  }catch(e){ el.innerHTML=""; }
+}
+
 /* Grouped for the chart. Seven categories where three are under 1% is not a
    chart, so financing causes and hard blocks are each collapsed into one. */
 function reasonGroup(t){
@@ -598,6 +672,43 @@ function renderYears(A2){
   document.querySelectorAll(".yb").forEach(el=>hover(el,`<b>${el.dataset.y}</b><br>${el.dataset.k}: ${fmt(+el.dataset.v)} homes`));
   return Y;
 }
+/* Permits issued so far this cycle, split by the same four income tiers the
+   allocation uses. A single citywide percentage hides that market-rate is
+   roughly on pace while the affordable tiers are nowhere near it. */
+function renderTiers(A2){
+  const T={vlow:0,low:0,mod:0,above:0};
+  for(const r of A2){
+    if(+r.YEAR < RHNA.start) continue;
+    T.vlow += num(r.BP_VLOW_INCOME_DR)+num(r.BP_VLOW_INCOME_NDR)
+            + num(r.BP_EXTREMELY_LOW_INCOME_DR)+num(r.BP_EXTREMELY_LOW_INCOME_NDR)
+            + num(r.BP_ACUTELY_LOW_INCOME_DR)+num(r.BP_ACUTELY_LOW_INCOME_NDR);
+    T.low  += num(r.BP_LOW_INCOME_DR)+num(r.BP_LOW_INCOME_NDR);
+    T.mod  += num(r.BP_MOD_INCOME_DR)+num(r.BP_MOD_INCOME_NDR);
+    T.above+= num(r.BP_ABOVE_MOD_INCOME);
+  }
+  const now=new Date(), span=RHNA.end-RHNA.start;
+  const elapsed=Math.min(1,((now.getFullYear()+now.getMonth()/12)-RHNA.start)/span);
+  $("#tierlist").innerHTML=RHNA.tiers.map(t=>{
+    const pct=T[t.key]/t.alloc, behind=pct < elapsed*0.6;
+    return `<div class="tier">
+      <span class="tname">${t.label}<em>${t.sub}</em></span>
+      <span class="ttrack">
+        <i class="tfill" style="width:${Math.min(pct*100,100)}%;background:${behind?"var(--stall)":"var(--s2)"}"></i>
+        <i class="tpace" style="left:${elapsed*100}%"></i>
+      </span>
+      <span class="tpct"${behind?' style="color:var(--stall)"':''}>${Math.round(pct*100)}%</span>
+      <span class="tnum">${fmt(T[t.key])} of ${fmt(t.alloc)}</span>
+    </div>`;}).join("");
+  document.querySelectorAll(".tier").forEach((el,i)=>{
+    const t=RHNA.tiers[i];
+    hover(el,`<b>${t.label}</b> (${t.sub})<br>${fmt(T[t.key])} permitted of ${fmt(t.alloc)}<br>`+
+             `${Math.round(100*T[t.key]/t.alloc)}% of target, ${Math.round(elapsed*100)}% of the cycle gone`);
+  });
+  const aff=(T.vlow+T.low+T.mod)/(2446+1408+1416), mkt=T.above/3664;
+  $("#tiernote").innerHTML=`With <b>${Math.round(elapsed*100)}%</b> of the cycle elapsed, Berkeley has permitted
+    <b>${Math.round(mkt*100)}%</b> of its market-rate target and <b>${Math.round(aff*100)}%</b> of its
+    combined affordable target. The red marker is where each bar would need to reach to be on pace.`;
+}
 function renderScore(Y){
   const cyc=Y.filter(y=>+y.year>=RHNA.start);
   const permitted=cyc.reduce((a,y)=>a+y.bp,0), span=RHNA.end-RHNA.start;
@@ -648,7 +759,7 @@ async function searchAddr(v){
 async function sitesFor(apn){
   try{
     const p=new URLSearchParams({where:`APN_1 = '${apn.replace(/'/g,"''")}'`,
-      outFields:"APN_1,RHNA_5,Category,Permit__",returnGeometry:"false",f:"json"});
+      outFields:"APN_1,Category,Category_I,Permit__",returnGeometry:"false",f:"json"});
     const r=await fetch(`${SITES}?${p}`); const j=await r.json();
     return (j.features||[])[0]?.attributes||null;
   }catch{ return null; }
@@ -664,9 +775,27 @@ async function showParcel(apn,addr,gis){
   card.scrollIntoView({behavior:"smooth",block:"nearest"});
 
   const site=await sitesFor(apn);
-  const siteLine=site?`<div class="kv" style="margin-top:18px"><div><div class="k">Housing element site</div><div class="v" style="font-size:14px">${site.Category||"-"}</div></div>
-      <div><div class="k">Counts toward RHNA</div><div class="v" style="font-size:14px">${site.RHNA_5==="Yes"?"Yes":"No"}</div></div>
-      ${site.Permit__?`<div><div class="k">Case number</div><div class="v" style="font-size:14px">${site.Permit__}</div></div>`:""}</div>`:"";
+  /* The sites inventory is a fixed 2023 Housing Element artifact, so its
+     category is stated in the past tense. Category_I is used rather than
+     Category because it is self-describing: it splits pipeline sites into
+     "under review" and "anticipated" and names the BART sites. The layer also
+     carries an RHNA_5 column that is documented nowhere, so it is not shown. */
+  const siteLabel=c=>{
+    if(!c) return null;
+    const m=String(c).match(/^([A-Za-z]+)(?:_([A-Za-z]+))?_(\w+)$/);
+    if(!m) return String(c);
+    const [,kind,sub,id]=m;
+    if(kind==="BART") return `BART station site, ${String(sub||id).replace(/([a-z])([A-Z])/g,"$1 $2")}`;
+    const sfx=sub ? ({UnderReview:", under review", Anticipated:", anticipated"}[sub] || ", "+sub.toLowerCase()) : "";
+    return `${kind} site${sfx} (${id})`;
+  };
+  const lbl=site?siteLabel(site.Category_I)||site.Category:null;
+  const siteLine=site?`<div class="kv" style="margin-top:18px">
+      <div><div class="k">In the 2023 housing element</div>
+        <div class="v" style="font-size:14px">${lbl||"Listed"}</div></div>
+      ${site.Permit__?`<div><div class="k">Case number then</div><div class="v" style="font-size:14px">${site.Permit__}</div></div>`:""}
+      </div>
+      <p class="hint" style="margin-top:10px">Berkeley's assessment when the plan was adopted, not a current status.</p>`:"";
 
   if(!t){
     $("#pcb").innerHTML=`<p class="pc-empty">No housing development record for this parcel in the State's 2018-2025 filings.
@@ -1150,7 +1279,7 @@ async function buildMap(){
         const [b2,s2,pw2,pb2]=await Promise.all([
           bound||gj(BOUND_Q,{where:"1=1",returnGeometry:"true"}).catch(()=>null),
           sites||gj(`${GIS}/Public/Portal_Planning/MapServer/22/query`,
-             {where:"1=1",outFields:"APN_1,Category,RHNA_5",returnGeometry:"true"}).catch(()=>null),
+             {where:"1=1",outFields:"APN_1,Category,Category_I",returnGeometry:"true"}).catch(()=>null),
           parcelsFor(waitAPNs),
           parcelsFor([...builtSet].map(k=>[...PARCELS.values()].find(t=>norm(t.raw||t.apn)===k)?.raw).filter(Boolean))
         ]);
@@ -1299,6 +1428,8 @@ async function buildMap(){
 
     const Y=renderYears(A2);
     renderScore(Y);
+    renderTiers(A2);
+    renderSiteCheck();
     buildMap();
 
     const years=Y.map(y=>y.year), lastY=years[years.length-1];
