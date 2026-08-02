@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-02T03:14:23Z",
+ "generated": "2026-08-02T03:16:09Z",
  "source": "https://berkeleyca.gov/your-government/boards-commissions/zoning-adjustments-board",
  "note": "Parsed from Berkeley's published ZAB agenda PDFs. Case numbers and addresses are extracted text, not a City data feed.",
  "meetings": [
@@ -16,8 +16,7 @@
     "2417 Carleton St",
     "2700 Shattuck Ave"
    ],
-   "maxUnitsMentioned": 359,
-   "chars": 13513
+   "maxUnitsMentioned": 359
   },
   {
    "date": "2026-06-11",
@@ -29,8 +28,7 @@
     "2620 Telegraph Ave",
     "2616 Telegraph Ave"
    ],
-   "maxUnitsMentioned": null,
-   "chars": 11436
+   "maxUnitsMentioned": null
   },
   {
    "date": "2026-05-14",
@@ -43,8 +41,7 @@
     "1101 University Ave",
     "1522 Josephine St"
    ],
-   "maxUnitsMentioned": null,
-   "chars": 12779
+   "maxUnitsMentioned": null
   },
   {
    "date": "2026-04-09",
@@ -61,8 +58,7 @@
     "2712 Telegraph Ave",
     "830 Bancroft Way"
    ],
-   "maxUnitsMentioned": 433,
-   "chars": 14229
+   "maxUnitsMentioned": 433
   },
   {
    "date": "2026-03-12",
@@ -75,8 +71,7 @@
     "2276 Shattuck Ave",
     "600 Gilman St"
    ],
-   "maxUnitsMentioned": 134,
-   "chars": 12950
+   "maxUnitsMentioned": 134
   },
   {
    "date": "2026-02-26",
@@ -102,8 +97,7 @@
     "9101 Burning Tree Rd",
     "201 University Ave"
    ],
-   "maxUnitsMentioned": 63,
-   "chars": 17118
+   "maxUnitsMentioned": 63
   },
   {
    "date": "2026-01-22",
@@ -122,8 +116,7 @@
     "1899 Oxford St",
     "1827 Oxford St"
    ],
-   "maxUnitsMentioned": 222,
-   "chars": 14373
+   "maxUnitsMentioned": 222
   },
   {
    "date": "2025-12-11",
@@ -141,8 +134,7 @@
     "2150 Shattuck Ave",
     "1890 Alcatraz Ave"
    ],
-   "maxUnitsMentioned": null,
-   "chars": 13594
+   "maxUnitsMentioned": null
   },
   {
    "date": "2025-11-13",
@@ -156,8 +148,7 @@
     "2029 University Ave",
     "3035 Colby St"
    ],
-   "maxUnitsMentioned": 240,
-   "chars": 13964
+   "maxUnitsMentioned": 240
   },
   {
    "date": "2025-10-30",
@@ -171,8 +162,7 @@
     "2298 Durant Ave",
     "2360 Ellsworth St"
    ],
-   "maxUnitsMentioned": 65,
-   "chars": 12435
+   "maxUnitsMentioned": 65
   },
   {
    "date": "2025-10-09",
@@ -187,8 +177,7 @@
     "29 Orinda Way",
     "314 Pacific Ave"
    ],
-   "maxUnitsMentioned": 169,
-   "chars": 12590
+   "maxUnitsMentioned": 169
   },
   {
    "date": "2025-09-25",
@@ -212,8 +201,7 @@
     "2138 Kittredge St",
     "164 Oak Rd"
    ],
-   "maxUnitsMentioned": 66,
-   "chars": 14239
+   "maxUnitsMentioned": 66
   },
   {
    "date": "2025-09-11",
@@ -231,8 +219,7 @@
     "2421 Fourth St",
     "1683 Shattuck Ave"
    ],
-   "maxUnitsMentioned": 110,
-   "chars": 14312
+   "maxUnitsMentioned": 110
   },
   {
    "date": "2025-08-14",
@@ -248,8 +235,7 @@
     "2201 Blake St",
     "9101 Burning Tree Rd"
    ],
-   "maxUnitsMentioned": null,
-   "chars": 13087
+   "maxUnitsMentioned": null
   }
  ]
 }
