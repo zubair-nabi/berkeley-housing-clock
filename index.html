@@ -455,30 +455,52 @@ footer{padding:34px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;col
 
   <section style="border-bottom:none">
     <div class="sec-head"><span class="sec-num">09</span><h2>Where this comes from</h2></div>
-    <p class="sec-sub">Two live APIs, queried in your browser each time you load this page. Nothing here is cached or hand-entered.</p>
+    <p class="sec-sub">Six sources. Most are queried in your browser as the page loads. Two are not, for
+      reasons given below, and both say so.</p>
     <div class="src">
       <div class="scard"><h4>HCD Annual Progress Reports</h4>
-        <p>Berkeley's filings to the State: applications, approvals, permits, completions, affordability. Fetched from the <a href="https://data.ca.gov/dataset/housing-element-annual-progress-report-apr-data-by-jurisdiction-and-year" target="_blank" rel="noopener">California Open Data Portal</a>.</p>
+        <p>Berkeley's filings to the State: applications, approvals, permits, completions, affordability.
+          Every figure on this page except section 03 comes from here. Fetched live from the
+          <a href="https://data.ca.gov/dataset/housing-element-annual-progress-report-apr-data-by-jurisdiction-and-year" target="_blank" rel="noopener">California Open Data Portal</a>.</p>
         <span class="fresh lag" id="f-hcd">-</span></div>
+
       <div class="scard"><h4>Berkeley GIS: addresses and parcels</h4>
-        <p>62,000 address points with parcel numbers, lot and building size. Live from the City's <a href="https://gis.cityofberkeley.info/arcgis/rest/services" target="_blank" rel="noopener">ArcGIS server</a>.</p>
+        <p>62,000 address points carrying parcel numbers, plus lot and building size. This is what the
+          address lookup queries, live from the City's
+          <a href="https://gis.cityofberkeley.info/arcgis/rest/services" target="_blank" rel="noopener">ArcGIS server</a>.</p>
         <span class="fresh ok" id="f-gis">-</span></div>
+
+      <div class="scard"><h4>ZAB agendas</h4>
+        <p>What the Zoning Adjustments Board hears next. Published as PDFs from a server that sends no CORS
+          header, so a browser cannot read them: they are parsed in this repository twice a week instead.
+          <a href="https://github.com/zubair-nabi/berkeley-housing-clock/blob/main/tools/fetch_zab.py" target="_blank" rel="noopener">The parser is here</a>.</p>
+        <span class="fresh ok" id="f-zab">-</span></div>
+
+      <div class="scard"><h4>CEQAnet</h4>
+        <p>Environmental filings for both the City and UC Berkeley, in the State clearinghouse within days.
+          It sends an open CORS header, so unlike the agendas this one is read live in your browser.</p>
+        <span class="fresh ok" id="f-ceqa">-</span></div>
+
       <div class="scard"><h4>Housing Element sites</h4>
-        <p>The 382 parcels Berkeley identified as able to accommodate its state allocation, with RHNA flags.</p>
-        <span class="fresh lag">2023 snapshot</span></div>
-      <div class="scard"><h4>Not yet wired</h4>
-        <p>ZAB agendas and CEQAnet are current but publish only as PDF and HTML, they need parsers, not API calls.</p>
-        <span class="fresh lag">Planned</span></div>
+        <p>The 382 parcels Berkeley identified in 2023 as able to accommodate its state allocation. A cycle
+          snapshot rather than a live layer, which is what a housing element inventory is meant to be.</p>
+        <span class="fresh lag">Adopted 2023</span></div>
+
+      <div class="scard"><h4>Parcel geometry and BART</h4>
+        <p>Parcel outlines, the sites inventory and the Richmond line alignment, cached in
+          <code>geo/</code>. Berkeley's GIS server rate limits hard, so re-querying it on every visit would
+          get the page blocked. BART's alignment comes from the agency's published GTFS feed.</p>
+        <span class="fresh lag">Cached, rebuilt on demand</span></div>
     </div>
 
     <div class="caveat">
       <b>What this cannot tell you.</b><br>
-      A project shown as "waiting" may hold a permit the City never reported to the State, the state file is known to drop real filings. Nothing here reflects activity after December 2025; the current year will not appear in state data until April 2027. UC Berkeley's roughly 2,150 student beds are exempt from city permitting and appear nowhere in this data.
+      A project shown as "waiting" may hold a permit the City never reported to the State, the state file is known to drop real filings. Every number on this page other than section 03 stops at December 2025, because the State publishes a year in arrears and 2026 will not appear until April 2027. Section 03 is the exception and is drawn from agendas and environmental filings, which are notices of intent rather than counts of homes. UC Berkeley's roughly 2,150 student beds are exempt from city permitting, so they appear in the clearinghouse but in none of the totals.
       <br><br>We can show you that a project is stalled. We usually cannot show you why. Financing, rates and construction costs are in no public dataset. <b>If you know why one of these is stuck, that is the most useful thing you can tell us.</b>
     </div>
 
     <footer>
-      Prototype · Live from data.ca.gov (CKAN) and gis.cityofberkeley.info (ArcGIS REST)<br>
+      Prototype · data.ca.gov · gis.cityofberkeley.info · ceqanet.lci.ca.gov · berkeleyca.gov · bart.gov<br>
       Not affiliated with the City of Berkeley or the University of California
     </footer>
   </section>
@@ -909,6 +931,8 @@ async function renderNow(){
     const upcoming=z.meetings.filter(m=>new Date(m.date+"T12:00:00")>=today);
     const shown=(upcoming.length?upcoming:z.meetings).slice(0,5);
     $("#zab-when").textContent=upcoming.length?"upcoming":"most recent";
+    const newest=z.meetings[0]&&new Date(z.meetings[0].date+"T12:00:00");
+    if(newest) $("#f-zab").textContent="Agendas to "+fmtDay(newest);
     $("#zablist").className="";
     $("#zablist").innerHTML=shown.map(m=>{
       const d=new Date(m.date+"T12:00:00");
@@ -921,6 +945,7 @@ async function renderNow(){
       </div>`;}).join("");
   }catch(e){
     $("#zablist").className="";
+    $("#f-zab").textContent="Not built";
     $("#zablist").innerHTML=`<div class="nowitem" style="color:var(--muted)">Agenda file not built yet.
       Run <code>tools/fetch_zab.py</code> or the Refresh ZAB workflow.</div>`;
   }
@@ -942,6 +967,7 @@ async function renderNow(){
       grab("University of California, Berkeley","UC Berkeley")
     ])).flat().sort((a,b)=>b.when-a.when).slice(0,6);
     $("#ceqa-when").textContent="live";
+    if(all[0]) $("#f-ceqa").textContent="Filings to "+fmtDay(all[0].when);
     $("#ceqalist").className="";
     $("#ceqalist").innerHTML=all.map(x=>{
       const cs=[...x.title.matchAll(caseRe)].map(m=>m[1].replace(/\s/g,"").toUpperCase());
@@ -952,6 +978,7 @@ async function renderNow(){
       </div>`;}).join("");
   }catch(e){
     $("#ceqalist").className="";
+    $("#f-ceqa").textContent="Unreachable";
     $("#ceqalist").innerHTML=`<div class="nowitem" style="color:var(--muted)">State clearinghouse unreachable.</div>`;
   }
 }
