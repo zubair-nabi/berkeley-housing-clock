@@ -191,13 +191,19 @@ h2{font-size:clamp(1.9rem,3.9vw,2.8rem);font-weight:400;margin:0;letter-spacing:
 .tick{position:absolute;top:4px;font-family:"Geist Mono",monospace;font-size:10px;color:var(--muted);transform:translateX(-50%)}
 .tick::before{content:"";position:absolute;top:-5px;left:50%;width:1px;height:4px;background:var(--grid)}
 
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:14px;margin:30px 0}
+/* Six tiles on one row. auto-fit with a 178px minimum needed 1068px and the
+   row is 1064, so the sixth wrapped alone. An explicit count cannot orphan,
+   and 6 / 3 / 2 all divide evenly so no breakpoint leaves a stray either. */
+.stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:11px;margin:30px 0}
+@media(max-width:1040px){.stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}}
+@media(max-width:600px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .stat{background:linear-gradient(180deg,color-mix(in srgb,var(--ink) 3%,transparent),color-mix(in srgb,var(--ink) 1%,transparent));
-  border:1px solid var(--rule);border-radius:var(--radius);padding:22px 20px;transition:border-color .2s,transform .2s}
+  border:1px solid var(--rule);border-radius:var(--radius);padding:20px 16px;transition:border-color .2s,transform .2s;
+  min-width:0}
 .stat:hover{border-color:color-mix(in srgb,var(--ink) 22%,transparent);transform:translateY(-2px)}
 .stat .v{font-family:"Instrument Serif",serif;font-size:clamp(2rem,4.6vw,2.9rem);font-weight:400;line-height:1;letter-spacing:-.03em}
 .stat.hot .v{color:var(--stall)}
-.stat .k{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-top:9px;line-height:1.4}
+.stat .k{font-family:"Geist Mono",monospace;font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-top:10px;line-height:1.5}
 
 .tiers{margin-top:26px;padding-top:20px;border-top:1px solid var(--rule)}
 .tiers h4{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
@@ -666,6 +672,12 @@ const isBig=t=>t.units>=5;
 /* A project the City has not decided on yet is not stalled. Every section that
    says "stalled" filters on this, so the word means one thing on the page. */
 const isPending=t=>(t.status||"").toLowerCase()==="pending";
+/* Approved, no permit on record, and never occupied. The last clause matters:
+   HCD demonstrably drops permit filings, so a building people already live in
+   can have no permit in the state file. Without it the page claimed 2012
+   Berkeley Way had been waiting 7.6 years directly above a line saying its
+   residents moved in during 2022. A completion is proof a permit existed. */
+const isStalled=t=>!!t.ent && !t.bp && !t.co && t.units>0 && !isPending(t);
 function stageStats(rows,a,b,label,hot){
   const L=rows.filter(t=>t[a]&&t[b]).map(t=>yrs(t[a],t[b]))
           .filter(v=>v>=0&&v<15).sort((x,y)=>x-y);
@@ -974,7 +986,7 @@ async function showParcel(apn,addr,gis){
   }
   const steps=[["Applied",t.app],["Approved",t.ent],["Permitted",t.bp],["Moved in",t.co]];
   const lastIdx=steps.reduce((m,s,i)=>s[1]?i:m,-1);
-  const stalled=t.ent&&!t.bp;
+  const stalled=isStalled(t);
   const waitY=stalled?yrs(t.ent,new Date()):null;
   const tl=steps.map(([n,d],i)=>`<div class="tlstep ${d?"done":""} ${i===lastIdx?"last":""} ${stalled&&i===2?"stall":""}">
       <span class="n">${n}</span><span class="d">${d?d.toISOString().slice(0,10):"-"}</span></div>`).join("");
@@ -992,7 +1004,10 @@ async function showParcel(apn,addr,gis){
        <b>${waitY.toFixed(1)} years</b>. The citywide median wait from approval to building permit is
        ${window.__MED_ENT_BP__?window.__MED_ENT_BP__.toFixed(2):"-"} years.</div>`:""}
     ${t.co?`<div class="verdict" style="border-color:var(--s2);background:none"><b>Completed.</b> Took
-       ${t.app&&t.co?yrs(t.app,t.co).toFixed(1):"-"} years from first application to occupancy.</div>`:""}
+       ${t.app&&t.co?yrs(t.app,t.co).toFixed(1):"-"} years from first application to occupancy.
+       ${!t.bp?`<br><span style="color:var(--muted)">No building permit appears in the State's file for this
+       parcel even though the building was occupied. The state copy is known to drop filings the City made,
+       which is why a completion overrides a missing permit everywhere on this page.</span>`:""}</div>`:""}
     ${nowLine}${siteLine}`;
 }
 
@@ -1982,7 +1997,7 @@ async function buildMap(){
        isPending is the single definition every section on the page uses, so
        "stalled" cannot mean one thing in the waiting room and another in the
        corridor table. */
-    const allStuck=[...PARCELS.values()].filter(t=>t.ent&&!t.bp&&t.units>0)
+    const allStuck=[...PARCELS.values()].filter(t=>t.ent&&!t.bp&&!t.co&&t.units>0)
       .map(t=>({...t,y:yrs(t.ent,now)})).filter(t=>t.y>0);
     PENDING=allStuck.filter(isPending);
     WAIT=allStuck.filter(t=>!isPending(t)).sort((a,b)=>b.units-a.units);
@@ -2002,9 +2017,10 @@ async function buildMap(){
     const corr=new Map();
     for(const t of PARCELS.values()){
       if(!t.ent||t.units<=0||isPending(t)) continue;   // match the waiting room
+      const stuck=isStalled(t);
       const k=street(t.addr); if(!k) continue;
       const c=corr.get(k)||{name:k,tot:0,stuck:0}; c.tot+=t.units;
-      if(!t.bp) c.stuck+=t.units;
+      if(stuck) c.stuck+=t.units;
       corr.set(k,c);
     }
     const CORR=[...corr.values()].filter(c=>c.tot>=60).sort((a,b)=>b.stuck-a.stuck).slice(0,10);
@@ -2023,7 +2039,7 @@ async function buildMap(){
 
     /* attrition: homes approved 4+ years ago that never got a permit */
     const oldCohort=[...PARCELS.values()].filter(t=>t.ent&&t.units>0&&!isPending(t)&&t.ent.getFullYear()<=2021);
-    const neverU=oldCohort.filter(t=>!t.bp).reduce((a,t)=>a+t.units,0);
+    const neverU=oldCohort.filter(t=>!t.bp&&!t.co).reduce((a,t)=>a+t.units,0);
     const cohU=oldCohort.reduce((a,t)=>a+t.units,0);
     $("#w-never").textContent=Math.round(100*neverU/cohU)+"%";
     hover($("#w-never").parentElement,
