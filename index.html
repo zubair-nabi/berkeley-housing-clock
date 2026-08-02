@@ -95,6 +95,11 @@ h2{font-size:clamp(1.9rem,3.9vw,2.8rem);font-weight:400;margin:0;letter-spacing:
 #q{width:100%;background:var(--card);border:1px solid var(--rule);color:var(--ink);padding:17px 19px;font-size:17px;
   font-family:"Geist",sans-serif;border-radius:12px;outline:none;transition:border-color .2s}
 #q:focus{border-color:var(--accent)}
+#q{padding-right:46px}
+#qclear{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:28px;height:28px;
+  display:grid;place-items:center;border:1px solid var(--rule);border-radius:50%;background:transparent;
+  color:var(--muted);font-size:17px;line-height:1;cursor:pointer;transition:color .15s,border-color .15s}
+#qclear:hover{color:var(--ink);border-color:var(--ink-2)}
 #q::placeholder{color:var(--muted)}
 #res{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--card);border:1px solid var(--rule);
   border-radius:12px;box-shadow:0 18px 44px rgba(0,0,0,.30);max-height:290px;overflow-y:auto;z-index:40;display:none}
@@ -140,6 +145,19 @@ h2{font-size:clamp(1.9rem,3.9vw,2.8rem);font-weight:400;margin:0;letter-spacing:
 .ctitle{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;
   color:var(--ink);border-bottom:1px solid var(--rule);padding:0 10px 7px;margin-bottom:6px;font-weight:600}
 .ctitle span{float:right;color:var(--muted);font-weight:400;letter-spacing:.08em}
+.need{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:4px 0 16px}
+@media(max-width:820px){.need{grid-template-columns:1fr}}
+.needcard{border:1px solid var(--rule);border-radius:var(--radius);padding:18px 16px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--ink) 3%,transparent),transparent)}
+.needcard .v{font-family:"Instrument Serif",serif;font-size:2rem;line-height:1;letter-spacing:-.025em}
+.needcard .v.short{color:var(--stall)}
+.needcard .k{font-family:"Geist Mono",monospace;font-size:9px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);margin-top:10px;line-height:1.5}
+.neednote,.ucnote{font-size:14px;color:var(--ink-2);max-width:66ch;margin:0}
+.neednote b,.ucnote b{color:var(--ink);font-weight:600}
+.ucrow{display:grid;grid-template-columns:150px 1fr;gap:16px;padding:9px 0;border-bottom:1px solid var(--grid);font-size:13.5px}
+.ucrow:last-of-type{border-bottom:none}
+.uck{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding-top:3px}
 .peers{margin-top:34px;padding-top:22px;border-top:1px solid var(--rule)}
 .peers h4,.findings h4{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--ink);margin:0 0 8px;font-weight:600}
@@ -383,6 +401,7 @@ footer{padding:34px 0 0;font-family:"Geist Mono",monospace;font-size:11px;color:
     <p class="sec-sub">Any Berkeley address. We match it to its parcel number, then to every housing record the State holds for that parcel.</p>
     <div class="searchbox">
       <input id="q" type="text" placeholder="e.g. 2128 Oxford St" autocomplete="off" spellcheck="false">
+      <button id="qclear" type="button" aria-label="Clear address" hidden>&times;</button>
       <div id="res"></div>
     </div>
     <div class="hint" id="qhint">62,000 addresses · live from Berkeley GIS</div>
@@ -523,6 +542,16 @@ footer{padding:34px 0 0;font-family:"Geist Mono",monospace;font-size:11px;color:
         <h4>The allocation is not one number, it is four</h4>
         <div id="tierlist"></div>
         <p class="tiernote" id="tiernote"></p>
+      </div>
+
+      <div class="tiers">
+        <h4>How much is actually required <span id="need-state"></span></h4>
+        <div id="needbox"></div>
+      </div>
+
+      <div class="tiers">
+        <h4>And the part the City does not count</h4>
+        <div id="ucbox"></div>
       </div>
     </div>
   </section>
@@ -795,7 +824,10 @@ function renderWait(){
   document.querySelectorAll("#wlist .wrow").forEach((el,i)=>{
     const r=rows[i];
     hover(el,`<b>${r.addr}</b><br>${fmt(r.units)} homes${r.aff?` · ${Math.round(r.aff)} affordable`:""}<br>approved ${r.ent.toISOString().slice(0,10)}<br>waiting ${r.y.toFixed(1)} years<br><i>click to open</i>`);
-    el.onclick=()=>showParcel(r.raw||r.apn,r.addr);
+    el.onclick=()=>{
+      showParcel(r.raw||r.apn,r.addr);
+      document.querySelector("#q").scrollIntoView({behavior:"smooth",block:"center"});
+    };
   });
   const b=$("#wmore"); b.style.display=WAIT.length>25?"inline-block":"none";
   b.textContent=SHOWALL?"Show top 25":`Show all ${WAIT.length}`;
@@ -883,10 +915,17 @@ function renderScore(Y){
 let tmr=null, cands=[];
 $("#q").addEventListener("input",e=>{
   clearTimeout(tmr); const v=e.target.value.trim();
+  $("#qclear").hidden = v.length===0;
+  const card=$("#card");
+  if(card.classList.contains("on")){ card.classList.remove("on"); card.innerHTML=""; }
   if(v.length<3){ $("#res").classList.remove("on"); return; }
   tmr=setTimeout(()=>searchAddr(v),260);
 });
-$("#q").addEventListener("keydown",e=>{ if(e.key==="Escape") $("#res").classList.remove("on"); });
+$("#q").addEventListener("keydown",e=>{ if(e.key==="Escape") clearLookup(); });
+$("#qclear").addEventListener("click",()=>{ clearLookup(); $("#q").focus(); });
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape" && $("#card").classList.contains("on")) clearLookup();
+});
 document.addEventListener("click",e=>{ if(!e.target.closest(".searchbox")) $("#res").classList.remove("on"); });
 
 async function searchAddr(v){
@@ -920,7 +959,19 @@ async function sitesFor(apn){
   }catch{ return null; }
 }
 
+function clearLookup(){
+  $("#q").value=""; $("#qclear").hidden=true;
+  $("#res").classList.remove("on");
+  const c=$("#card"); c.classList.remove("on"); c.innerHTML="";
+  $("#qhint").textContent="62,000 addresses · live from Berkeley GIS";
+}
 async function showParcel(apn,addr,gis){
+  /* Reflect the selection into the input wherever it came from, a search
+     result, a waiting-room row or a map click, so there is one place showing
+     what is selected and one control that clears it. */
+  if(addr){ $("#q").value=addr; }
+  $("#qclear").hidden=false;
+  $("#qhint").textContent="Showing one parcel · press Escape or the cross to clear";
   const t=PARCELS.get(norm(apn));
   const card=$("#card"); card.classList.add("on");
   card.innerHTML=`<div class="pc"><div class="pc-h">
@@ -1009,6 +1060,83 @@ async function showParcel(apn,addr,gis){
        parcel even though the building was occupied. The state copy is known to drop filings the City made,
        which is why a completion overrides a missing permit everywhere on this page.</span>`:""}</div>`:""}
     ${nowLine}${siteLine}`;
+}
+
+/* How much is required, and how Berkeley's progress compares with every other
+   jurisdiction in the state. HCD publishes its own RHNA progress report for all
+   539 of them, which is a better authority than our own sum and lets the page
+   say where Berkeley sits rather than implying. */
+const RHNA_PROGRESS="1e80a9cf-724c-432d-8374-e9708a6a92dc";
+async function renderNeed(){
+  const el=$("#needbox"); if(!el) return;
+  try{
+    const u=`${CKAN}?resource_id=${RHNA_PROGRESS}&limit=600`;
+    const recs=(await (await fetch(u)).json()).result.records;
+    const rows=recs.map(r=>{
+      const tot=num(r["RHNA VLI"])+num(r["RHNA LI"])+num(r["RHNA MOD"])+num(r["RHNA ABOVE MOD"]);
+      const got=num(r["VLI UNITS"])+num(r["LI UNITS"])+num(r["MOD UNITS"])+num(r["ABOVE MOD UNITS"]);
+      const aff=num(r["RHNA VLI"])+num(r["RHNA LI"]);
+      const affGot=num(r["VLI UNITS"])+num(r["LI UNITS"]);
+      return {j:r.Jurisdiction, tot, got, pct:tot?got/tot:null,
+              aff, affPct:aff?affGot/aff:null, period:r["Planning Period"]};
+    }).filter(x=>x.pct!==null);
+    const me=rows.find(x=>x.j==="BERKELEY"); if(!me) throw 0;
+    const rank=(key)=>{const p=rows.filter(x=>x[key]!==null).sort((a,b)=>b[key]-a[key]);
+      return {r:p.findIndex(x=>x.j==="BERKELEY")+1, n:p.length};};
+    const med=k=>{const v=rows.map(x=>x[k]).filter(x=>x!==null).sort((a,b)=>a-b);return v[v.length>>1];};
+    const ro=rank("pct"), ra=rank("affPct");
+
+    const years=8, perYear=me.tot/years;
+    const reported=new Set(); // years of data behind the figure
+    const rate=me.got/3;      // HCD's report covers 2023-2025
+    el.innerHTML=`<div class="need">
+      <div class="needcard"><div class="v">${fmt(Math.round(perYear))}</div>
+        <div class="k">Homes a year required<br>${fmt(me.tot)} across ${me.period||"the cycle"}</div></div>
+      <div class="needcard"><div class="v short">${fmt(Math.round(rate))}</div>
+        <div class="k">Homes a year actually<br>permitted so far</div></div>
+      <div class="needcard"><div class="v short">${(perYear/Math.max(rate,1)).toFixed(1)}x</div>
+        <div class="k">What the rate would have<br>to multiply by</div></div>
+    </div>
+    <p class="neednote">The requirement is set by the State, not the City: HCD determines regional need and
+      ABAG divides it. Berkeley would need <b>${fmt(Math.round(perYear))} homes a year</b> and is permitting
+      about <b>${fmt(Math.round(rate))}</b>.
+      <br><br>That sounds like failure until you look at the other
+      <b>${fmt(rows.length-1)}</b> jurisdictions doing the same exercise. Berkeley is at
+      <b>${Math.round(me.pct*100)}%</b> of its allocation against a statewide median of
+      <b>${Math.round(med("pct")*100)}%</b>, ranking <b>${ro.r} of ${ro.n}</b>. On the affordable half it is at
+      <b>${Math.round(me.affPct*100)}%</b> against a median of <b>${Math.round(med("affPct")*100)}%</b>,
+      ranking <b>${ra.r} of ${ra.n}</b>. Berkeley is ahead of most of California. Almost nowhere in
+      California is close.</p>`;
+    $("#need-state").textContent=`HCD's own progress report, ${rows.length} jurisdictions`;
+  }catch(e){ el.innerHTML=`<p class="neednote" style="color:var(--muted)">Statewide progress unavailable.</p>`; }
+}
+
+/* UC is a state agency, so its housing is exempt from city permitting and
+   appears in none of the tables above. It does file environmental documents,
+   which is the one place both are visible in the same record. */
+function renderUC(){
+  const el=$("#ucbox"); if(!el) return;
+  const since=new Date(2018,0,1);
+  const isUC=x=>/University of California/i.test(x.who||"")||x.who==="UC Berkeley";
+  const recent=(NOW.ceqa||[]).filter(x=>x.when&&x.when>=since);
+  const uc=recent.filter(isUC), city=recent.filter(x=>!isUC(x));
+  const HOUS=/hous|residen|dorm|student|apartment|bed/i;
+  const ucH=uc.filter(x=>HOUS.test(x.title));
+  el.innerHTML=`
+    <div class="ucrow"><span class="uck">In HCD's tables</span>
+      <span>Every figure on this page. <b>UC Berkeley contributes nothing to it</b>, because a state
+        agency does not take city permits and so files no city permit data.</span></div>
+    <div class="ucrow"><span class="uck">In the clearinghouse</span>
+      <span>Both appear. Since 2018: <b>${fmt(city.length)}</b> filings from the City and
+        <b>${fmt(uc.length)}</b> from UC, of which <b>${ucH.length}</b> concern housing, including the 2021
+        Long Range Development Plan and the Channing-Bowditch student housing project filed this year.</span></div>
+    <div class="ucrow"><span class="uck">Scale</span>
+      <span>UC's published pipeline runs to roughly <b>2,150 beds</b> across Anchor House, 2200 Bancroft,
+        2556 Haste and the Anna Head site. That figure comes from the University's own project pages rather
+        than a dataset, which is why it is stated separately and not added to anything.</span></div>
+    <p class="ucnote" style="margin-top:14px">So the scoreboard above is a City scoreboard. Student housing
+      does not count toward Berkeley's allocation and does not appear in its production, yet it is built in
+      Berkeley and houses people who would otherwise be renting in it.</p>`;
 }
 
 /* ── peers and findings ─────────────────────────────────────
@@ -1207,6 +1335,7 @@ async function renderNow(){
     if(all[0]) $("#f-ceqa").textContent="Filings to "+fmtDay(all[0].when);
     $("#ceqalist").className="";
     addNowToMap();
+    renderUC();
     $("#ceqalist").innerHTML=all.map(x=>{
       const cs=[...x.title.matchAll(caseRe)].map(m=>m[1].replace(/\s/g,"").toUpperCase());
       return `<div class="nowitem">
@@ -2053,6 +2182,7 @@ async function buildMap(){
     renderNow();
     renderFindings(A2);
     renderPeers();
+    renderNeed();
     buildMap();
 
     const years=Y.map(y=>y.year), lastY=years[years.length-1];

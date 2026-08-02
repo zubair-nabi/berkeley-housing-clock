@@ -20,6 +20,12 @@ Against its state allocation, Berkeley has permitted **30% of its market-rate
 target and 10% of its combined affordable target** over the three years of the
 cycle the State has published.
 
+Berkeley needs **1,117 homes a year** and permits about **536**, so the rate would
+have to roughly double. Measured against the other 538 jurisdictions doing the same
+exercise, though, Berkeley is **ahead of most of California**: 18% of its allocation
+against a statewide median of 16%, and 11% of the affordable half against a median
+of 5%.
+
 Three things the same file records and nobody prints: **75% of approved homes came
 through a state density bonus**, **18% of permits issued are accessory dwelling
 units**, and **97% of what gets built is rental**.
@@ -56,6 +62,7 @@ approximately; it still appears in section 03.
 | [ZAB agendas](https://berkeleyca.gov/your-government/boards-commissions/zoning-adjustments-board) | What the board is hearing next | PDFs parsed in CI into `data/zab.json` |
 | [CEQAnet](https://ceqanet.lci.ca.gov/) | Environmental filings, City and UC | HTML fetched live in the browser |
 | [BART GTFS](https://www.bart.gov/dev/schedules/google_transit.zip) | Richmond line alignment and stations | Extracted once into `geo/bart.json` |
+| [HCD RHNA Progress Report](https://data.ca.gov/dataset/rhna-progress-report) | Official allocation and progress for all 539 California jurisdictions | CKAN API, fetched live |
 | [OpenStreetMap via Overpass](https://overpass-api.de/) | AC Transit bus routes, weighted by how many routes share each street; 17 landmarks with their real building footprints | Extracted once into `geo/bus.json`, `geo/landmarks.json` and `geo/landmark_shapes.json` |
 | [OpenFreeMap](https://openfreemap.org) / OpenStreetMap | Basemap vector tiles | Live |
 | Mapzen / AWS terrain tiles | Elevation for 3D terrain and hillshade | Live |
