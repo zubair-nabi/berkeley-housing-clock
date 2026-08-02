@@ -12,7 +12,8 @@ a browser is not allowed to read.
 ## What it shows
 
 Berkeley approves an apartment building in a median of about **6 months**, then it
-waits roughly **1.6 years** for a building permit. Around **5,636 approved homes**
+waits **1.6 years** for a building permit — or **3.3 years**, if you count the projects
+that are still waiting rather than only the ones that made it. Around **5,636 approved homes**
 across 97 sites have no building permit reported to the State and were never occupied,
 and of the homes approved between 2018 and 2021, **34% are still in that state** four
 or more years later.
@@ -39,7 +40,10 @@ units**, and **97% of what gets built is rental**.
   small projects, because small projects are ministerial and are approved and
   permitted on the same day. It then runs the same measurement against five
   neighbouring cities, since without a baseline there is no way to judge 1.6 years.
-  Berkeley comes third of six: slower than Oakland, faster than Alameda.
+  Berkeley comes third of six: slower than Oakland, faster than Alameda. Two blocks
+  below it give that number the context it needs: a Kaplan-Meier estimate that keeps
+  the still-waiting projects in the count, and RAND's 2025 production-time figures
+  for California, Colorado and Texas with their estimate of what a month costs.
 - **The waiting room** lists approved projects with no building permit reported to the
   State, aged, with a reason where the record gives one.
 - **Where it is stuck** breaks the same figure down by street.
@@ -67,11 +71,16 @@ approximately; it still appears in section 03.
 | [BART GTFS](https://www.bart.gov/dev/schedules/google_transit.zip) | Richmond line alignment and stations | Extracted once into `geo/bart.json` |
 | [HCD RHNA Progress Report](https://data.ca.gov/dataset/rhna-progress-report) | Official allocation and progress for all 539 California jurisdictions | CKAN API, fetched live |
 | [OpenStreetMap via Overpass](https://overpass-api.de/) | AC Transit bus routes, weighted by how many routes share each street; 17 landmarks with their real building footprints | Extracted once into `geo/bus.json`, `geo/landmarks.json` and `geo/landmark_shapes.json` |
+| [RAND, *The High Cost of Producing Multifamily Housing in California*](https://www.rand.org/pubs/research_reports/RRA3743-1.html) | Production-time benchmark and cost per month of delay | Quoted, April 2025 |
 | [OpenFreeMap](https://openfreemap.org) / OpenStreetMap | Basemap vector tiles | Live |
 | Mapzen / AWS terrain tiles | Elevation for 3D terrain and hillshade | Live |
 
-Everything derives from HCD's filings and Berkeley's own GIS. Every figure on the
-page is computed in the browser at load time from those records, not hand entered.
+Every figure *about Berkeley* derives from HCD's filings and Berkeley's own GIS, and is
+computed in the browser at load time from those records rather than hand entered. Three
+things on the page are hand-entered citations instead, each labelled as such where it
+appears: Berkeley's RHNA allocation from the ABAG plan, the nine-project table from the
+City Council referral of 14 April 2026, and RAND's production-time figures. Everything
+they are compared against is still computed live.
 
 ### Why ZAB is built in CI but CEQAnet is not
 
@@ -117,6 +126,18 @@ that half stays live.
   figure exactly and a 161-home record approved in September 2021 sits beside it,
   most likely the superseded earlier version. They are left as filed rather than
   merged on a guess. Together they overstate the waiting room by 164 homes, 2.9%.
+- **The stage bars are a floor, not a median.** A stage can only be measured on
+  projects that finished it, and the ones still waiting are excluded precisely because
+  they are slow. Of 90 multifamily approvals since 2018, 41 got a permit and 47 have
+  not; those 47 have been waiting a median of 38 months already. Treating them as
+  censored rather than missing puts the approval-to-permit median at **3.3 years**
+  against the **1.6** the bar shows. Both are on the page. Only the 1.6 is comparable
+  to the peer cities or to RAND, which measure completed projects the same way.
+- **The RAND figures are quoted, not computed here.** Production times and the
+  $1,284-per-home-per-month estimate come from *The High Cost of Producing Multifamily
+  Housing in California* (RRA3743-1, April 2025). That per-unit estimate is an
+  association rather than a causal one and sits at p = 0.116, just outside significance
+  at the 90% level; the per-square-foot version it derives from is significant at 95%.
 - **We can rarely say why a project is stalled.** Financing, interest rates and
   construction costs are in no public dataset. Where the record gives a reason, such
   as an incomplete financing stack or a closed application, it is shown.
