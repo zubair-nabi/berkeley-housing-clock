@@ -406,7 +406,7 @@ footer{padding:34px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;col
 
   <section>
     <div class="sec-head"><span class="sec-num">06</span><h2>The skyline that isn't there</h2></div>
-    <p class="sec-sub">Every approved-but-unbuilt project, drawn on its real parcel and extruded by the number of homes it would contain. Blue is what actually got built. Drag to rotate, scroll to zoom, click any block.</p>
+    <p class="sec-sub">Every approved-but-unbuilt project, drawn on its real parcel and extruded by the number of homes it would contain. Blue is what actually got built. The Campanile is here too, at its real 94 m and on a footprint its real size: it is the one thing on this map at true scale, so the rest has something to be measured against. The tallest tower here is 739 homes, which draws about twelve Campaniles high. Drag to rotate, scroll to zoom, click any block.</p>
     <div class="mapwrap">
       <div id="map"></div>
       <div class="mapstatus" id="mapstatus">Loading parcels…</div>
@@ -414,6 +414,7 @@ footer{padding:34px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;col
         <button id="mb-wait">◼ Waiting</button>
         <button id="mb-built">◼ Built</button>
         <button id="mb-sites">◼ Sites</button>
+        <button id="mb-marks">◼ Landmarks</button>
         <button id="mb-transit">◼ Transit</button>
         <button id="mb-now">◼ Upcoming</button>
         <button id="mb-topo">◻ Topo</button>
@@ -427,6 +428,7 @@ footer{padding:34px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;col
         <span><i style="background:var(--muted);opacity:.5"></i>Housing element site</span><br>
         <span><i style="background:#3E6B78"></i>AC Transit, heavier = more routes</span><br>
         <span><i style="background:#F5A623"></i>BART and its stations</span><br>
+        <span><i style="background:#D8CDB8"></i>Landmarks · the Campanile is at true height</span><br>
         <span><i style="background:#F5A623;border-radius:50%"></i>On an agenda or newly filed</span>
       </div>
     </div>
@@ -1157,6 +1159,39 @@ function addDataLayers(){
        paint:{"text-color":"#F5A623","text-halo-color":c("--paper"),"text-halo-width":1.4}});
   }
 
+  /* Landmarks, to orient anyone who does not read Berkeley by street name.
+     Deliberately neutral: they are context, not another category of housing. */
+  if(MAPDATA.marks){
+    add("marks-l",{id:"marks",data:MAPDATA.marks},
+      {type:"symbol",
+       layout:{"icon-image":"landmark","icon-allow-overlap":false,
+               "icon-size":["interpolate",["linear"],["zoom"],11,.4,16,.8],
+               "text-field":["get","name"],"text-font":["Noto Sans Regular"],
+               "text-offset":[0,1.3],"text-anchor":"top","text-size":10,
+               "text-letter-spacing":.05,"text-optional":true,
+               "text-max-width":9},
+       paint:{"text-color":c("--ink-2"),"text-halo-color":c("--paper"),"text-halo-width":1.4,
+              "icon-opacity":.9}});
+
+    /* The Campanile at its true 93.6 m, on a footprint about the size of the
+       real tower. Everything else here is extruded by unit count at 1.6 m per
+       home, which is a symbolic scale, so one real building gives the eye
+       something to measure that against. */
+    const camp=(MAPDATA.marks.features||[]).find(f=>f.properties.height);
+    if(camp){
+      const [lo,la]=camp.geometry.coordinates, m=4.6;
+      const dx=m/(111320*Math.cos(la*Math.PI/180)), dy=m/111132;
+      add("campanile",{id:"campanile",data:{type:"FeatureCollection",features:[{
+          type:"Feature",properties:{h:camp.properties.height,name:camp.properties.name},
+          geometry:{type:"Polygon",coordinates:[[[lo-dx,la-dy],[lo+dx,la-dy],
+                    [lo+dx,la+dy],[lo-dx,la+dy],[lo-dx,la-dy]]]}}]}},
+        {type:"fill-extrusion",paint:{
+          "fill-extrusion-color":"#D8CDB8","fill-extrusion-height":["get","h"],
+          "fill-extrusion-base":0,"fill-extrusion-opacity":.95,
+          "fill-extrusion-vertical-gradient":true}});
+    }
+  }
+
   /* AC Transit, weighted by how many routes share each street, so the trunk
      corridors read heavier than a residential loop. Drawn under BART. */
   if(MAPDATA.bus){
@@ -1331,6 +1366,17 @@ function startAmbient(){
         x.beginPath(); x.arc(w-2.6,y+5.2,.85,0,Math.PI*2); x.fill();
       }
     }
+    x.restore();
+  });
+
+  sprite("landmark",18,18,(x)=>{
+    x.save(); x.translate(9,9);
+    x.beginPath();                       // diamond, the conventional "point of interest"
+    x.moveTo(0,-5.4); x.lineTo(5.4,0); x.lineTo(0,5.4); x.lineTo(-5.4,0); x.closePath();
+    x.fillStyle="#EFE7D6"; x.fill();
+    x.lineWidth=1.5; x.strokeStyle="rgba(24,20,15,.65)"; x.stroke();
+    x.beginPath(); x.arc(0,0,1.5,0,Math.PI*2);
+    x.fillStyle="rgba(24,20,15,.7)"; x.fill();
     x.restore();
   });
 
@@ -1652,9 +1698,10 @@ async function buildMap(){
          make every visitor re-query it. Live fetch is the fallback only. */
       const cached=async p=>{try{const r=await fetch(p);return r.ok?await r.json():null;}catch{return null;}};
       ms.textContent="Loading parcels…";
-      let [bound,sites,parcels,bart,bartSt,bus]=await Promise.all([
+      let [bound,sites,parcels,bart,bartSt,bus,marks]=await Promise.all([
         cached("geo/boundary.json"), cached("geo/sites.json"), cached("geo/parcels.json"),
-        cached("geo/bart.json"), cached("geo/bart_stations.json"), cached("geo/bus.json")]);
+        cached("geo/bart.json"), cached("geo/bart_stations.json"), cached("geo/bus.json"),
+        cached("geo/landmarks.json")]);
       let live=false;
 
       const waitAPNs =WAIT.map(t=>t.raw).filter(Boolean);
@@ -1689,7 +1736,7 @@ async function buildMap(){
       })});
 
       /* keep the decorated data so the layers can be re-added after a restyle */
-      MAPDATA={bound,sites,bart,bartSt,bus,built:deco(pb,"built"),wait:deco(pw,"wait")};
+      MAPDATA={bound,sites,bart,bartSt,bus,marks,built:deco(pb,"built"),wait:deco(pw,"wait")};
       addDataLayers();
 
       const pop=new maplibregl.Popup({closeButton:false,closeOnClick:false,offset:8});
@@ -1713,6 +1760,7 @@ async function buildMap(){
       tog("#mb-wait",["wait-3d"]); tog("#mb-built",["built-3d"]); tog("#mb-sites",["sites-f","sites-o"]);
       tog("#mb-now",["now-dot","now-halo"]);
       tog("#mb-transit",["bus-l","bart-glow","bart-line","bart-st"]);
+      tog("#mb-marks",["marks-l","campanile"]);
       $("#mb-reset").onclick=()=>MAP.easeTo({center:[-122.2730,37.8700],zoom:13.4,pitch:58,bearing:-18,duration:900});
 
       /* roads basemap vs topographic contours */
