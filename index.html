@@ -6,47 +6,35 @@
 <title>The Berkeley Housing Clock</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="alternate icon" href="favicon.ico">
-<meta name="theme-color" content="#F2EEE6" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#16130F" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#EEECE2">
 <meta name="description" content="How long it takes to build housing in Berkeley, and how much approved housing is never built at all.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Azeret+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <style>
+/* Light only, on purpose. The palette below was produced by the dataviz
+   validator rather than by eye: the three data series pass every check on all
+   pairs against the bone surface, and the built ramp passes the ordinal checks.
+   Do not substitute a colour here without re-running it -- see CLAUDE.md. */
 :root{
   color-scheme: light;
-  --paper:#faf9f7; --card:#ffffff; --ink:#14141a; --ink-2:#55535e; --muted:#86848f;
-  --rule:#e6e4e9; --grid:#eeecf1; --radius:14px;
-  --s1:#6E93BE; --s2:#31618F; --s3:#12395C;
-  --stall:#C2392B; --accent:#1160A8; --ok:#1160A8;
-  --stall-soft:rgba(194,57,43,.13);
-}
-@media (prefers-color-scheme: dark){
-  :root:where(:not([data-theme="light"])){
-    color-scheme: dark;
-    --paper:#0b0b0d; --card:#121216; --ink:#f2f1ef; --ink-2:#a5a3ad; --muted:#77757f;
-    --rule:#1c1c23; --grid:#16161c; --radius:14px;
-    --s1:#CFE1F0; --s2:#8FB6D9; --s3:#5183B3;
-    --stall:#D8624F; --accent:#3E8ACC; --ok:#3E8ACC;
-    --stall-soft:rgba(216,98,79,.16);
-  }
-}
-:root[data-theme="dark"]{
-  color-scheme: dark;
-  --paper:#0b0b0d; --card:#121216; --ink:#f2f1ef; --ink-2:#a5a3ad; --muted:#77757f;
-  --rule:#1c1c23; --grid:#16161c; --radius:14px;
-  --s1:#CFE1F0; --s2:#8FB6D9; --s3:#5183B3;
-  --stall:#D8624F; --accent:#3E8ACC; --ok:#3E8ACC;
-  --stall-soft:rgba(216,98,79,.16);
+  --paper:#EEECE2; --card:#ffffff; --ink:#0E0E0C; --ink-2:#45443C; --muted:#6B695E;
+  --rule:#0E0E0C; --grid:#D9D6CA; --radius:0px;
+  --s1:#85A7C9; --s2:#3B6FA8; --s3:#123D69;
+  --stall:#EE3F12; --accent:#3B6FA8; --ok:#00875A;
+  --stall-soft:rgba(238,63,18,.12);
+  /* Acid is a highlight, never a data series: at 0.93 relative luminance it has
+     no contrast against anything on this page except black. Backgrounds only. */
+  --acid:#D6FF2E;
+  --shadow:4px 4px 0 var(--ink);
+  --shadow-lg:6px 6px 0 var(--ink);
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);
-  font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-size:16px;line-height:1.55;overflow-x:hidden;
-  background-image:radial-gradient(900px 460px at 78% -6%,color-mix(in srgb,var(--stall) 11%,transparent),transparent 62%),
-                   radial-gradient(760px 420px at 4% 2%,color-mix(in srgb,var(--accent) 9%,transparent),transparent 60%);
-  background-attachment:fixed}
+  font-family:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;font-optical-sizing:auto;
+  font-size:16px;line-height:1.55;overflow-x:hidden}
 .wrap{max-width:1120px;margin:0 auto;padding:0 28px 100px}
 /* The lookup follows the reader instead of sitting in a section they scroll
    past once. It only pins after the masthead has gone by. */
@@ -55,7 +43,7 @@ body{margin:0;background:var(--paper);color:var(--ink);
   border-bottom:1px solid transparent;transition:border-color .2s,padding .2s}
 .lookbar.pinned{border-bottom-color:var(--rule)}
 .lookinner{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center}
-.lookmark{font-family:"Instrument Serif",serif;font-size:1.15rem;white-space:nowrap;opacity:0;
+.lookmark{font-family:"Bricolage Grotesque",sans-serif;font-size:1.15rem;white-space:nowrap;opacity:0;
   transition:opacity .25s}
 .lookbar.pinned .lookmark{opacity:1}
 .lookinner .hint{margin:0;white-space:nowrap}
@@ -67,7 +55,7 @@ body{margin:0;background:var(--paper);color:var(--ink);
 /* Where you are, on a page ten thousand pixels long. */
 .secnav{position:sticky;top:66px;z-index:55;display:flex;gap:6px;flex-wrap:wrap;
   padding:12px 0 6px;margin-bottom:8px;background:linear-gradient(180deg,var(--paper) 70%,transparent)}
-.secnav a{font-family:"Geist Mono",monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+.secnav a{font-family:"Azeret Mono",monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
   color:var(--muted);text-decoration:none;border:1px solid transparent;border-radius:100px;padding:6px 11px;
   transition:color .18s,border-color .18s,background .18s;white-space:nowrap}
 .secnav a:hover{color:var(--ink);border-color:var(--rule)}
@@ -78,24 +66,20 @@ body{margin:0;background:var(--paper);color:var(--ink);
 .reveal{opacity:0;transform:translateY(14px);animation:up .7s cubic-bezier(.22,1,.36,1) forwards}
 @keyframes up{to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.reveal{animation:none;opacity:1;transform:none}}
-h1,h2,h3,.disp{font-family:"Instrument Serif",Georgia,serif;font-optical-sizing:auto}
-.mono{font-family:"Geist Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+h1,h2,h3,.disp{font-family:"Bricolage Grotesque",sans-serif;font-optical-sizing:auto;
+  font-weight:800;letter-spacing:-.042em;line-height:.98}
+.mono{font-family:"Azeret Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
 
 .mast{padding:70px 0 0;margin-bottom:8px;position:relative}
-.kicker{display:inline-flex;align-items:center;gap:9px;font-family:"Geist Mono",monospace;font-size:10.5px;
+.kicker{display:inline-flex;align-items:center;gap:9px;font-family:"Azeret Mono",monospace;font-size:10.5px;
   letter-spacing:.15em;text-transform:uppercase;color:var(--ink-2);border:1px solid var(--rule);
   border-radius:100px;padding:7px 15px;background:color-mix(in srgb,var(--ink) 2%,transparent);margin-bottom:0}
 h1{font-size:clamp(3.4rem,9.5vw,6.6rem);line-height:.87;font-weight:400;margin:0 0 16px;letter-spacing:-.025em}
 h1 em{font-style:italic;font-weight:400;color:var(--ink-2)}
-.dateline{display:flex;flex-wrap:wrap;gap:10px;font-family:"Geist Mono",monospace;font-size:10.5px;
+.dateline{display:flex;flex-wrap:wrap;gap:10px;font-family:"Azeret Mono",monospace;font-size:10.5px;
   letter-spacing:.07em;color:var(--muted);padding-top:30px}
-.dateline>span{border:1px solid var(--rule);border-radius:8px;padding:7px 12px;
+.dateline>span{border:1px solid var(--rule);border-radius:0;padding:7px 12px;
   background:color-mix(in srgb,var(--ink) 2%,transparent)}
-.themebtn{position:absolute;top:70px;right:0;background:color-mix(in srgb,var(--ink) 3%,transparent);
-  border:1px solid var(--rule);border-radius:100px;color:var(--ink-2);
-  font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.14em;padding:8px 14px;cursor:pointer;
-  text-transform:uppercase;transition:border-color .2s,color .2s}
-.themebtn:hover{border-color:var(--ink);color:var(--ink)}
 .live{display:inline-flex;align-items:center;gap:7px}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:none}
 .dot.on{background:var(--ok);box-shadow:0 0 0 0 currentColor;animation:p 2.4s infinite}
@@ -103,24 +87,24 @@ h1 em{font-style:italic;font-weight:400;color:var(--ink-2)}
 @keyframes p{0%{box-shadow:0 0 0 0 var(--ok)}70%{box-shadow:0 0 0 6px transparent}100%{box-shadow:0 0 0 0 transparent}}
 
 .lede{display:grid;grid-template-columns:1.35fr 1fr;gap:48px;padding:44px 0 40px;border-bottom:1px solid var(--rule);align-items:start}
-.lede-main{font-family:"Instrument Serif",Georgia,serif;font-size:clamp(1.5rem,3.1vw,2.1rem);line-height:1.24;font-weight:400;margin:0;letter-spacing:-.012em}
-.lede-main strong{font-weight:400;font-style:italic;color:var(--ink);
-  background:linear-gradient(transparent 58%,color-mix(in srgb,var(--stall) 30%,transparent) 58%);
-  padding:0 .06em}
+.lede-main{font-family:"Bricolage Grotesque",sans-serif;font-size:clamp(1.75rem,4vw,2.7rem);
+  line-height:1.06;font-weight:800;margin:0;letter-spacing:-.042em}
+.lede-main strong{font-weight:800;color:var(--ink);background:var(--acid);
+  padding:0 .1em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
 .lede-side{font-size:14.5px;color:var(--ink-2);border-left:2px solid var(--stall);padding-left:18px}
 .lede-side p{margin:0 0 11px}
 
 section{padding:58px 0;border-bottom:1px solid transparent;
   border-image:linear-gradient(90deg,var(--rule),transparent) 1}
 .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:6px;flex-wrap:wrap}
-.sec-num{font-family:"Geist Mono",monospace;font-size:11px;color:var(--stall);letter-spacing:.18em}
-h2{font-size:clamp(1.9rem,3.9vw,2.8rem);font-weight:400;margin:0;letter-spacing:-.02em}
+.sec-num{font-family:"Azeret Mono",monospace;font-size:11px;color:var(--stall);letter-spacing:.18em}
+h2{font-size:clamp(2rem,4.2vw,3rem);font-weight:800;margin:0;letter-spacing:-.042em}
 .sec-sub{color:var(--ink-2);font-size:15px;max-width:62ch;margin:8px 0 30px}
 
 /* lookup */
 .searchbox{position:relative;max-width:560px}
 #q{width:100%;background:var(--card);border:1px solid var(--rule);color:var(--ink);padding:17px 19px;font-size:17px;
-  font-family:"Geist",sans-serif;border-radius:12px;outline:none;transition:border-color .2s}
+  font-family:"Bricolage Grotesque",sans-serif;border-radius:0;outline:none;transition:border-color .2s}
 #q:focus{border-color:var(--accent)}
 #q{padding-right:46px}
 #qclear{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:28px;height:28px;
@@ -129,111 +113,111 @@ h2{font-size:clamp(1.9rem,3.9vw,2.8rem);font-weight:400;margin:0;letter-spacing:
 #qclear:hover{color:var(--ink);border-color:var(--ink-2)}
 #q::placeholder{color:var(--muted)}
 #res{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--card);border:1px solid var(--rule);
-  border-radius:12px;box-shadow:0 18px 44px rgba(0,0,0,.30);max-height:290px;overflow-y:auto;z-index:40;display:none}
+  border-radius:0;box-shadow:0 18px 44px rgba(0,0,0,.30);max-height:290px;overflow-y:auto;z-index:40;display:none}
 #res.on{display:block}
 .ritem{padding:11px 16px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--grid)}
 .ritem:last-child{border-bottom:none}
 .ritem:hover,.ritem.sel{background:var(--paper)}
-.ritem .apn{font-family:"Geist Mono",monospace;font-size:11px;color:var(--muted);white-space:nowrap}
-.hint{font-family:"Geist Mono",monospace;font-size:11px;color:var(--muted);margin-top:10px;letter-spacing:.05em}
+.ritem .apn{font-family:"Azeret Mono",monospace;font-size:11px;color:var(--muted);white-space:nowrap}
+.hint{font-family:"Azeret Mono",monospace;font-size:11px;color:var(--muted);margin-top:10px;letter-spacing:.05em}
 
 #card{margin-top:30px;display:none}
 #card.on{display:block}
 .pc{border:1px solid var(--rule);border-radius:var(--radius);background:var(--card);overflow:hidden}
 .pc-h{padding:22px 24px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:baseline}
-.pc-addr{font-family:"Instrument Serif",serif;font-size:clamp(1.3rem,3vw,1.75rem);font-weight:400;letter-spacing:-.02em;margin:0}
-.pc-meta{font-family:"Geist Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.06em;text-align:right;line-height:1.7}
+.pc-addr{font-family:"Bricolage Grotesque",sans-serif;font-size:clamp(1.3rem,3vw,1.75rem);font-weight:400;letter-spacing:-.02em;margin:0}
+.pc-meta{font-family:"Azeret Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.06em;text-align:right;line-height:1.7}
 .pc-b{padding:24px}
 .pc-empty{color:var(--ink-2);font-size:15px}
 .tl{display:flex;gap:2px;margin:6px 0 22px}
-.tlstep{flex:1;text-align:center;padding:12px 6px;background:var(--grid);border-radius:3px;position:relative}
+.tlstep{flex:1;text-align:center;padding:12px 6px;background:var(--grid);border-radius:0;position:relative}
 .tlstep.done{background:var(--s2);color:#fff}
 .tlstep.done.last{background:var(--s3)}
 .tlstep.stall{background:var(--stall);color:#fff}
-.tlstep .n{font-family:"Geist Mono",monospace;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;opacity:.85;display:block}
-.tlstep .d{font-family:"Geist Mono",monospace;font-size:12.5px;font-weight:600;margin-top:4px;display:block}
+.tlstep .n{font-family:"Azeret Mono",monospace;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;opacity:.85;display:block}
+.tlstep .d{font-family:"Azeret Mono",monospace;font-size:12.5px;font-weight:600;margin-top:4px;display:block}
 .kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-top:4px}
 .kv div{border-top:1px solid var(--rule);padding-top:9px}
-.kv .k{font-family:"Geist Mono",monospace;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
-.kv .v{font-family:"Geist Mono",monospace;font-size:17px;font-weight:600;margin-top:3px}
+.kv .k{font-family:"Azeret Mono",monospace;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.kv .v{font-family:"Azeret Mono",monospace;font-size:17px;font-weight:600;margin-top:3px}
 .upcoming{margin-top:20px;border-left:3px solid var(--muted);padding:2px 0 2px 16px}
-.upcoming.soon{border-color:#F5A623}
-.upcoming h5{font-family:"Geist Mono",monospace;font-size:9.5px;letter-spacing:.13em;
+.upcoming.soon{border-color:#00875A}
+.upcoming h5{font-family:"Azeret Mono",monospace;font-size:9.5px;letter-spacing:.13em;
   text-transform:uppercase;color:var(--muted);margin:0 0 9px;font-weight:600}
 .upitem{padding:5px 0;font-size:13px}
 .upitem a{color:var(--ink);font-weight:500;text-decoration:none}
 .upitem a:hover{color:var(--accent);text-decoration:underline}
-.upwhen{font-family:"Geist Mono",monospace;font-size:10.5px;color:var(--muted);float:right}
-.upwhat{font-family:"Geist Mono",monospace;font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.4}
+.upwhen{font-family:"Azeret Mono",monospace;font-size:10.5px;color:var(--muted);float:right}
+.upwhat{font-family:"Azeret Mono",monospace;font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.4}
 .verdict{margin-top:20px;padding:14px 16px;border-left:3px solid var(--stall);background:var(--stall-soft);font-size:14px}
 
 .clock{display:flex;flex-direction:column;gap:22px;margin-bottom:8px}
 .cgroup{display:flex;flex-direction:column;gap:3px}
-.ctitle{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;
+.ctitle{font-family:"Azeret Mono",monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;
   color:var(--ink);border-bottom:1px solid var(--rule);padding:0 10px 7px;margin-bottom:6px;font-weight:600}
 .ctitle span{float:right;color:var(--muted);font-weight:400;letter-spacing:.08em}
 .need{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:4px 0 16px}
 @media(max-width:820px){.need{grid-template-columns:1fr}}
 .needcard{border:1px solid var(--rule);border-radius:var(--radius);padding:18px 16px;
   background:linear-gradient(180deg,color-mix(in srgb,var(--ink) 3%,transparent),transparent)}
-.needcard .v{font-family:"Instrument Serif",serif;font-size:2rem;line-height:1;letter-spacing:-.025em}
+.needcard .v{font-family:"Bricolage Grotesque",sans-serif;font-size:2rem;line-height:1;letter-spacing:-.025em}
 .needcard .v.short{color:var(--stall)}
-.needcard .k{font-family:"Geist Mono",monospace;font-size:9px;letter-spacing:.09em;text-transform:uppercase;
+.needcard .k{font-family:"Azeret Mono",monospace;font-size:9px;letter-spacing:.09em;text-transform:uppercase;
   color:var(--muted);margin-top:10px;line-height:1.5}
 .neednote,.ucnote{font-size:14px;color:var(--ink-2);max-width:66ch;margin:0}
 .neednote b,.ucnote b{color:var(--ink);font-weight:600}
 .ucrow{display:grid;grid-template-columns:150px 1fr;gap:16px;padding:9px 0;border-bottom:1px solid var(--grid);font-size:13.5px}
 .ucrow:last-of-type{border-bottom:none}
-.uck{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding-top:3px}
+.uck{font-family:"Azeret Mono",monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding-top:3px}
 .peers{margin-top:34px;padding-top:22px;border-top:1px solid var(--rule)}
-.peers h4,.findings h4{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.14em;
+.peers h4,.findings h4{font-family:"Azeret Mono",monospace;font-size:10px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--ink);margin:0 0 8px;font-weight:600}
 .peers h4 span{color:var(--muted);font-weight:400;letter-spacing:.06em;text-transform:none;margin-left:8px}
 .peernote{font-size:14px;color:var(--ink-2);max-width:64ch;margin:0 0 18px}
 .peer{display:grid;grid-template-columns:126px 1fr 62px 92px;gap:14px;align-items:center;padding:6px 0;font-size:13.5px}
 .peer.me{font-weight:600}
-.peer.hd{font-family:"Geist Mono",monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+.peer.hd{font-family:"Azeret Mono",monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
   color:var(--muted);border-bottom:1px solid var(--rule);padding-bottom:7px;margin-bottom:4px}
 .ptrack{position:relative;height:7px;background:var(--grid);border-radius:99px;overflow:hidden}
 .pfill{position:absolute;left:0;top:0;height:100%;border-radius:99px;background:var(--s2)}
 .peer.me .pfill{background:var(--stall)}
-.pval{font-family:"Geist Mono",monospace;font-size:13px;text-align:right}
-.pstall{font-family:"Geist Mono",monospace;font-size:11px;color:var(--muted);text-align:right}
+.pval{font-family:"Azeret Mono",monospace;font-size:13px;text-align:right}
+.pstall{font-family:"Azeret Mono",monospace;font-size:11px;color:var(--muted);text-align:right}
 .findings{margin-top:34px;padding-top:22px;border-top:1px solid var(--rule)}
 .finding{display:grid;grid-template-columns:132px 1fr;gap:20px;padding:14px 0;border-bottom:1px solid var(--grid);align-items:baseline}
 .finding:last-child{border-bottom:none}
-.fnum{font-family:"Instrument Serif",serif;font-size:2rem;font-weight:400;letter-spacing:-.03em;color:var(--stall);line-height:1}
-.fnum em{display:block;font-family:"Geist Mono",monospace;font-size:9.5px;font-style:normal;
+.fnum{font-family:"Bricolage Grotesque",sans-serif;font-size:2rem;font-weight:400;letter-spacing:-.03em;color:var(--stall);line-height:1}
+.fnum em{display:block;font-family:"Azeret Mono",monospace;font-size:9.5px;font-style:normal;
   letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:5px;font-weight:400}
 .ftext{font-size:14.5px;color:var(--ink-2);line-height:1.55}
 .ftext b{color:var(--ink);font-weight:600}
 @media(max-width:820px){.peer{grid-template-columns:96px 1fr 54px}.pstall{display:none}
   .finding{grid-template-columns:1fr;gap:8px}}
-.corr{display:grid;grid-template-columns:150px 1fr 96px;gap:14px;align-items:center;padding:8px 10px;border-radius:3px}
+.corr{display:grid;grid-template-columns:150px 1fr 96px;gap:14px;align-items:center;padding:8px 10px;border-radius:0}
 .corr:hover{background:var(--card)}
-.corr.hd{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+.corr.hd{font-family:"Azeret Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
   color:var(--muted);border-bottom:1px solid var(--rule);padding-bottom:8px}
 .corr.hd:hover{background:none}
 .cname{font-weight:500;font-size:14px}
 .cstack{position:relative;height:8px;background:var(--grid);border-radius:99px;overflow:hidden}
 .cstack i{position:absolute;left:0;top:0;height:100%;display:block}
 .cstack .st{background:var(--stall);border-radius:0 4px 4px 0}
-.cpct{font-family:"Geist Mono",monospace;font-size:13px;text-align:right;font-weight:600}
-.crow{display:grid;grid-template-columns:220px 1fr 88px;gap:18px;align-items:center;padding:12px 10px;border-radius:3px;transition:background .15s}
+.cpct{font-family:"Azeret Mono",monospace;font-size:13px;text-align:right;font-weight:600}
+.crow{display:grid;grid-template-columns:220px 1fr 88px;gap:18px;align-items:center;padding:12px 10px;border-radius:0;transition:background .15s}
 .crow:hover{background:var(--card)}
 .clabel{font-size:14px;font-weight:500;line-height:1.28}
-.clabel .n{display:block;font-family:"Geist Mono",monospace;font-size:10.5px;color:var(--muted);letter-spacing:.05em;margin-top:2px}
+.clabel .n{display:block;font-family:"Azeret Mono",monospace;font-size:10.5px;color:var(--muted);letter-spacing:.05em;margin-top:2px}
 .ctrack{position:relative;height:30px}
-.ciqr{position:absolute;top:7px;height:16px;background:var(--s1);opacity:.42;border-radius:3px}
+.ciqr{position:absolute;top:7px;height:16px;background:var(--s1);opacity:.42;border-radius:0}
 .cbar{position:absolute;top:7px;height:16px;background:var(--s2);border-radius:0 4px 4px 0;left:0}
 .crow.hot .cbar{background:var(--stall)} .crow.hot .ciqr{background:var(--stall);opacity:.26}
 .cp90{position:absolute;top:2px;height:26px;width:2px;background:var(--ink);opacity:.55}
-.cval{font-family:"Geist Mono",monospace;font-size:19px;font-weight:600;text-align:right;letter-spacing:-.02em}
+.cval{font-family:"Azeret Mono",monospace;font-size:19px;font-weight:600;text-align:right;letter-spacing:-.02em}
 .crow.hot .cval{color:var(--stall)}
 .cval span{font-size:11px;color:var(--muted);font-weight:400}
 .axis{display:grid;grid-template-columns:220px 1fr 88px;gap:18px;margin-top:2px}
 .axis-in{position:relative;height:22px;border-top:1px solid var(--grid)}
-.tick{position:absolute;top:4px;font-family:"Geist Mono",monospace;font-size:10px;color:var(--muted);transform:translateX(-50%)}
+.tick{position:absolute;top:4px;font-family:"Azeret Mono",monospace;font-size:10px;color:var(--muted);transform:translateX(-50%)}
 .tick::before{content:"";position:absolute;top:-5px;left:50%;width:1px;height:4px;background:var(--grid)}
 
 /* Six tiles on one row. auto-fit with a 178px minimum needed 1068px and the
@@ -242,183 +226,186 @@ h2{font-size:clamp(1.9rem,3.9vw,2.8rem);font-weight:400;margin:0;letter-spacing:
 .stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:11px;margin:30px 0}
 @media(max-width:1040px){.stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}}
 @media(max-width:600px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.stat{background:linear-gradient(180deg,color-mix(in srgb,var(--ink) 3%,transparent),color-mix(in srgb,var(--ink) 1%,transparent));
-  border:1px solid var(--rule);border-radius:var(--radius);padding:20px 16px;transition:border-color .2s,transform .2s;
-  min-width:0}
-.stat:hover{border-color:color-mix(in srgb,var(--ink) 22%,transparent);transform:translateY(-2px)}
-.stat .v{font-family:"Instrument Serif",serif;font-size:clamp(2rem,4.6vw,2.9rem);font-weight:400;line-height:1;letter-spacing:-.03em}
+.stat{background:var(--card);border:2.5px solid var(--ink);border-radius:0;padding:20px 16px;
+  box-shadow:var(--shadow);transition:transform .13s,box-shadow .13s;min-width:0}
+.stat:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-lg)}
+.stat .v{font-family:"Bricolage Grotesque",sans-serif;font-size:clamp(2rem,4.6vw,2.9rem);font-weight:800;line-height:1;letter-spacing:-.045em}
 .stat.hot .v{color:var(--stall)}
-.stat .k{font-family:"Geist Mono",monospace;font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-top:10px;line-height:1.5}
+.stat .k{font-family:"Azeret Mono",monospace;font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-top:10px;line-height:1.5}
+/* Inverted alarm tile. Declared after .stat.hot .v above so it wins on source
+   order rather than by piling on specificity. */
+.stat.hot{background:var(--stall);border-color:var(--ink)}
+.stat.hot .v,.stat.hot .k{color:#fff}
+.stat.hot .k{opacity:.88}
 
 .tiers{margin-top:26px;padding-top:20px;border-top:1px solid var(--rule)}
-.tiers h4{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+.tiers h4{font-family:"Azeret Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
   color:var(--muted);margin:0 0 14px;font-weight:600}
 .tier{display:grid;grid-template-columns:168px 1fr 48px 104px;gap:14px;align-items:center;padding:6px 0}
 .tname{font-size:13.5px;font-weight:500;line-height:1.25}
-.tname em{display:block;font-family:"Geist Mono",monospace;font-style:normal;font-size:10px;
+.tname em{display:block;font-family:"Azeret Mono",monospace;font-style:normal;font-size:10px;
   color:var(--muted);letter-spacing:.05em;margin-top:1px}
 .ttrack{position:relative;height:8px;background:var(--grid);border-radius:99px;overflow:hidden}
 .tfill{position:absolute;left:0;top:0;height:100%;border-radius:99px;display:block}
 .tpace{position:absolute;top:-3px;width:2px;height:22px;background:var(--stall);display:block}
-.tpct{font-family:"Geist Mono",monospace;font-size:14px;font-weight:600;text-align:right}
-.tnum{font-family:"Geist Mono",monospace;font-size:11px;color:var(--muted);text-align:right}
+.tpct{font-family:"Azeret Mono",monospace;font-size:14px;font-weight:600;text-align:right}
+.tnum{font-family:"Azeret Mono",monospace;font-size:11px;color:var(--muted);text-align:right}
 .tiernote{margin:16px 0 0;font-size:14px;color:var(--ink-2);max-width:66ch}
 .tiernote b{color:var(--ink);font-weight:600}
 @media(max-width:820px){.tier{grid-template-columns:110px 1fr 40px;gap:9px}.tnum{display:none}}
 .sitecheck{margin-top:22px;border-left:3px solid var(--muted);padding:2px 0 2px 18px}
-.sitecheck h4{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.14em;
+.sitecheck h4{font-family:"Azeret Mono",monospace;font-size:10px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--muted);margin:0 0 10px;font-weight:600}
 .sitecheck p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2);max-width:66ch}
 .sitecheck b{color:var(--ink);font-weight:600}
-.sitecheck .big{font-family:"Instrument Serif",serif;font-size:1.9rem;font-weight:400;color:var(--stall);
+.sitecheck .big{font-family:"Bricolage Grotesque",sans-serif;font-size:1.9rem;font-weight:400;color:var(--stall);
   letter-spacing:-.02em;display:block;margin-bottom:4px}
-.sitecheck table{border-collapse:collapse;margin:14px 0 12px;font-family:"Geist Mono",monospace;font-size:12px}
+.sitecheck table{border-collapse:collapse;margin:14px 0 12px;font-family:"Azeret Mono",monospace;font-size:12px}
 .sitecheck td,.sitecheck th{padding:5px 18px 5px 0;text-align:left;font-weight:400;color:var(--ink-2)}
 .sitecheck th{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
   border-bottom:1px solid var(--rule)}
 .sitecheck td:first-child{color:var(--ink)}
 .nowgrid{display:grid;grid-template-columns:1fr 1fr;gap:38px}
-.nowcol h4{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+.nowcol h4{font-family:"Azeret Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
   color:var(--ink);margin:0 0 12px;font-weight:600;border-bottom:1px solid var(--rule);padding-bottom:8px}
 .nowcol h4 span{float:right;color:var(--muted);font-weight:400;letter-spacing:.06em;text-transform:none}
 .nowitem{padding:9px 0;border-bottom:1px solid var(--grid);font-size:13.5px;line-height:1.45}
 .nowitem:last-child{border-bottom:none}
 .nowitem a{color:var(--ink);text-decoration:none;font-weight:500}
 .nowitem a:hover{color:var(--accent);text-decoration:underline}
-.nowmeta{font-family:"Geist Mono",monospace;font-size:10.5px;color:var(--muted);letter-spacing:.05em;margin-top:2px}
-.nowtag{display:inline-block;font-family:"Geist Mono",monospace;font-size:9.5px;letter-spacing:.06em;
-  padding:1px 6px;border-radius:2px;border:1px solid var(--grid);color:var(--muted);margin-right:6px}
+.nowmeta{font-family:"Azeret Mono",monospace;font-size:10.5px;color:var(--muted);letter-spacing:.05em;margin-top:2px}
+.nowtag{display:inline-block;font-family:"Azeret Mono",monospace;font-size:9.5px;letter-spacing:.06em;
+  padding:1px 6px;border-radius:0;border:1px solid var(--grid);color:var(--muted);margin-right:6px}
 .nowtag.hit{color:var(--stall);border-color:var(--stall)}
 .nowkey{margin:20px 0 0;font-size:13.5px;color:var(--ink-2)}
 .nowkey .nowtag{margin-right:9px}
-.nowdate{font-family:"Geist Mono",monospace;font-size:10.5px;color:var(--muted);float:right}
+.nowdate{font-family:"Azeret Mono",monospace;font-size:10.5px;color:var(--muted);float:right}
 @media(max-width:820px){.nowgrid{grid-template-columns:1fr;gap:30px}}
 .rwrap{margin:8px 0 34px}
-.rlabel{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+.rlabel{font-family:"Azeret Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
   color:var(--muted);margin-bottom:9px}
 .rbar{display:flex;height:22px;border-radius:99px;overflow:hidden;gap:2px;background:var(--grid)}
 .rbar i{display:block;height:100%;transition:opacity .15s}
 .rbar i:hover{opacity:.8}
-.rbar i:first-child{border-radius:3px 0 0 3px}
+.rbar i:first-child{border-radius:0 0 0 3px}
 .rbar i:last-child{border-radius:0 4px 4px 0}
 .rkey{display:flex;flex-wrap:wrap;gap:6px 26px;margin-top:12px;font-size:13px;color:var(--ink-2)}
 .rk{display:flex;align-items:baseline;gap:7px}
-.rk i{width:11px;height:11px;border-radius:2px;flex:none;transform:translateY(1px)}
-.rk b{font-family:"Geist Mono",monospace;color:var(--ink);font-weight:600}
-.rk em{font-family:"Geist Mono",monospace;font-style:normal;font-size:11px;color:var(--muted)}
+.rk i{width:11px;height:11px;border-radius:0;flex:none;transform:translateY(1px)}
+.rk b{font-family:"Azeret Mono",monospace;color:var(--ink);font-weight:600}
+.rk em{font-family:"Azeret Mono",monospace;font-style:normal;font-size:11px;color:var(--muted)}
 .rnote{font-size:14px;color:var(--ink-2);max-width:64ch;margin:16px 0 0}
-.wrow{display:grid;grid-template-columns:1fr 60px 1fr 62px;gap:14px;align-items:center;padding:7px 8px;border-radius:3px;font-size:13.5px;transition:background .15s;cursor:pointer}
+.wrow{display:grid;grid-template-columns:1fr 60px 1fr 62px;gap:14px;align-items:center;padding:7px 8px;border-radius:0;font-size:13.5px;transition:background .15s;cursor:pointer}
 .wrow:hover{background:var(--card)}
-.whead{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
+.whead{font-family:"Azeret Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
   border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:4px;cursor:default}
 .whead:hover{background:none}
 /* Cross-check panel. Council reads Berkeley's own permit system, this page reads
    the State's copy of it, and on building permits the two flatly disagree. */
 .xrow{display:grid;grid-template-columns:1fr 68px 68px 108px;gap:12px;align-items:center;
-  padding:7px 8px;border-radius:3px;font-size:13.5px}
+  padding:7px 8px;border-radius:0;font-size:13.5px}
 .xrow:nth-of-type(even){background:color-mix(in srgb,var(--ink) 3%,transparent)}
-.xhead{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+.xhead{font-family:"Azeret Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
   color:var(--muted);border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:4px}
 .xhead:nth-of-type(even){background:none}
-.xnum{font-family:"Geist Mono",monospace;text-align:right}
+.xnum{font-family:"Azeret Mono",monospace;text-align:right}
 /* Two headline numbers side by side, for the censored-vs-completed comparison. */
 .twoup{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:0 0 4px}
 @media(max-width:620px){.twoup{grid-template-columns:1fr}}
 /* RAND's production-time table. */
 .brow{display:grid;grid-template-columns:1fr 84px 84px 84px;gap:12px;align-items:center;
-  padding:7px 8px;border-radius:3px;font-size:13.5px}
+  padding:7px 8px;border-radius:0;font-size:13.5px}
 .brow:nth-of-type(even){background:color-mix(in srgb,var(--ink) 3%,transparent)}
-.bhead{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+.bhead{font-family:"Azeret Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
   color:var(--muted);border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:4px}
 .bhead:nth-of-type(even){background:none}
 .btot{border-top:1px solid var(--rule);font-weight:500}
-.xflag{font-family:"Geist Mono",monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase}
+.xflag{font-family:"Azeret Mono",monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase}
 .xbad{color:var(--stall)}
 .xdim{color:var(--muted)}
 .waddr{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.waff{font-family:"Geist Mono",monospace;font-size:10.5px;color:var(--muted);font-weight:400}
-.why{display:inline-block;font-family:"Geist Mono",monospace;font-size:9.5px;letter-spacing:.06em;
-  padding:1px 6px;border-radius:2px;margin-left:6px;color:var(--muted);border:1px solid var(--grid);font-weight:400;white-space:nowrap}
+.waff{font-family:"Azeret Mono",monospace;font-size:10.5px;color:var(--muted);font-weight:400}
+.why{display:inline-block;font-family:"Azeret Mono",monospace;font-size:9.5px;letter-spacing:.06em;
+  padding:1px 6px;border-radius:0;margin-left:6px;color:var(--muted);border:1px solid var(--grid);font-weight:400;white-space:nowrap}
 .why.f{color:var(--s2);border-color:var(--s2)}
 .why.x{color:var(--stall);border-color:var(--stall)}
-.wunits{font-family:"Geist Mono",monospace;text-align:right;font-weight:600}
+.wunits{font-family:"Azeret Mono",monospace;text-align:right;font-weight:600}
 .wtrack{position:relative;height:7px;background:var(--grid);border-radius:99px;overflow:hidden}
 .wfill{position:absolute;left:0;top:0;height:100%;border-radius:99px;opacity:.95;
   background:linear-gradient(90deg,color-mix(in srgb,var(--stall) 72%,transparent),var(--stall))}
-.wyrs{font-family:"Geist Mono",monospace;font-size:12px;text-align:right;color:var(--ink-2)}
+.wyrs{font-family:"Azeret Mono",monospace;font-size:12px;text-align:right;color:var(--ink-2)}
 .wyrs.old{color:var(--stall);font-weight:600}
 .more{margin-top:14px;background:none;border:1px solid var(--rule);color:var(--ink-2);padding:9px 16px;cursor:pointer;
-  font-family:"Geist Mono",monospace;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase}
+  font-family:"Azeret Mono",monospace;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase}
 .more:hover{border-color:var(--ink);color:var(--ink)}
 
 .legend{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:22px;font-size:12.5px}
 .lg{display:flex;align-items:center;gap:7px;color:var(--ink-2)}
-.sw{width:13px;height:13px;border-radius:2px;flex:none}
+.sw{width:13px;height:13px;border-radius:0;flex:none}
 .years{display:grid;gap:10px;align-items:end;height:230px;border-bottom:1px solid var(--rule)}
 .ycol{display:flex;flex-direction:column;justify-content:flex-end;height:100%}
 .ybars{display:flex;gap:2px;align-items:flex-end;height:100%}
-.yb{flex:1;border-radius:3px 3px 0 0;min-height:2px;transition:opacity .15s}
+.yb{flex:1;border-radius:0 3px 0 0;min-height:2px;transition:opacity .15s}
 .yb:hover{opacity:.75}
 .ylabels{display:grid;gap:10px;margin-top:9px}
-.ylab{font-family:"Geist Mono",monospace;font-size:11px;color:var(--muted);text-align:center}
+.ylab{font-family:"Azeret Mono",monospace;font-size:11px;color:var(--muted);text-align:center}
 
 .score{background:linear-gradient(180deg,color-mix(in srgb,var(--ink) 3%,transparent),transparent);border:1px solid var(--rule);border-radius:var(--radius);padding:30px}
 .sc-top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px;margin-bottom:20px}
-.sc-big{font-family:"Instrument Serif",serif;font-size:clamp(2.6rem,6vw,3.8rem);font-weight:400;line-height:.95;letter-spacing:-.03em}
-.sc-of{font-family:"Geist Mono",monospace;font-size:12.5px;color:var(--muted);letter-spacing:.06em}
+.sc-big{font-family:"Bricolage Grotesque",sans-serif;font-size:clamp(2.6rem,6vw,3.8rem);font-weight:400;line-height:.95;letter-spacing:-.03em}
+.sc-of{font-family:"Azeret Mono",monospace;font-size:12.5px;color:var(--muted);letter-spacing:.06em}
 .sc-track{position:relative;height:26px;background:var(--grid);border-radius:99px;overflow:hidden;margin-bottom:6px}
 .sc-fill{position:absolute;left:0;top:0;height:100%;border-radius:99px;
   background:linear-gradient(90deg,color-mix(in srgb,var(--s2) 70%,transparent),var(--s2))}
 .sc-pace{position:absolute;top:-5px;height:42px;width:2px;background:var(--stall)}
-.sc-legend{display:flex;justify-content:space-between;font-family:"Geist Mono",monospace;font-size:10.5px;color:var(--muted);letter-spacing:.05em;flex-wrap:wrap;gap:8px}
+.sc-legend{display:flex;justify-content:space-between;font-family:"Azeret Mono",monospace;font-size:10.5px;color:var(--muted);letter-spacing:.05em;flex-wrap:wrap;gap:8px}
 .sc-note{margin-top:22px;padding-top:18px;border-top:1px solid var(--rule);font-size:14px;color:var(--ink-2)}
 .sc-note b{color:var(--stall);font-weight:600}
 
 .src{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:22px;margin-top:8px}
 .scard{border-top:2px solid var(--ink);padding-top:12px}
-.scard h4{font-family:"Geist Mono",monospace;font-size:11px;letter-spacing:.11em;text-transform:uppercase;margin:0 0 7px;font-weight:600}
+.scard h4{font-family:"Azeret Mono",monospace;font-size:11px;letter-spacing:.11em;text-transform:uppercase;margin:0 0 7px;font-weight:600}
 .scard p{margin:0;font-size:13px;color:var(--ink-2);line-height:1.5}
 .scard a{color:var(--accent)}
-.fresh{display:inline-block;font-family:"Geist Mono",monospace;font-size:9.5px;letter-spacing:.09em;
-  padding:2px 7px;border-radius:2px;margin-top:9px;text-transform:uppercase}
+.fresh{display:inline-block;font-family:"Azeret Mono",monospace;font-size:9.5px;letter-spacing:.09em;
+  padding:2px 7px;border-radius:0;margin-top:9px;text-transform:uppercase}
 .fresh.ok{background:var(--stall-soft);color:var(--stall)}
 .fresh.lag{background:var(--grid);color:var(--ink-2)}
 .caveat{margin-top:40px;border:1px solid var(--stall);border-left-width:4px;padding:20px 22px;font-size:14px;color:var(--ink-2)}
-.caveat b{color:var(--ink);font-family:"Instrument Serif",serif;font-size:15px}
-footer{padding:34px 0 0;font-family:"Geist Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.05em;line-height:1.9}
+.caveat b{color:var(--ink);font-family:"Bricolage Grotesque",sans-serif;font-size:15px}
+footer{padding:34px 0 0;font-family:"Azeret Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.05em;line-height:1.9}
 
 /* map */
 .mapwrap{position:relative;border:1px solid var(--rule);border-radius:var(--radius);background:var(--card);height:min(72vh,640px);overflow:hidden}
 #map{position:absolute;inset:0}
 .maplibregl-ctrl-attrib,.maplibregl-ctrl-logo{display:none!important}
 .mapkey{position:absolute;left:16px;bottom:16px;z-index:5;background:color-mix(in srgb,var(--paper) 88%,transparent);
-  border:1px solid var(--rule);padding:12px 14px;font-family:"Geist Mono",monospace;font-size:10.5px;
+  border:1px solid var(--rule);padding:12px 14px;font-family:"Azeret Mono",monospace;font-size:10.5px;
   letter-spacing:.07em;line-height:2;backdrop-filter:blur(6px);pointer-events:none}
 .mapkey b{display:block;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;font-weight:600}
-.mapkey i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:7px;vertical-align:-1px}
+.mapkey i{display:inline-block;width:11px;height:11px;border-radius:0;margin-right:7px;vertical-align:-1px}
 .mapctl{position:absolute;right:16px;top:16px;z-index:5;display:flex;flex-direction:column;gap:5px}
 .mapctl button{background:color-mix(in srgb,var(--paper) 90%,transparent);border:1px solid var(--rule);color:var(--ink-2);
-  font-family:"Geist Mono",monospace;font-size:9.5px;letter-spacing:.12em;padding:7px 11px;cursor:pointer;
+  font-family:"Azeret Mono",monospace;font-size:9.5px;letter-spacing:.12em;padding:7px 11px;cursor:pointer;
   text-transform:uppercase;backdrop-filter:blur(6px);text-align:left}
 .mapctl button:hover{border-color:var(--ink);color:var(--ink)}
 .mapctl button.off{opacity:.45}
-.mapstatus{position:absolute;left:16px;top:16px;z-index:5;font-family:"Geist Mono",monospace;font-size:10.5px;
+.mapstatus{position:absolute;left:16px;top:16px;z-index:5;font-family:"Azeret Mono",monospace;font-size:10.5px;
   color:var(--muted);letter-spacing:.07em;background:color-mix(in srgb,var(--paper) 88%,transparent);padding:6px 10px;border:1px solid var(--rule)}
-.maplibregl-popup-content{background:var(--ink)!important;color:var(--paper)!important;border-radius:3px!important;
-  padding:10px 13px!important;font-family:"Geist Mono",monospace!important;font-size:11.5px!important;line-height:1.6!important}
+.maplibregl-popup-content{background:var(--ink)!important;color:var(--paper)!important;border-radius:0!important;
+  padding:10px 13px!important;font-family:"Azeret Mono",monospace!important;font-size:11.5px!important;line-height:1.6!important}
 .maplibregl-popup-tip{border-top-color:var(--ink)!important;border-bottom-color:var(--ink)!important}
 
 #tip{position:fixed;pointer-events:none;opacity:0;transition:opacity .12s;background:var(--ink);color:var(--paper);
-  padding:8px 11px;border-radius:3px;font-family:"Geist Mono",monospace;font-size:11.5px;line-height:1.5;z-index:99;max-width:250px}
+  padding:8px 11px;border-radius:0;font-family:"Azeret Mono",monospace;font-size:11.5px;line-height:1.5;z-index:99;max-width:250px}
 .skel{color:var(--muted)}
-.err{border:1px solid var(--stall);padding:14px 16px;color:var(--stall);font-size:14px;font-family:"Geist Mono",monospace}
+.err{border:1px solid var(--stall);padding:14px 16px;color:var(--stall);font-size:14px;font-family:"Azeret Mono",monospace}
 
 @media(max-width:820px){
   .lede{grid-template-columns:1fr;gap:26px}
   .crow,.axis{grid-template-columns:130px 1fr 70px;gap:10px}
   .wrow{grid-template-columns:1fr 52px 90px 54px;gap:9px;font-size:12.5px}
   .years,.ylabels{gap:4px}.ylab{font-size:9px}
-  .themebtn{position:static;margin-bottom:14px}
   .tl{flex-wrap:wrap}.tlstep{min-width:calc(50% - 2px)}
 }
 </style>
@@ -428,7 +415,6 @@ footer{padding:34px 0 0;font-family:"Geist Mono",monospace;font-size:11px;color:
 <div class="wrap">
 
   <header class="mast">
-    <button class="themebtn" id="tt">◐ Theme</button>
     <div class="kicker reveal">A public record · Berkeley, California</div>
     <h1 class="reveal" style="animation-delay:.06s">The Housing<br>Clock<em>.</em></h1>
     <div class="dateline reveal" style="animation-delay:.12s">
@@ -492,7 +478,7 @@ footer{padding:34px 0 0;font-family:"Geist Mono",monospace;font-size:11px;color:
 
     <div class="peers">
       <h4>Is that normal? <span id="peer-state"></span></h4>
-      <p class="peernote">The same measurement, run against neighbouring cities' filings to the same State
+      <p class="peernote" id="peernote">The same measurement, run against neighbouring cities' filings to the same State
         database. Without a baseline there is no way to know whether 1.6 years is slow.</p>
       <div id="peerlist"></div>
     </div>
@@ -557,10 +543,10 @@ footer{padding:34px 0 0;font-family:"Geist Mono",monospace;font-size:11px;color:
         <span><i style="background:var(--stall)"></i>Approved, not built</span><br>
         <span><i style="background:var(--s2)"></i>Completed</span><br>
         <span><i style="background:var(--muted);opacity:.5"></i>Housing element site</span><br>
-        <span><i style="background:#3E6B78"></i>AC Transit, heavier = more routes</span><br>
-        <span><i style="background:#F5A623"></i>BART and its stations</span><br>
-        <span><i style="background:#D8CDB8"></i>Landmarks, real footprints · solid = recorded height</span><br>
-        <span><i style="background:#F5A623;border-radius:50%"></i>On an agenda or newly filed</span>
+        <span><i style="background:#94A3A8"></i>AC Transit, heavier = more routes</span><br>
+        <span><i style="background:#00875A"></i>BART and its stations</span><br>
+        <span><i style="background:#C9BCA2"></i>Landmarks, real footprints · solid = recorded height</span><br>
+        <span><i style="background:#00875A;border-radius:50%"></i>On an agenda or newly filed</span>
       </div>
     </div>
     <div class="sitecheck" id="sitecheck"></div>
@@ -1407,7 +1393,7 @@ async function renderPeers(){
               `${Math.round(r.stalled*100)}% of approved homes have no permit`);
   });
   const me=rows.find(r=>r.me), rank=rows.indexOf(me)+1;
-  $(".peernote").innerHTML=`The same measurement, run against neighbouring cities' filings to the same
+  $("#peernote").innerHTML=`The same measurement, run against neighbouring cities' filings to the same
     State database. Berkeley sits <b>${rank}${["st","nd","rd"][rank-1]||"th"} of ${rows.length}</b>,
     slower than Oakland and faster than Alameda and Emeryville. Without a baseline there is no way to
     know whether 1.6 years is slow.`;
@@ -1588,10 +1574,10 @@ function addNowToMap(){
     MAP.addSource("now",{type:"geojson",data:fc});
     MAP.addLayer({id:"now-halo",type:"circle",source:"now",paint:{
       "circle-radius":["interpolate",["linear"],["zoom"],11,7,16,20],
-      "circle-color":"#F5A623","circle-opacity":.16,"circle-blur":.5}});
+      "circle-color":"#00875A","circle-opacity":.16,"circle-blur":.5}});
     MAP.addLayer({id:"now-dot",type:"circle",source:"now",paint:{
       "circle-radius":["interpolate",["linear"],["zoom"],11,3.5,16,7],
-      "circle-color":"#F5A623","circle-stroke-width":1.6,
+      "circle-color":"#00875A","circle-stroke-width":1.6,
       "circle-stroke-color":"rgba(20,16,10,.7)"}});
     const pop=new maplibregl.Popup({closeButton:false,closeOnClick:false,offset:10});
     MAP.on("mousemove","now-dot",e=>{
@@ -1642,10 +1628,10 @@ function addDataLayers(){
   if(MAPDATA.bart){
     add("bart-glow",{id:"bart",data:MAPDATA.bart},
       {type:"line",layout:{"line-cap":"round"},
-       paint:{"line-color":"#F5A623","line-width":7,"line-blur":6,"line-opacity":.35}});
+       paint:{"line-color":"#00875A","line-width":7,"line-blur":6,"line-opacity":.35}});
     add("bart-line",{id:"bart",data:MAPDATA.bart},
       {type:"line",layout:{"line-cap":"round"},
-       paint:{"line-color":"#F5A623","line-width":2,"line-opacity":.9,"line-dasharray":[2,1.4]}});
+       paint:{"line-color":"#00875A","line-width":2,"line-opacity":.9,"line-dasharray":[2,1.4]}});
   }
   if(MAPDATA.bartSt){
     add("bart-st",{id:"bartst",data:MAPDATA.bartSt},
@@ -1655,7 +1641,7 @@ function addDataLayers(){
                "text-field":["get","name"],"text-font":["Noto Sans Regular"],
                "text-offset":[0,1.5],"text-anchor":"top","text-size":10.5,
                "text-letter-spacing":.06,"text-optional":true},
-       paint:{"text-color":"#F5A623","text-halo-color":c("--paper"),"text-halo-width":1.4}});
+       paint:{"text-color":"#00875A","text-halo-color":c("--paper"),"text-halo-width":1.4}});
   }
 
   /* Landmarks as their real footprints from OpenStreetMap, extruded rather than
@@ -1675,7 +1661,7 @@ function addDataLayers(){
     const split=est=>({type:"FeatureCollection",
       features:bldg.features.filter(f=>!!f.properties.estimated===est)});
     const ext=op=>({type:"fill-extrusion",paint:{
-      "fill-extrusion-color":"#D8CDB8","fill-extrusion-height":["get","h"],
+      "fill-extrusion-color":"#C9BCA2","fill-extrusion-height":["get","h"],
       "fill-extrusion-base":0,"fill-extrusion-vertical-gradient":true,
       "fill-extrusion-opacity":op}});
     if(split(false).features.length) add("lm-3d",{id:"lmbldg",data:split(false)},ext(.96));
@@ -1703,11 +1689,9 @@ function addDataLayers(){
   /* AC Transit, weighted by how many routes share each street, so the trunk
      corridors read heavier than a residential loop. Drawn under BART. */
   if(MAPDATA.bus){
-    const isDark=(document.documentElement.getAttribute("data-theme")
-      ||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"))==="dark";
     add("bus-l",{id:"bus",data:MAPDATA.bus},
       {type:"line",layout:{"line-cap":"round","line-join":"round"},
-       paint:{"line-color":isDark?"#3E6B78":"#5E8494",
+       paint:{"line-color":"#94A3A8",
               "line-opacity":["interpolate",["linear"],["get","n"],1,.28,6,.5,12,.7],
               "line-width":["interpolate",["linear"],["zoom"],
                  11,["interpolate",["linear"],["get","n"],1,.4,6,1.2,20,2.4],
@@ -1855,7 +1839,7 @@ function startAmbient(){
       x.fillStyle=g; x.fill();
       x.strokeStyle="rgba(18,16,12,.55)"; x.lineWidth=.8; x.stroke();
       // livery stripe in the route colour, so the line stays identifiable
-      x.fillStyle="#F5A623";
+      x.fillStyle="#00875A";
       x.fillRect(-w+0.9,y+(lead?6.4:1.4),1.5,CAR-(lead?7.6:2.8));
       x.fillRect(w-2.4,y+(lead?6.4:1.4),1.5,CAR-(lead?7.6:2.8));
       // side windows
@@ -1919,7 +1903,7 @@ function startAmbient(){
     x.fillStyle="rgba(245,166,35,.22)"; x.fill();
     x.beginPath(); x.arc(0,0,8.2,0,Math.PI*2);           // white disc, amber ring
     x.fillStyle="#F7F3EA"; x.fill();
-    x.lineWidth=2.2; x.strokeStyle="#F5A623"; x.stroke();
+    x.lineWidth=2.2; x.strokeStyle="#00875A"; x.stroke();
     // train car glyph: body, windscreen band, two lamps
     x.fillStyle="#20242B";
     const w=4.6,hh=6.2,r=1.5;
@@ -2100,8 +2084,9 @@ async function parcelsFor(apns){
 async function buildMap(){
   if(MAPBUILT||typeof maplibregl==="undefined") return; MAPBUILT=true;
   const ms=$("#mapstatus");
-  const dark=()=>{const t=document.documentElement.getAttribute("data-theme");
-    return t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches;};
+  /* Light only. The basemap keeps both palettes because the light one is
+     built from them; nothing calls it with true any more. */
+  const dark=()=>false;
 
   /* Fully custom vector style on OpenFreeMap (free, keyless, OpenMapTiles schema)
      so water, landcover and roads can be tinted to the page palette rather than
@@ -2450,16 +2435,6 @@ async function buildMap(){
   mark();
 })();
 
-$("#tt").onclick=()=>{
-  const cur=document.documentElement.getAttribute("data-theme")
-    ||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
-  const next=cur==="dark"?"light":"dark";
-  document.documentElement.setAttribute("data-theme",next);
-  if(MAP&&MAPSTYLE){                       // setStyle drops added layers, so re-add
-    MAP.once("styledata",()=>{ MAP.setTerrain({source:"dem",exaggeration:1.25}); addDataLayers(); });
-    MAP.setStyle(MAPSTYLE(next==="dark"));
-  }
-};
 </script>
 </body>
 </html>

@@ -114,6 +114,21 @@ deliberately. A page that re-queried them on every visit would get itself blocke
 HCD's CKAN endpoint is CDN backed and sends `Access-Control-Allow-Origin: *`, so
 that half stays live.
 
+## Design
+
+Light only — no theme toggle, no `prefers-color-scheme` branch. Bricolage
+Grotesque and Azeret Mono on a bone surface, with black rules and hard offset
+shadows instead of soft borders and radii.
+
+The five data colours were produced by the dataviz palette validator rather than
+chosen by eye. The three that carry identity — stalled `#EE3F12`, built `#3B6FA8`,
+BART `#00875A` — pass every categorical check on all pairs against the surface,
+and the built ramp passes the ordinal checks. The bus network is deliberately a
+grey (`#94A3A8`) separated by lightness, because it is basemap context and fails
+the categorical checks against every series at any hue. The acid green is a
+highlight background only; at 0.93 relative luminance it has no contrast against
+anything except black. `CLAUDE.md` records what failed and why.
+
 ## Known limits
 
 - **HCD data reaches CY2025.** Reports are filed each April for the prior year, so

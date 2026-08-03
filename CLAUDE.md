@@ -87,11 +87,33 @@ header at all, so a browser cannot read the agenda PDFs however it asks;
 
 ## Colour
 
-Run the dataviz palette validator before adding any series colour. Adjacent pairs
-need ΔE ≥ 8 under colour-vision deficiency and ≥ 15 for normal vision. The bus
-network and the "completed" series once collided at 5.9; every replacement hue
-failed too, and the fix was to separate by lightness rather than hue, treating
-buses as basemap context (`#3E6B78`, ΔE 26).
+**Light only, deliberately.** There is no theme toggle and no
+`prefers-color-scheme` branch. The map's basemap function still carries both
+palettes because the light one is built from them, but `dark()` returns `false`
+and nothing calls it with `true`.
+
+Run the dataviz palette validator before changing any series colour — the
+current set was produced by it, not by eye:
+
+| Role | Colour | Why this one |
+|---|---|---|
+| Stalled / waiting | `#EE3F12` | passes every categorical check on all pairs, no warnings |
+| Built ramp | `#85A7C9 → #3B6FA8 → #123D69` | ordinal: monotone L, single hue, light end clears the surface at 2.12:1 |
+| BART / upcoming | `#00875A` | ΔE 16.4 normal vs built, 8.8 protan vs stalled |
+| Bus | `#94A3A8` | basemap context, separated by lightness not hue |
+| Acid | `#D6FF2E` | highlight **backgrounds only** — never a data series |
+
+Two traps this palette already fell into. BART was amber `#F5A623`, which sits at
+almost the same hue as the new stalled orange; violet and indigo alternatives both
+failed the normal-vision floor against the built blue (ΔE 14.7 and 14.3), and
+green was the only candidate that cleared it. And the bus network fails the
+categorical checks against every series no matter the hue — that is expected, it
+is context rather than data, so validate the three data series alone and keep the
+bus out of the set.
+
+Acid has ~0.93 relative luminance: it has no contrast against anything here except
+black. As a fill behind black text it is the theme's signature; as a line, bar, or
+text colour it is invisible.
 
 ## Claims
 
