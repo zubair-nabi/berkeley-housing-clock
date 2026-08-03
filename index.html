@@ -895,7 +895,7 @@ async function renderSiteCheck(){
   try{
     const p=new URLSearchParams({where:"1=1",outFields:"APN_1,Category",returnGeometry:"false",
       resultRecordCount:"2000",f:"json"});
-    const sites=(await (await fetch(`${SITES}?${p}`)).json()).features.map(x=>x.attributes);
+    const sites=(await (await fetchT(`${SITES}?${p}`,12000)).json()).features.map(x=>x.attributes);
     const G={};
     for(const s of sites){
       const c=s.Category||"Other"; const t=PARCELS.get(norm(s.APN_1));
@@ -1140,7 +1140,7 @@ async function searchAddr(v){
     outFields:"FullAddress,APN,ZipCode,LotSqft,BldgSqft",returnGeometry:"true",outSR:"4326",
     resultRecordCount:"8",returnDistinctValues:"false",f:"json"});
   try{
-    const r=await fetch(`${ADDR}?${p}`); const j=await r.json();
+    const r=await fetchT(`${ADDR}?${p}`); const j=await r.json();
     cands=(j.features||[]).map(f=>({...f.attributes,geom:f.geometry}));
     const seen=new Set();
     cands=cands.filter(c=>{const k=c.FullAddress;if(seen.has(k))return false;seen.add(k);return true;});
@@ -1156,11 +1156,20 @@ async function searchAddr(v){
   }catch(err){ $("#res").innerHTML=`<div class="ritem" style="color:var(--stall)">Berkeley GIS unreachable</div>`; $("#res").classList.add("on"); }
 }
 
+/* Berkeley's ArcGIS rate-limits by refusing the connection outright rather than
+   answering with an error, and a fetch against a black hole does not reject for
+   minutes. The parcel card awaits this call, so without a deadline the card sits
+   on "Checking state records…" forever -- which is exactly what happened after a
+   burst of queries during an audit. The site lookup is a nice-to-have, so time it
+   out quickly and render the card without it. */
+function fetchT(url,ms=8000){
+  return fetch(url,{signal:AbortSignal.timeout(ms)});
+}
 async function sitesFor(apn){
   try{
     const p=new URLSearchParams({where:`APN_1 = '${apn.replace(/'/g,"''")}'`,
       outFields:"APN_1,Category,Category_I,Permit__",returnGeometry:"false",f:"json"});
-    const r=await fetch(`${SITES}?${p}`); const j=await r.json();
+    const r=await fetchT(`${SITES}?${p}`); const j=await r.json();
     return (j.features||[])[0]?.attributes||null;
   }catch{ return null; }
 }
