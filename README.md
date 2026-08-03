@@ -47,8 +47,8 @@ units**, and **97% of what gets built is rental**.
 - **The waiting room** lists approved projects with no building permit reported to the
   State, aged, with a reason where the record gives one. A cross-check panel sets the
   nine downtown projects the City Council named as stalled in April 2026 against what
-  the State holds for the same nine, which is how the size of the reporting gap is
-  measured rather than asserted.
+  Berkeley's own permit system actually holds for them — which is how the referral's
+  claim that five had been permitted was tested, and found to be demolition permits.
 - **Where it is stuck** breaks the same figure down by street.
 - **The skyline that isn't there** draws every approved-but-unbuilt project on its
   real parcel, extruded by the number of homes it would contain.
@@ -74,6 +74,7 @@ approximately; it still appears in section 03.
 | [BART GTFS](https://www.bart.gov/dev/schedules/google_transit.zip) | Richmond line alignment and stations | Extracted once into `geo/bart.json` |
 | [HCD RHNA Progress Report](https://data.ca.gov/dataset/rhna-progress-report) | Official allocation and progress for all 539 California jurisdictions | CKAN API, fetched live |
 | [OpenStreetMap via Overpass](https://overpass-api.de/) | AC Transit bus routes, weighted by how many routes share each street; 17 landmarks with their real building footprints | Extracted once into `geo/bus.json`, `geo/landmarks.json` and `geo/landmark_shapes.json` |
+| [Berkeley permit records (Accela via AgencyCounter)](https://berkeley.agencycounter.com/building) | Live permit status per address, current to today | JSON API, fetched live in the browser, on demand per parcel |
 | [RAND, *The High Cost of Producing Multifamily Housing in California*](https://www.rand.org/pubs/research_reports/RRA3743-1.html) | Production-time benchmark and cost per month of delay | Quoted, April 2025 |
 | [OpenFreeMap](https://openfreemap.org) / OpenStreetMap | Basemap vector tiles | Live |
 | Mapzen / AWS terrain tiles | Elevation for 3D terrain and hillshade | Live |
@@ -139,12 +140,27 @@ anything except black. `CLAUDE.md` records what failed and why.
   this page: a building people live in is not waiting to be built. A project shown as
   waiting may still hold a permit that was never reported upward. Corrections welcome.
 
-  The size of this gap is now measurable. A City Council referral of 14 April 2026
-  lists nine stalled downtown projects, sourced from Berkeley's own permit system, and
-  states that five of them hold building permits: 2128 Oxford, 2190 Shattuck, 2065
-  Kittredge, 2138 Kittredge and 2210 Harold Way. HCD's file records a building permit
-  for **none** of the nine. That is why this page says "no building permit reported to
-  the State" and not "no building permit".
+  How big that gap is, though, was tested and turned out to be small. Nine projects the
+  City's FY25 inclusionary report says reached building permit were checked against the
+  state file: seven are in it and **six of those seven agree**. So the state copy is
+  broadly reliable, and the page treats it as such.
+
+  An earlier version of this section claimed the opposite, on the strength of the City
+  Council referral of 14 April 2026, which lists nine stalled downtown projects and says
+  five of them "went on to receive a building permit" while HCD records none. Checking
+  those five against Berkeley's own permit system — the source the referral cites —
+  showed HCD was right: what those projects hold is a demolition permit, a shoring
+  package still in corrections, and repairs dating from 1992 to 2010. Accela files
+  demolition under the record type "Building Permit", which is the likely origin of the
+  claim. **None of the nine holds a permit to build the homes.** The cross-check panel
+  in section 02 now shows that comparison, which is the more interesting one.
+
+- **The state file cannot see 2026.** It runs to 19 December 2025 with no falloff, so
+  anything permitted this year still shows as waiting. Roughly 58% of the waiting room
+  was approved recently enough for that to be possible; the other 42%, and the whole
+  attrition figure, are immune because a 2026 permit for a 2018-21 approval would be a
+  five-year-plus wait. The parcel card closes the gap case by case: it queries the
+  City's live permit system, which is current to today.
 - **Two addresses are counted twice**, 2015 Blake and 3233 Ellis, because HCD holds
   separate filings on adjacent parcel numbers that are probably one project apiece.
   At 2015 Blake the 219-home record approved in September 2023 matches Council's

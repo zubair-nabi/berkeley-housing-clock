@@ -48,13 +48,38 @@ period when "stalled" meant four different things and Shattuck read 74% in one
 place and 48% in another. If you change the predicate, re-derive every dependent
 figure and update the README in the same commit.
 
-**HCD's file is incomplete in both directions, and the page must say so.** Some
-occupied buildings have no permit recorded; some completions are missing. Never
-write "no building permit" — write **"no building permit reported to the State."**
-The Council cross-check panel in section 02 exists to quantify this: the City
-records building permits for five of the nine downtown projects where HCD records
-none. A completion always overrides a missing permit, because a building people
-live in is not waiting to be built.
+**HCD's file is incomplete in both directions, but less than once feared.** Some
+occupied buildings have no permit recorded and some completions are missing, so
+still write **"no building permit reported to the State"** rather than "no building
+permit". A completion always overrides a missing permit, because a building people
+live in is not waiting to be built. The size of the gap was measured against the
+City's FY25 inclusionary report: of nine projects it says reached building permit,
+seven are in the state file and six of those seven agree. Treat the state copy as
+broadly reliable. Its real limitation is recency, not accuracy — see below.
+
+**The state file stops at 19 December 2025.** Anything permitted in 2026 still
+reads as waiting. About 58% of the waiting room was approved recently enough for
+that to be possible; the attrition figure and everything approved before 2022 are
+immune. The parcel card closes the gap per address via the live permit API.
+
+**A permit record is not a permit to build.** Berkeley's Accela files demolition,
+shoring, re-roofs and signs under the record type `Building Permit`, and records
+prefixed `ESR-` are submittal intakes rather than permits. Read the `description`
+before concluding anything. This is not hypothetical: the City Council's April 2026
+referral reported that five of nine stalled downtown projects had received building
+permits, and every one of those turned out to be a demolition permit, a shoring
+package, or a repair from the 1990s. An earlier version of this page repeated the
+claim and asserted the state file was missing permits. It was not.
+
+**The live permit API.** `POST https://berkeley.agencycounter.com/api/search/list`
+with header `Agency-Counter-Tenant: berkeley` and body `{"___address": "2128 OXFORD ST"}`,
+plus `?offset=&limit=&sort_by=-record_date`. No key, CORS open to any origin. `limit`
+is hard-capped at 10. Unknown criteria keys are **silently ignored** rather than
+rejected, so a filter that appears to work may be returning everything — check the
+count against the unfiltered 161k before believing a result. Server-side criteria are
+`___address`, `___location`, `___place`, `___viewport`. Per-record detail is
+`GET /record/{guid}/details`. Everything it returns is third-party text destined for
+`innerHTML`: escape it with `hesc()`.
 
 **Do not trust `APPLICATION_STATUS`.** Thirty parcels carry an approval date and a
 `Pending` status simultaneously, including 2190 Shattuck, approved February 2019.
