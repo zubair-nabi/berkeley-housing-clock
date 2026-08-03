@@ -45,7 +45,10 @@ units**, and **97% of what gets built is rental**.
   the still-waiting projects in the count, and RAND's 2025 production-time figures
   for California, Colorado and Texas with their estimate of what a month costs.
 - **The waiting room** lists approved projects with no building permit reported to the
-  State, aged, with a reason where the record gives one.
+  State, aged, with a reason where the record gives one. A cross-check panel sets the
+  nine downtown projects the City Council named as stalled in April 2026 against what
+  the State holds for the same nine, which is how the size of the reporting gap is
+  measured rather than asserted.
 - **Where it is stuck** breaks the same figure down by street.
 - **The skyline that isn't there** draws every approved-but-unbuilt project on its
   real parcel, extruded by the number of homes it would contain.
@@ -179,6 +182,13 @@ python3 -m http.server 8000
 
 Then open http://localhost:8000. Opening `index.html` directly mostly works, since
 HCD allows any origin, but the cached `geo/` files need to be served over HTTP.
+
+After changing `index.html`, run `python3 tools/check.py`. It verifies JS syntax,
+per-section `<div>` balance, required element ids and that no computed figure has
+been hard-coded into the markup. The same script runs in CI on every push. It is a
+static check, so it cannot tell you an element rendered into the wrong section —
+`CLAUDE.md` has a short browser snippet for that, and notes the invariants that are
+easy to break.
 
 ## Refreshing the cached geometry
 

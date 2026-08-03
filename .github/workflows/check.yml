@@ -1,0 +1,30 @@
+name: Check
+
+# index.html holds the whole application inline, which makes it easy to break in
+# ways that still look like a valid file. tools/check.py catches the structural
+# failures that have actually happened here: a runaway string replace, a slice
+# that deleted functions while leaving valid JS, and an unbalanced <div> that
+# ended a <section> early and orphaned the elements after it.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"       # check.py shells out to `node --check`
+
+      - name: Static checks
+        run: python3 tools/check.py
