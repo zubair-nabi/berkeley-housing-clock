@@ -28,8 +28,8 @@ exercise, though, Berkeley is **ahead of most of California**: 18% of its alloca
 against a statewide median of 16%, and 11% of the affordable half against a median
 of 5%.
 
-Three things the same file records and nobody prints: **75% of approved homes came
-through a state density bonus**, **18% of permits issued are accessory dwelling
+Three things the same file records and nobody prints: **75% of approved homes are in
+projects that used a state density bonus**, **18% of permits issued are accessory dwelling
 units**, and **97% of what gets built is rental**.
 
 - **Address lookup** sits in a bar that follows you down the page, matching any
