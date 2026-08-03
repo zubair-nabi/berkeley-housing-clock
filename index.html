@@ -302,8 +302,29 @@ h2{font-size:clamp(2rem,4.2vw,3rem);font-weight:800;margin:0;letter-spacing:-.04
 .whead:hover{background:none}
 /* Cross-check panel. Council reads Berkeley's own permit system, this page reads
    the State's copy of it, and on building permits the two flatly disagree. */
-.xrow{display:grid;grid-template-columns:1fr 68px 68px 108px;gap:12px;align-items:center;
-  padding:7px 8px;border-radius:0;font-size:13.5px}
+.xrow{display:grid;grid-template-columns:150px 58px 104px 1fr;gap:12px;align-items:center;
+  padding:8px 8px;border-radius:0;font-size:13.5px}
+.xactual{font-size:12.5px;color:var(--ink-2);line-height:1.4}
+/* Live permit record on the parcel card. */
+.pclive{margin-top:20px;border-top:2px solid var(--ink);padding-top:12px}
+.pclab{display:block;font-family:"Azeret Mono",monospace;font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.pclab em{font-style:normal;color:var(--ok)}
+.pcrow{display:grid;grid-template-columns:76px 1fr 118px 118px;gap:10px;align-items:baseline;
+  padding:5px 0;border-bottom:1px dotted var(--grid);font-size:12.5px}
+.pcrow:last-of-type{border-bottom:0}
+.pcd,.pcr{font-family:"Azeret Mono",monospace;font-size:11px;color:var(--muted)}
+.pct{font-weight:500}
+.pcdesc{display:block;font-weight:400;font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:2px}
+.pcs{font-family:"Azeret Mono",monospace;font-size:10px;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted);text-align:right}
+.pcs.ok{color:var(--ok);font-weight:700}
+.pcnone{font-size:13px;color:var(--muted)}
+.pcfoot{font-size:11.5px;color:var(--muted);line-height:1.5;margin:10px 0 0;max-width:62ch}
+@media(max-width:640px){.pcrow{grid-template-columns:70px 1fr;row-gap:2px}
+  .pcr,.pcs{grid-column:1/-1;text-align:left}}
+@media(max-width:720px){.xrow{grid-template-columns:1fr 54px;row-gap:3px}
+  .xrow .xflag,.xactual{grid-column:1/-1}}
 .xrow:nth-of-type(even){background:color-mix(in srgb,var(--ink) 3%,transparent)}
 .xhead{font-family:"Azeret Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
   color:var(--muted);border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:4px}
@@ -506,8 +527,8 @@ footer{padding:34px 0 0;font-family:"Azeret Mono",monospace;font-size:11px;color
     </div>
 
     <div class="rwrap">
-      <div class="rlabel">Cross-check · the City's own downtown list</div>
-      <div class="xrow xhead"><span>Project</span><span class="xnum">Council</span><span class="xnum">State</span><span>Building permit</span></div>
+      <div class="rlabel">Cross-check · the referral against the permit record</div>
+      <div class="xrow xhead"><span>Project</span><span class="xnum">Homes</span><span>The referral</span><span>What the permit record holds</span></div>
       <div id="xclist"></div>
       <p class="rnote" id="xcnote"></p>
     </div>
@@ -938,16 +959,29 @@ function stallReason(t){
   return ["no reason on record",""];
 }
 /* Council referral of 14 April 2026, Exhibit 1: nine downtown rental projects
-   holding a zoning permit that have not broken ground. The authors sourced it from
-   Berkeley's own permit system and record five of the nine as also holding a
-   building permit. HCD's file records one for none of them. Hard coded because it
-   is a citation, not a feed: [address, units, zoning permit, City records a BP]. */
+   holding a zoning permit that have not broken ground. The referral states that
+   five of the nine "went on to receive a building permit".
+
+   That claim does not survive the permit record. Every issued Building Permit at
+   those five addresses was checked in Berkeley's own Accela system, the same
+   source the referral cites, and none of them authorises the homes: they are
+   demolition permits, a shoring package still in corrections, and repairs from
+   the 1990s and 2000s. Accela files demolition under the record type "Building
+   Permit", which is almost certainly where the claim came from.
+
+   So HCD is right and the referral is optimistic -- the reverse of what this
+   panel said when it was first built. [address, homes, zoning permit, the
+   referral's claim, what the permit record actually holds]. */
 const COUNCIL9=[
-  ["2128 Oxford",456,"2024-10-04",true],  ["2190 Shattuck",325,"2023-04-28",true],
-  ["2274 Shattuck",277,"2025-04-22",false],["2015 Blake",219,"2023-09-25",false],
-  ["2100 Milvia",205,"2025-07-01",false], ["2065 Kittredge",189,"2023-02-22",true],
-  ["2037 Durant",74,"2024-06-19",false],  ["2138 Kittredge",66,"2025-10-20",true],
-  ["2210 Harold Way",38,"2020-12-10",true]];
+  ["2128 Oxford",456,"2024-10-04",true, "Demolition permit Aug 2025; shoring package in corrections"],
+  ["2190 Shattuck",325,"2023-04-28",true, "No issued building permit; three intake records, all closed"],
+  ["2274 Shattuck",277,"2025-04-22",false,"Last permit 2017, replace HVAC units"],
+  ["2015 Blake",219,"2023-09-25",false,"No building permit records"],
+  ["2100 Milvia",205,"2025-07-01",false,"Last permit 2001, illuminated wall letters"],
+  ["2065 Kittredge",189,"2023-02-22",true, "Tenant improvements 1999, sign 1998, demolition 1997"],
+  ["2037 Durant",74,"2024-06-19",false,"Sign 1994; fire-damage repair 1992"],
+  ["2138 Kittredge",66,"2025-10-20",true, "Demolition permit Dec 2024; garden room 2001"],
+  ["2210 Harold Way",38,"2020-12-10",true, "Re-roof 2010; non-bearing walls 1993"]];
 const xnorm=s=>(s||"").toLowerCase().replace(/[.,]/g,"")
   .replace(/\b(avenue|ave|street|st|way|blvd|boulevard|road|rd|drive|dr|place|pl)\b/g,"")
   .replace(/\s+/g," ").trim();
@@ -955,31 +989,27 @@ function renderXCheck(){
   const idx=new Map();
   for(const t of PARCELS.values()){const k=xnorm(t.addr); if(!k) continue;
     (idx.get(k)||idx.set(k,[]).get(k)).push(t);}
-  let disagree=0, councilTot=0, shown=0, multi=false;
-  const rows=COUNCIL9.map(([addr,units,zp,cityBP])=>{
+  let claimed=0, councilTot=0, shown=0;
+  const rows=COUNCIL9.map(([addr,units,zp,claim,actual])=>{
     const m=idx.get(xnorm(addr))||[];
-    const hcdU=Math.round(m.reduce((a,t)=>a+t.units,0));
-    const hcdBP=m.some(t=>t.bp);
     const inWait=m.some(t=>WAIT.some(w=>w.apn===t.apn));
     councilTot+=units; if(inWait) shown++;
-    if(cityBP&&!hcdBP) disagree++;
-    if(m.length>1) multi=true;
-    return `<div class="xrow" title="Zoning permit ${zp}${m.length>1?` · ${m.length} separate filings in the State's file`:""}">
+    if(claim) claimed++;
+    return `<div class="xrow" title="Zoning permit ${zp}">
       <span class="waddr">${addr}${inWait?"":' <span class="xflag xdim">not listed here</span>'}</span>
       <span class="xnum">${fmt(units)}</span>
-      <span class="xnum${hcdU&&Math.abs(hcdU-units)/units>.05?" xbad":""}">${hcdU?fmt(hcdU):"—"}${m.length>1?'<span class="xdim">*</span>':""}</span>
-      <span class="xflag ${cityBP&&!hcdBP?"xbad":"xdim"}">${cityBP?(hcdBP?"both agree":"City only"):"neither"}</span>
+      <span class="xflag ${claim?"xbad":"xdim"}">${claim?"says permitted":"not claimed"}</span>
+      <span class="xactual">${actual}</span>
     </div>`;}).join("");
   $("#xclist").innerHTML=rows;
-  $("#xcnote").innerHTML=`Council's referral of 14 April 2026 names these nine downtown projects as
-    stalled, ${fmt(councilTot)} homes between them, reading Berkeley's own permit system. This page reads
-    the State's copy of that same system, and ${shown===9?"all nine":`${shown} of the nine`} appear in the
-    waiting room above.
-    On unit counts the two records mostly agree. On building permits they do not: the City records one for
-    <b>${disagree} of the nine</b>, the State for <b>none</b>. That is why every figure here says a permit was
-    not <em>reported to the State</em> rather than that none exists.${multi?` An asterisk marks an address
-    where the State holds more than one filing on adjacent parcel numbers, probably one project apiece;
-    they are left as filed rather than merged on a guess.`:""}`;
+  $("#xcnote").innerHTML=`Council's referral of 14 April 2026 names these nine downtown projects as stalled,
+    ${fmt(councilTot)} homes between them, and says <b>${claimed} of the nine</b> have received a building
+    permit. Checking each address against Berkeley's own permit system &mdash; the source the referral cites
+    &mdash; <b>none of the nine holds a permit to build the homes</b>. What those five have is demolition,
+    a shoring package still in corrections, and repairs dating back to 1992. Accela files demolition under
+    the record type "Building Permit", which is the likely origin of the claim.
+    ${shown===9?"All nine":`${shown} of the nine`} appear in the waiting room above, and the State's file
+    agrees with the permit record on every one of them.`;
 }
 function renderWait(){
   const rows=SHOWALL?WAIT:WAIT.slice(0,25);
@@ -1215,6 +1245,7 @@ async function showParcel(apn,addr,gis){
     $("#pcb").innerHTML=`<p class="pc-empty">No housing development record for this parcel in the State's 2018-2025 filings.
       That usually means no multi-unit project has been proposed here, small permits and repairs are not reported to the State.</p>
       ${nowLine}${siteLine}`;
+    livePermits(addr);   // the City still has a record even when the State does not
     return;
   }
   const steps=[["Applied",t.app],["Approved",t.ent],["Permitted",t.bp],["Moved in",t.co]];
@@ -1252,6 +1283,79 @@ async function showParcel(apn,addr,gis){
        parcel even though the building was occupied. The state copy is known to drop filings the City made,
        which is why a completion overrides a missing permit everywhere on this page.</span>`:""}</div>`:""}
     ${nowLine}${siteLine}`;
+  livePermits(addr||t.addr);
+}
+
+/* Live permit record, straight from Berkeley's Accela front end.
+
+   HCD publishes once a year and reaches CY2025, so nothing permitted in 2026 can
+   appear in it. This closes that gap: the City's own system is current to today,
+   sends CORS headers, and needs no key. One request per parcel the reader opens,
+   which is why it is on demand rather than prefetched for all 97.
+
+   Read the record types carefully before drawing conclusions. Accela files
+   demolition, shoring and repairs under "Building Permit" too, and the intake
+   records prefixed ESR- are submittals rather than permits. Conflating those is
+   how Council's April referral came to report five permits that do not exist. */
+/* Everything below is third-party text from the City's permit system and goes
+   into innerHTML, so it is escaped on the way in. Nothing else on this page
+   does this because nothing else injects text it did not compute itself. */
+const hesc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const AC="https://berkeley.agencycounter.com/api";
+const AC_MINOR=/demol|shoring|grading|excavat|soils|fence|\bsign\b|temporary|utility|sewer|reroof|re-roof|solar|tree|repair/i;
+let AC_SEQ=0;
+async function livePermits(addr){
+  const host=$("#pcb"); if(!host||!addr) return;
+  /* Opening a second parcel before the first request lands would otherwise write
+     the first parcel's permits into the second one's card. */
+  const seq=++AC_SEQ;
+  let box=$("#pcpermits");
+  if(!box){ box=document.createElement("div"); box.id="pcpermits"; host.appendChild(box); }
+  const stale=()=>seq!==AC_SEQ||!document.body.contains(box);
+  box.innerHTML=`<div class="pclive"><span class="pclab">Permit record · City of Berkeley</span>
+    <span class="skel">checking…</span></div>`;
+  const ask=async q=>{
+    const r=await fetch(`${AC}/search/list?offset=0&limit=10&sort_by=-record_date`,
+      {method:"POST",headers:{"Content-Type":"application/json","Agency-Counter-Tenant":"berkeley"},
+       body:JSON.stringify({___address:q})});
+    if(!r.ok) throw new Error(r.status);
+    return ((await r.json()).data||{}).details||[];
+  };
+  try{
+    let recs=await ask(addr.toUpperCase());
+    /* ___address is an exact match, and HCD often stores "2190 Shattuck" where
+       Accela has "2190 SHATTUCK AVE". Ask the City for its own spelling. */
+    if(!recs.length){
+      const p=await fetch(`${AC}/address/predict?q=${encodeURIComponent(addr)}`,
+        {headers:{"Agency-Counter-Tenant":"berkeley"}});
+      const hit=p.ok?(((await p.json()).data||[])[0]||{}).text:null;
+      if(hit && hit.toUpperCase()!==addr.toUpperCase()) recs=await ask(hit);
+    }
+    if(stale()) return;
+    if(!recs.length){ box.innerHTML=`<div class="pclive"><span class="pclab">Permit record · City of Berkeley</span>
+      <span class="pcnone">No records at this address.</span></div>`; return; }
+    const rows=recs.slice(0,6).map(x=>{
+      const d=(x.record_date||"").slice(0,10);
+      const issued=/issued|final|complete/i.test(x.status_text||"");
+      const minor=AC_MINOR.test(x.description||"")||/^ESR-/.test(x.agency_reference||"");
+      /* The description is the whole point: it is what separates a permit to
+         build from a permit to knock the old building down. */
+      const desc=(x.description||"").replace(/^(Building|Demolition Building) Permit\.\s*/i,"").slice(0,120);
+      return `<div class="pcrow">
+        <span class="pcd">${hesc(d)}</span>
+        <span class="pct">${hesc(x.record_type)}${desc?`<span class="pcdesc">${hesc(desc)}</span>`:""}</span>
+        <span class="pcr">${hesc(x.agency_reference)}</span>
+        <span class="pcs ${issued&&!minor?"ok":""}">${hesc(x.status_text)}</span></div>`;}).join("");
+    box.innerHTML=`<div class="pclive"><span class="pclab">Permit record · City of Berkeley ·
+      <em>live, current to today</em></span>${rows}
+      <p class="pcfoot">Demolition, shoring and repairs are filed as "Building Permit" too, and ESR- records
+      are submittals rather than permits. A permit here is not necessarily permission to build the homes.</p></div>`;
+  }catch(e){
+    if(stale()) return;
+    box.innerHTML=`<div class="pclive"><span class="pclab">Permit record · City of Berkeley</span>
+      <span class="pcnone">Could not reach the City's permit system.</span></div>`;
+  }
 }
 
 /* How much is required, and how Berkeley's progress compares with every other
