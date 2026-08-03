@@ -37,14 +37,30 @@ jobs:
       - run: pip install --quiet pypdf
 
       - name: Parse the agendas
+        id: parse
         run: |
+          # Exit 75 means berkeleyca.gov never answered. That is Berkeley's server
+          # having a bad afternoon, not a problem with this repo, and it happens:
+          # a scheduled run on 3 Aug 2026 timed out on every listing fetch. Failing
+          # the job for it trains everyone to ignore the red X, so stop cleanly
+          # instead. Any other non-zero exit is a real parse failure and stays loud.
+          set +e
           if [ "${{ inputs.all_years }}" = "true" ]; then
             python3 tools/fetch_zab.py --all
           else
             python3 tools/fetch_zab.py
           fi
+          code=$?
+          set -e
+          if [ "$code" -eq 75 ]; then
+            echo "upstream=unreachable" >> "$GITHUB_OUTPUT"
+            echo "::warning::berkeleyca.gov did not respond; data/zab.json left unchanged"
+            exit 0
+          fi
+          exit "$code"
 
       - name: Sanity check before committing
+        if: steps.parse.outputs.upstream != 'unreachable'
         run: |
           python3 - <<'PY'
           import json, sys
@@ -59,6 +75,7 @@ jobs:
           PY
 
       - name: Commit if anything changed
+        if: steps.parse.outputs.upstream != 'unreachable'
         run: |
           # fetch_zab.py keeps the previous timestamp when the meetings are
           # unchanged, so an uneventful run leaves the file byte identical and

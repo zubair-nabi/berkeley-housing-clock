@@ -95,7 +95,14 @@ by `tools/fetch_zab.py` in a scheduled GitHub Action, twice a week, which commit
 meets about monthly, so twice a week catches every agenda with room to spare.
 
 The workflow refuses to commit if it parses fewer than three meetings or finds no
-case numbers at all, so a broken parse cannot silently replace good data.
+case numbers at all, so a broken parse cannot silently replace good data. The
+script enforces the same rule itself rather than relying on the workflow, because
+run by hand there is no gate: if no listing page answers it exits 75 and leaves
+`data/zab.json` alone, and if the harvest comes back at less than half what is
+already on disk it refuses to write. The workflow treats 75 as "Berkeley's server
+is down, nothing to do" and ends cleanly with a warning; every other failure stays
+red. A scheduled run on 3 August 2026 hit exactly this — both listing fetches timed
+out and the script wrote an empty file that only the workflow gate caught.
 
 ### Why `geo/` is cached rather than fetched live
 
