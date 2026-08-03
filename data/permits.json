@@ -1,0 +1,53 @@
+{
+ "generated": "2026-08-03T22:31:01Z",
+ "checkedDate": "2026-08-03",
+ "source": "https://berkeley.agencycounter.com/building",
+ "note": "Building Permits issued after the State's file closed on 2025-12-19, for every site in the waiting room. Accela files demolition and repairs under the same record type, so each hit carries its description and a looksMinor flag.",
+ "cutoff": "2025-12-19",
+ "sitesChecked": 97,
+ "sitesUnreachable": 0,
+ "permitsFound": 4,
+ "notMinor": 0,
+ "hits": [
+  {
+   "addr": "2435 Haste",
+   "apn": "055188000700",
+   "units": 38,
+   "ref": "B2026-02470",
+   "date": "2026-06-10",
+   "status": "Corrections List Issued",
+   "desc": "Demolition Building Permit. Demolish multifamily structure. Cap sewer, electrical & water services. (Permit #B2023-05503.)",
+   "looksMinor": true
+  },
+  {
+   "addr": "2800 Telegraph",
+   "apn": "053168900100",
+   "units": 16,
+   "ref": "B2026-00307",
+   "date": "2026-01-27",
+   "status": "Issued",
+   "desc": "Demolition Building Permit. Demolish commercial structure.",
+   "looksMinor": true
+  },
+  {
+   "addr": "2201 Blake St",
+   "apn": "055183001400",
+   "units": 3,
+   "ref": "B2026-00483",
+   "date": "2026-02-05",
+   "status": "Corrections List Issued",
+   "desc": "Building Permit. Moving of existing 432sqft stable building to SW of lot (within existing PL). Associated permit #B2025-05647",
+   "looksMinor": true
+  },
+  {
+   "addr": "2511 Channing",
+   "apn": "055187602200",
+   "units": 1,
+   "ref": "B2026-00396",
+   "date": "2026-01-30",
+   "status": "Corrections List Issued",
+   "desc": "Building Permit record created from ESR-2026-00265. Remodel entrance, lobby & restroom at 1st floor. Remodel mezzanine and 3rd floor. Fire separation between restaurant at 2nd floor and upper resident",
+   "looksMinor": true
+  }
+ ]
+}

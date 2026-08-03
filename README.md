@@ -74,7 +74,7 @@ approximately; it still appears in section 03.
 | [BART GTFS](https://www.bart.gov/dev/schedules/google_transit.zip) | Richmond line alignment and stations | Extracted once into `geo/bart.json` |
 | [HCD RHNA Progress Report](https://data.ca.gov/dataset/rhna-progress-report) | Official allocation and progress for all 539 California jurisdictions | CKAN API, fetched live |
 | [OpenStreetMap via Overpass](https://overpass-api.de/) | AC Transit bus routes, weighted by how many routes share each street; 17 landmarks with their real building footprints | Extracted once into `geo/bus.json`, `geo/landmarks.json` and `geo/landmark_shapes.json` |
-| [Berkeley permit records (Accela via AgencyCounter)](https://berkeley.agencycounter.com/building) | Live permit status per address, current to today | JSON API, fetched live in the browser, on demand per parcel |
+| [Berkeley permit records (Accela via AgencyCounter)](https://berkeley.agencycounter.com/building) | Live permit status per address; and the waiting-room verification in `data/permits.json` | JSON API, live in the browser per parcel, plus a scripted sweep of all 97 sites |
 | [RAND, *The High Cost of Producing Multifamily Housing in California*](https://www.rand.org/pubs/research_reports/RRA3743-1.html) | Production-time benchmark and cost per month of delay | Quoted, April 2025 |
 | [OpenFreeMap](https://openfreemap.org) / OpenStreetMap | Basemap vector tiles | Live |
 | Mapzen / AWS terrain tiles | Elevation for 3D terrain and hillshade | Live |
@@ -155,12 +155,14 @@ anything except black. `CLAUDE.md` records what failed and why.
   claim. **None of the nine holds a permit to build the homes.** The cross-check panel
   in section 02 now shows that comparison, which is the more interesting one.
 
-- **The state file cannot see 2026.** It runs to 19 December 2025 with no falloff, so
-  anything permitted this year still shows as waiting. Roughly 58% of the waiting room
-  was approved recently enough for that to be possible; the other 42%, and the whole
-  attrition figure, are immune because a 2026 permit for a 2018-21 approval would be a
-  five-year-plus wait. The parcel card closes the gap case by case: it queries the
-  City's live permit system, which is current to today.
+- **The state file cannot see 2026**, so it is checked against one that can. HCD's file
+  runs to 19 December 2025, which would leave anything permitted this year still reading
+  as waiting. `tools/check_permits.py` walks every site in the waiting room against
+  Berkeley's own permit system and writes `data/permits.json`; the waiting room states
+  the result and the date it was checked. On 3 August 2026 the answer was that **none of
+  the 97 has been permitted** since the state file closed — the only four permits issued
+  in that window are two demolitions, a shed relocation and a remodelled entry, none of
+  which is permission to build. The parcel card resolves any individual project live.
 - **Two addresses are counted twice**, 2015 Blake and 3233 Ellis, because HCD holds
   separate filings on adjacent parcel numbers that are probably one project apiece.
   At 2015 Blake the 219-home record approved in September 2023 matches Council's
@@ -227,6 +229,25 @@ been hard-coded into the markup. The same script runs in CI on every push. It is
 static check, so it cannot tell you an element rendered into the wrong section —
 `CLAUDE.md` has a short browser snippet for that, and notes the invariants that are
 easy to break.
+
+## Refreshing the permit check
+
+`data/permits.json` is the answer to "how do you know none of these got permitted after
+the State stopped looking". Rebuild it when the waiting room changes:
+
+```sh
+# 1. export the current waiting room from the page, in a browser console:
+#    copy(JSON.stringify(WAIT.map(w => ({apn:w.apn, addr:w.addr,
+#      units:Math.round(w.units), ent:w.ent.toISOString().slice(0,10)}))))
+#    then save it as data/waiting.json
+python3 tools/check_permits.py
+```
+
+It makes one or two requests per site, paced, and refuses to publish if more than a
+quarter of the sites were unreachable. Anything it finds that its keyword filter does not
+recognise as minor work is written out with `looksMinor: false` so a person reads the
+description before the headline number moves — Accela files demolition and repairs under
+the same record type as new construction, which is the trap that caught the City Council.
 
 ## Refreshing the cached geometry
 
