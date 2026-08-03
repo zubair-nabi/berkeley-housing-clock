@@ -305,6 +305,11 @@ h2{font-size:clamp(2rem,4.2vw,3rem);font-weight:800;margin:0;letter-spacing:-.04
 .xrow{display:grid;grid-template-columns:150px 58px 104px 1fr;gap:12px;align-items:center;
   padding:8px 8px;border-radius:0;font-size:13.5px}
 .xactual{font-size:12.5px;color:var(--ink-2);line-height:1.4}
+.verified{font-size:14px;line-height:1.6;color:var(--ink-2);max-width:70ch;
+  border-left:3px solid var(--ok);padding:2px 0 2px 16px;margin:16px 0 0}
+.verified b{color:var(--ink)}
+.verified .vdate{font-family:"Azeret Mono",monospace;font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted);display:block;margin-top:6px}
 /* Live permit record on the parcel card. */
 .pclive{margin-top:20px;border-top:2px solid var(--ink);padding-top:12px}
 .pclab{display:block;font-family:"Azeret Mono",monospace;font-size:9.5px;letter-spacing:.13em;
@@ -507,7 +512,8 @@ footer{padding:34px 0 0;font-family:"Azeret Mono",monospace;font-size:11px;color
 
   <section>
     <div class="sec-head"><span class="sec-num">02</span><h2 data-nav="Waiting room">The waiting room</h2></div>
-    <p class="sec-sub">Projects the City approved for which no building permit has been reported to the State. They are legal to build and nothing is happening. Read that phrase literally: Berkeley files these records with Sacramento and the filings are demonstrably incomplete, so some of these projects do hold a permit the State never received. The cross-check below measures how often that happens. Projects with no approval date are excluded throughout, because they have not been decided yet.</p>
+    <p class="sec-sub">Projects the City approved for which no building permit has been reported to the State. They are legal to build and nothing is happening. The State publishes once a year and its file stops in December, so every one of these was re-checked against Berkeley's own permit system, which is current to today. Projects with no approval date are excluded throughout, because they have not been decided yet.</p>
+    <p class="verified" id="verified"></p>
     <div class="stats">
       <div class="stat hot"><div class="v" id="w-units">-</div><div class="k">Approved homes<br>not yet permitted</div></div>
       <div class="stat"><div class="v" id="w-parcels">-</div><div class="k">Sites waiting</div></div>
@@ -985,6 +991,33 @@ const COUNCIL9=[
 const xnorm=s=>(s||"").toLowerCase().replace(/[.,]/g,"")
   .replace(/\b(avenue|ave|street|st|way|blvd|boulevard|road|rd|drive|dr|place|pl)\b/g,"")
   .replace(/\s+/g," ").trim();
+/* The obvious objection to the waiting-room total is that the State publishes
+   once a year, so a project permitted during 2026 would still read as waiting.
+   tools/check_permits.py answers it by walking every waiting site against the
+   City's own permit system, and this states the result and its date. If the
+   check ever finds real construction permits, notMinor goes above zero and the
+   wording changes to say so rather than quietly dropping them. */
+async function renderVerified(){
+  const el=$("#verified"); if(!el) return;
+  try{
+    const v=await (await fetch("data/permits.json")).json();
+    if(!v || !v.sitesChecked) return;
+    const d=new Date(v.checkedDate+"T00:00:00Z").toLocaleDateString("en-GB",
+      {day:"numeric",month:"long",year:"numeric",timeZone:"UTC"});
+    const minor=(v.hits||[]).filter(h=>h.looksMinor).length;
+    el.innerHTML = v.notMinor>0
+      ? `Re-checked against Berkeley's own permit system: <b>${v.notMinor} of these
+         ${v.sitesChecked} projects</b> has received a building permit since the State's file
+         closed and is no longer waiting. The rest have not.
+         <span class="vdate">Checked ${d} · ${v.sitesChecked} sites · source: the City's permit records</span>`
+      : `Re-checked against Berkeley's own permit system: <b>none of these ${v.sitesChecked}
+         projects has received a building permit</b> since the State's file closed on
+         19 December 2025. ${minor?`The only ${minor} permits issued in that window are
+         demolition and repair work, which is not permission to build.`:""}
+         The total below is current, not merely as-filed.
+         <span class="vdate">Checked ${d} · ${v.sitesChecked} sites · source: the City's permit records</span>`;
+  }catch(e){ /* the page is still true without it; say nothing rather than guess */ }
+}
 function renderXCheck(){
   const idx=new Map();
   for(const t of PARCELS.values()){const k=xnorm(t.addr); if(!k) continue;
@@ -1603,6 +1636,7 @@ async function renderNow(){
   try{
     const z=await (await fetch("data/zab.json")).json();
     NOW.zab=z.meetings;
+    renderVerified();
     const today=new Date(); today.setHours(0,0,0,0);
     const upcoming=z.meetings.filter(m=>new Date(m.date+"T12:00:00")>=today);
     const shown=(upcoming.length?upcoming:z.meetings).slice(0,5);
