@@ -1514,10 +1514,18 @@ function renderFindings(A2){
   const rent=ten["Renter"]||0, own=ten["Owner"]||0;
   const demo=S("DEM_DES_UNITS")||S("DEM_OR_DES_UNITS");
   const items=[
+    /* DR_TYPE flags the mechanism that deed-restricts a project's affordable
+       units, and NO_ENTITLEMENTS counts every home in that project, not just the
+       bonus ones. So this is "homes in projects that used a density bonus", which
+       is what the wording has to say. The narrower DENSITY_BONUS_TOTAL field,
+       counting granted bonus units, puts it at 54% -- and is blank on projects
+       carrying 2,177 homes that DR_TYPE does flag, which is why it is not used. */
     {v:Math.round(100*dbUnits/entAll)+"%", k:"of approved homes",
-     t:`<b>${fmt(dbUnits)} of ${fmt(entAll)} approved homes</b> came through a density bonus, the state
-        provision that lets a builder exceed local limits in exchange for affordable units. Three
-        quarters of Berkeley's approved housing depends on a rule the City did not write.`},
+     t:`<b>${fmt(dbUnits)} of ${fmt(entAll)} approved homes</b> are in projects that used a state density
+        bonus, the provision that lets a builder exceed local limits in exchange for affordable units.
+        Three quarters of Berkeley's approved housing sits in projects that depend on a rule the City did
+        not write. <span style="color:var(--muted)">Counting only the bonus units themselves, where the
+        State records them, the figure is 54%.</span>`},
     {v:Math.round(100*adu/bpAll)+"%", k:"of permits issued",
      t:`<b>${fmt(adu)} of ${fmt(bpAll)} permitted homes</b> are accessory dwelling units, backyard
         cottages and conversions. Against ${fmt(cat["5+"]||0)} in buildings of five or more, roughly a
