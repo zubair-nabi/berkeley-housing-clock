@@ -181,6 +181,15 @@ anything except black. `CLAUDE.md` records what failed and why.
   Housing in California* (RRA3743-1, April 2025). That per-unit estimate is an
   association rather than a causal one and sits at p = 0.116, just outside significance
   at the 90% level; the per-square-foot version it derives from is significant at 95%.
+- **Approved is not the same as still approved.** Under BMC 23.404.060(C) a Berkeley
+  zoning permit lapses if it is not exercised within a year, but the City *may* decline
+  to declare it lapsed and cannot do so where the applicant made a substantial good-faith
+  effort to obtain a building permit. So whether these approvals remain live is a
+  discretionary call the record does not show. Searching the permit history of all 97
+  sites for a lapse turned up exactly one trace: 2128 Oxford, 485 homes, which filed a use
+  permit modification in December 2025 "for permit not exercised". That is a floor, not a
+  count — a permit that simply expires generates no record, so only a project moving to
+  revive one leaves a mark.
 - **We can rarely say why a project is stalled.** Financing, interest rates and
   construction costs are in no public dataset. Where the record gives a reason, such
   as an incomplete financing stack or a closed application, it is shown.
