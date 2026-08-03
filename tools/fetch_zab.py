@@ -28,10 +28,22 @@ ADDR = re.compile(
 UNITS = re.compile(r"(\d{1,4})\s*(?:new\s+)?(?:dwelling\s+units?|residential\s+units?|units?|apartments?)\b", re.I)
 
 
+# Exit code for "upstream was unreachable, so there is nothing to say". Distinct
+# from a parse failure, which is a real problem and must stay loud. 75 is
+# EX_TEMPFAIL from sysexits.h, the conventional "try again later".
+EX_TEMPFAIL = 75
+
+# berkeleyca.gov timed out on a scheduled run and each attempt sat on the old
+# 60s timeout, so two listing fetches burned six minutes before failing. The
+# site answers in about two seconds when it is up; if it has not responded in
+# 25 there is nothing to wait for.
+TIMEOUT = 25
+
+
 def get(url, binary=False, tries=3):
     for i in range(tries):
         try:
-            with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=TIMEOUT) as r:
                 return r.read() if binary else r.read().decode("utf-8", "replace")
         except Exception as e:
             if i == tries - 1:
@@ -51,12 +63,17 @@ def norm_addr(num, mid, suf):
 
 def agenda_links(years):
     """Scrape the listing page for agenda PDF URLs. The filename suffix is not
-    stable (_Linked, _Linked_revised, _Linked_0), so links must be read, not built."""
-    found = {}
+    stable (_Linked, _Linked_revised, _Linked_0), so links must be read, not built.
+
+    Returns (links, reached) where reached is how many listing pages actually
+    answered. Zero means the site was down, which is a different thing from the
+    site being up and having no agendas, and the caller must not confuse them."""
+    found, reached = {}, 0
     for y in years:
         html = get(f"{LIST}?field_meeting_date_value={y}")
         if not html:
             continue
+        reached += 1
         for m in re.finditer(r'href="([^"]*legislative-body-meeting-agendas/[^"]+\.pdf)"', html, re.I):
             href = urllib.parse.unquote(m.group(1))
             d = re.search(r"(20\d{2})[-_](\d{2})[-_](\d{2})", href)
@@ -67,7 +84,7 @@ def agenda_links(years):
             if iso not in found or "revis" in href.lower():
                 found[iso] = urllib.parse.urljoin(BASE, m.group(1))
         time.sleep(PAUSE)
-    return dict(sorted(found.items(), reverse=True))
+    return dict(sorted(found.items(), reverse=True)), reached
 
 
 def parse_agenda(pdf_bytes):
@@ -100,8 +117,17 @@ def main():
     if "--all" in sys.argv:
         years = list(range(this_year, 2020, -1))
 
-    out, links = [], agenda_links(years)
-    print(f"found {len(links)} agendas across {years}")
+    out = []
+    links, reached = agenda_links(years)
+    if not reached:
+        # Every listing fetch failed. We know nothing, and writing what we know
+        # would replace a good file with an empty one. A scheduled run once did
+        # exactly this and only the workflow's sanity gate stopped the commit;
+        # run by hand it would have destroyed data/zab.json.
+        print(f"could not reach {BASE} for any of {years}; leaving data/zab.json alone",
+              file=sys.stderr)
+        return EX_TEMPFAIL
+    print(f"found {len(links)} agendas across {years} ({reached}/{len(years)} listing pages answered)")
     for iso, url in links.items():
         b = get(url, binary=True)
         time.sleep(PAUSE)
@@ -120,6 +146,7 @@ def main():
     # Keep the previous timestamp if nothing substantive changed. Otherwise every
     # run produces a diff and the schedule fills the history with noise.
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    prev = None
     try:
         prev = json.load(open("data/zab.json"))
         if prev.get("meetings") == meetings:
@@ -127,6 +154,17 @@ def main():
             print("no change since last run")
     except Exception:
         pass
+
+    # Some listing pages answered but the harvest came back much thinner than what
+    # is already on disk: individual PDFs failed, or the page markup changed. Either
+    # way this is not an improvement, so keep the good file and say so loudly. The
+    # workflow has the same check, deliberately -- this one makes the script safe to
+    # run by hand, which is where an overwrite would be unrecoverable.
+    have = len(prev.get("meetings", [])) if isinstance(prev, dict) else 0
+    if have and len(meetings) < max(3, have // 2):
+        print(f"parsed only {len(meetings)} meetings against {have} already on disk; "
+              "refusing to overwrite", file=sys.stderr)
+        return 1
 
     doc = {"generated": stamp,
            "source": LIST,
@@ -137,7 +175,8 @@ def main():
     with open("data/zab.json", "w") as f:
         json.dump(doc, f, indent=1)
     print(f"wrote data/zab.json with {len(out)} meetings")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
