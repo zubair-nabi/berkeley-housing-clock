@@ -308,6 +308,13 @@ h2{font-size:clamp(2rem,4.2vw,3rem);font-weight:800;margin:0;letter-spacing:-.04
 .verified{font-size:14px;line-height:1.6;color:var(--ink-2);max-width:70ch;
   border-left:3px solid var(--ok);padding:2px 0 2px 16px;margin:16px 0 0}
 .verified b{color:var(--ink)}
+.argue{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline;margin:20px 0 0}
+.argue a{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:19px;
+  letter-spacing:-.02em;color:var(--ink);text-decoration:none;background:var(--acid);
+  border:2.5px solid var(--ink);box-shadow:var(--shadow);padding:10px 16px;
+  transition:transform .12s,box-shadow .12s;white-space:nowrap}
+.argue a:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-lg)}
+.argue span{font-size:14px;color:var(--ink-2);max-width:52ch;line-height:1.55}
 .lapse{font-size:13.5px;line-height:1.6;color:var(--ink-2);max-width:70ch;
   border-left:3px solid var(--muted);padding:2px 0 2px 16px;margin:14px 0 0}
 .lapse b{color:var(--ink)}
@@ -660,8 +667,17 @@ footer{padding:34px 0 0;font-family:"Azeret Mono",monospace;font-size:11px;color
       them directly. CEQAnet is queried live. Case numbers and addresses are extracted text, not a City feed.</p>
   </section>
 
+  <section>
+    <div class="sec-head"><span class="sec-num">07</span><h2 data-nav="What could change">What could change</h2></div>
+    <p class="sec-sub">Everything above is measurement. What to do about it is argument rather than record,
+      so it sits on its own page.</p>
+    <p class="argue"><a href="what-could-change.html">Read the argument &rarr;</a>
+      <span>Three administrative changes, each with what it rests on and what would show it to be wrong.
+      None of them needs an ordinance.</span></p>
+  </section>
+
   <section style="border-bottom:none">
-    <div class="sec-head"><span class="sec-num">07</span><h2 data-nav="Sources">Where this comes from</h2></div>
+    <div class="sec-head"><span class="sec-num">08</span><h2 data-nav="Sources">Where this comes from</h2></div>
     <p class="sec-sub">Six sources. Most are queried in your browser as the page loads. Two are not, for
       reasons given below, and both say so.</p>
     <div class="src">
@@ -702,7 +718,7 @@ footer{padding:34px 0 0;font-family:"Azeret Mono",monospace;font-size:11px;color
 
     <div class="caveat">
       <b>What this cannot tell you.</b><br>
-      The state file is known to drop real filings, so a project shown as "waiting" could in principle hold a permit the City never reported upward. Every site in the waiting room was therefore re-checked against Berkeley's own permit system, which found none — but that check is a snapshot, dated where it appears in section 02, not a live feed. The state figures themselves stop at December 2025, because HCD publishes a year in arrears and 2026 will not appear until April 2027. Section 03 is drawn from agendas and environmental filings, which are notices of intent rather than counts of homes. UC Berkeley's roughly 2,150 student beds are exempt from city permitting, so they appear in the clearinghouse but in none of the totals.
+      The state file is known to drop real filings, so a project shown as "waiting" could in principle hold a permit the City never reported upward. Every site in the waiting room was therefore re-checked against Berkeley's own permit system, which found none. That check is a snapshot, dated where it appears in section 02, not a live feed. The state figures themselves stop at December 2025, because HCD publishes a year in arrears and 2026 will not appear until April 2027. Section 03 is drawn from agendas and environmental filings, which are notices of intent rather than counts of homes. UC Berkeley's roughly 2,150 student beds are exempt from city permitting, so they appear in the clearinghouse but in none of the totals.
       <br><br>We can show you that a project is stalled. We usually cannot show you why. Financing, rates and construction costs are in no public dataset. <b>If you know why one of these is stuck, that is the most useful thing you can tell us.</b>
     </div>
 
@@ -858,11 +874,11 @@ function renderCensor(){
   $("#censorbox").innerHTML=`
     <div class="stat"><div class="v">${yr(naive)}<span style="font-size:.42em"> yr</span></div>
       <div class="k">Median for the ${done.length} projects<br>that did get a permit</div></div>
-    <div class="stat hot"><div class="v">${km.median?yr(km.median):"—"}<span style="font-size:.42em"> yr</span></div>
+    <div class="stat hot"><div class="v">${km.median?yr(km.median):"n/a"}<span style="font-size:.42em"> yr</span></div>
       <div class="k">Median counting the ${waiting.length}<br>still waiting</div></div>`;
   $("#censornote").innerHTML=`Those ${waiting.length} are <b>${Math.round(100*waiting.length/big.length)}%</b> of every
     multifamily project Berkeley has approved since 2018, and they have already been waiting a median of
-    <b>${mid(waiting).toFixed(0)} months</b> — the longest <b>${(Math.max(...waiting)/12).toFixed(1)} years</b>.
+    <b>${mid(waiting).toFixed(0)} months</b>, the longest <b>${(Math.max(...waiting)/12).toFixed(1)} years</b>.
     Both figures are above because they answer different questions: the first is how long it took
     the projects that made it, the second is how long approval to permit actually takes. Only the first is
     comparable to the neighbouring cities below, which are measured the same way.`;
@@ -872,7 +888,7 @@ function renderBenchNote(){
   const naive=window.__MED_ENT_BP__?window.__MED_ENT_BP__*12:null;
   if(!naive) return;
   $("#benchnote").innerHTML=`Berkeley's approval-to-permit wait alone, <b>${naive.toFixed(1)} months</b>, is longer
-    than the <b>13.1 months</b> a Texas project takes for the whole of predevelopment — every step from concept to
+    than the <b>13.1 months</b> a Texas project takes for the whole of predevelopment, every step from concept to
     breaking ground. RAND estimates each additional month costs <b>$1,284 per home</b> in California, and that
     cutting the state's timeline to Texas's would save $28,248 a home, 8.2% of total development cost. For scale,
     municipal impact fees in the San Francisco Bay Area average <b>$30,712 per home</b>, so on these estimates the
