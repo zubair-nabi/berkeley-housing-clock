@@ -310,6 +310,27 @@ h2{font-weight:800;letter-spacing:-.032em;font-size:1.6rem;margin:56px 0 12px}
       on exceptions". Appendices C, D and E are separate spreadsheets not examined here.</div>
   </div>
 
+  <p>And some of it is not missing so much as switched off. The permit portal Berkeley runs today ships
+    with a record-comment facility, a timeline and an activity view. Its published configuration marks all
+    three unavailable.</p>
+
+  <div class="fig">
+    <div class="ftitle">Features the current portal is configured not to show</div>
+    <div class="fsub">Availability flags returned by the permit portal's own configuration endpoint</div>
+    <div class="zero">
+      <div>Record comments <span style="color:var(--muted)">where a plan-check correction would be explained</span></div><div class="z">off</div>
+      <div>Timeline</div><div class="z">off</div>
+      <div>Activity centre</div><div class="z">off</div>
+      <div>Record geosettings</div><div class="z">off</div>
+      <div>Resourcer</div><div class="z">off</div>
+    </div>
+    <div class="src">Read from the portal's public configuration in August 2026. This is the reason the
+      reason for a correction cannot be recovered from outside: the field exists in the product and is not
+      rendered. It is not established that Berkeley chose this. Of the other tenant sites reachable on the
+      same platform, Fremont's carries the same three flags off, so it may be a vendor default rather than
+      a local decision. Either way it is answerable by the City in a sentence.</div>
+  </div>
+
   <div class="ba">
     <div class="before"><h4>Before</h4>
       <p>No public measure of the 116-day stage, and no obligation to produce one.</p>
@@ -449,10 +470,64 @@ h2{font-weight:800;letter-spacing:-.032em;font-size:1.6rem;margin:56px 0 12px}
       addresses, 26% returning the 10-record maximum.</div>
   </div>
 
-  <p>A revision cycle is a correction the applicant did not know was coming. What prevents it is knowing
-    the requirements in advance, which is precisely what AB 2234 already requires the City to publish: a
-    checklist of what makes an application complete, plus example applications. Preapproved plans are one
-    form of that, and Berkeley's version is narrow.</p>
+  <p>The obvious explanation would be that an application crawls from desk to desk. It does not. The
+    technical reviews run <em>concurrently</em>, and the desk that consolidates them adds a single day.</p>
+
+  <div class="fig">
+    <div class="ftitle">There is no queue to remove. The review itself is the time.</div>
+    <div class="fsub">Median days per stage, once an application has been routed</div>
+    <div class="bars">
+      <div class="bar hi"><span class="k">Routing → last technical<br>desk clears · n = 86</span>
+        <span class="t"><i style="width:100%;background:var(--stall)"></i></span>
+        <span class="v">38 days</span></div>
+      <div class="bar"><span class="k">Last desk →<br>consolidation · n = 83</span>
+        <span class="t"><i style="width:2.6%;background:var(--blue)"></i></span>
+        <span class="v">1 day</span></div>
+      <div class="bar"><span class="k">Consolidation →<br>ready to issue · n = 83</span>
+        <span class="t"><i style="width:10.5%;background:var(--blue)"></i></span>
+        <span class="v">4 days</span></div>
+    </div>
+    <div class="src">The gap between the first technical desk finishing and the last is a median of 4 days,
+      which is what concurrent review looks like. Consolidation is last in 81% of records because that is
+      its job, not because it is slow. Streamlining the handoffs would recover almost nothing.</div>
+  </div>
+
+  <p>What the number of desks does change is the <em>chance</em> of a correction. Each additional reviewer
+    is another independent opportunity to find something, and finding something is what costs the eleven
+    weeks.</p>
+
+  <div class="fig">
+    <div class="ftitle">Every extra reviewer is another chance of a correction</div>
+    <div class="fsub">Share of records needing at least one revision, by how many review desks saw them</div>
+    <div class="bars">
+      <div class="bar"><span class="k">2 desks · n = 38</span>
+        <span class="t"><i style="width:63%;background:var(--blue-l)"></i></span>
+        <span class="v">63%</span></div>
+      <div class="bar"><span class="k">3 desks · n = 17</span>
+        <span class="t"><i style="width:76%;background:var(--blue)"></i></span>
+        <span class="v">76%</span></div>
+      <div class="bar"><span class="k">4 desks · n = 6</span>
+        <span class="t"><i style="width:83%;background:#94A3A8"></i></span>
+        <span class="v" style="color:var(--muted)">83%</span></div>
+      <div class="bar"><span class="k">5 desks · n = 5</span>
+        <span class="t"><i style="width:60%;background:#94A3A8"></i></span>
+        <span class="v" style="color:var(--muted)">60%</span></div>
+      <div class="bar hi"><span class="k">6 desks · n = 25</span>
+        <span class="t"><i style="width:96%;background:var(--stall)"></i></span>
+        <span class="v">96%</span></div>
+    </div>
+    <div class="src">The four-desk and five-desk buckets hold six and five records and are shown greyed
+      because they are too small to carry weight; the trend rests on the 2, 3 and 6 buckets. This is an
+      association, and bigger projects both cross more desks and are harder, so it is not evidence that
+      reviewers cause each other's corrections.</div>
+  </div>
+
+  <p>That leaves one lever. Review is already concurrent, consolidation is already fast, and the handoffs
+    are already cheap, so there is no process streamlining left to win. The only thing that shortens this
+    is <b>reducing what a reviewer can flag</b>, before the application is filed. What prevents a
+    correction is knowing the requirement in advance, which is precisely what AB 2234 already obliges the
+    City to publish: a checklist of what makes an application complete, plus worked examples. Preapproved
+    plans are one form of that, and Berkeley's version is narrow.</p>
 
   <div class="fig">
     <div class="ftitle">What is actually in Berkeley's preapproved gallery</div>
@@ -479,20 +554,38 @@ h2{font-weight:800;letter-spacing:-.032em;font-size:1.6rem;margin:56px 0 12px}
     <div class="before"><h4>Before</h4>
       <p>Twelve factory-built designs, nothing for a unit framed on the lot, covering ADUs only.</p>
       <p>The benefit is a fee discount plus "often more quickly", with no service standard and no published uptake.</p>
-      <p>63% of permits still go through at least one revision.</p></div>
+      <p>63% of permits still go through at least one revision, and nothing tests a design against the lot before filing.</p></div>
     <div class="after"><h4>After</h4>
       <p>Standard plans for units framed on the lot, which is what the permit record shows Berkeley actually builds.</p>
       <p>A published cap of two plan checks absent a written health-or-safety finding, adopted voluntarily.</p>
-      <p>The programme extended to duplexes and fourplexes before it is required to be.</p></div>
+      <p>The programme extended to duplexes and fourplexes before it is required to be.</p>
+      <p>A check that runs a design against the actual parcel before anything is filed.</p></div>
   </div>
+
+  <p><b>The last one already exists and does not need building.</b> A preapproved plan is generic and a lot
+    is not, so the gap between "this design is approved" and "this design works here" is where a
+    correction lives. Symbium runs that check for any address in California, with the state ADU rules and
+    the local ordinance compiled into it, and sells a staff-side version that produces the applicable
+    checklist and the comment letter. Chula Vista has adopted a tool of this kind. Berkeley links a
+    calculator today, but it estimates costs, fees and rents and does not test whether anything fits.</p>
+
+  <p>Worth being exact about the technology, because the wrong framing invites the wrong objection. The
+    useful layer is deterministic, the zoning code compiled into rules, which is what makes a setback
+    finding auditable and defensible by a planner. Generative and AI-assisted tools have a real place
+    around it, in drafting a compliant massing against the lot's topography and existing structures and in
+    writing the correction letter, but not in making the determination.</p>
 
   <p class="recmeta"><b>Precedents</b> AB 1621 would cap plan checks at two statewide; Chicago lets
     licensed architects self-certify code compliance and skip detailed plan review, with zoning review
     still applying; Pew counts about 40 US jurisdictions running preapproved-plan programmes, worth 1 to 2%
     of development cost. &nbsp;<b>Due anyway</b> AB 748 passed the Assembly 75–0 on 10 May 2026 and would
     extend preapproval to single-family and multifamily, with large jurisdictions required to comply by
-    1 July 2027. &nbsp;<b>Wrong if</b> gallery uptake is already high and the revision cycles fall on
-    projects that would never use a standard plan. Nobody publishes uptake, which is 01 again.</p>
+    1 July 2027. &nbsp;<b>Where this rests on inference</b> the cost of a revision, the concurrency of
+    review and the rise in correction risk with reviewer count are all measured. That a pre-submittal
+    parcel check would prevent those corrections is not. Establishing it needs the reason each correction
+    was issued, which is the field 01 shows is switched off. &nbsp;<b>Wrong if</b> gallery uptake is
+    already high and the revision cycles fall on projects that would never use a standard plan. Nobody
+    publishes uptake, which is 01 again.</p>
 </div>
 
 <div class="notsaying">
