@@ -488,6 +488,12 @@ footer{padding:34px 0 0;font-family:"Azeret Mono",monospace;font-size:11px;color
     <p class="sec-sub">Median duration per stage, with the middle 50% shaded and the 90th percentile marked. Only projects with both dates on record are counted.</p>
     <div class="clock" id="clock"><div class="skel">Computing…</div></div>
     <div class="axis"><div></div><div class="axis-in" id="axis"></div><div></div></div>
+    <p class="lapse"><b>Read the small-project "same day" with care.</b> It is a reporting convention, not a
+      fast process. A ministerial accessory dwelling unit has no separate entitlement to record, so the City
+      files one date in both the approval and the permit column: <b>512 of the 524 ADU rows carrying both
+      dates have them identical</b>. Among small projects that are not ADUs the two dates diverge normally,
+      1 of 11 duplex-to-fourplex rows and 2 of 16 single-family rows falling on the same day. The stage is
+      real for multifamily, where the dates are independently recorded.</p>
 
     <div class="peers">
       <h4>The bars above are a floor <span id="censor-state"></span></h4>
@@ -531,7 +537,7 @@ footer{padding:34px 0 0;font-family:"Azeret Mono",monospace;font-size:11px;color
       City has discretion over, and not one this page can read from the record. Searching the permit
       history of all 97 for a lapse found exactly one trace: 2128 Oxford, 485 homes, which filed a use
       permit modification in December 2025 <em>"for permit not exercised"</em>. Treat that as a floor
-      rather than a count &mdash; a permit that simply expires generates no record, so only a project
+      rather than a count, because a permit that simply expires generates no record, so only a project
       that moves to revive one leaves a mark.</p>
     <div class="stats">
       <div class="stat hot"><div class="v" id="w-units">-</div><div class="k">Approved homes<br>not yet permitted</div></div>
@@ -673,7 +679,8 @@ footer{padding:34px 0 0;font-family:"Azeret Mono",monospace;font-size:11px;color
       so it sits on its own page.</p>
     <p class="argue"><a href="what-could-change.html">Read the argument &rarr;</a>
       <span>Three administrative changes, each with what it rests on and what would show it to be wrong.
-      None of them needs an ordinance.</span></p>
+      None of them needs an ordinance. Two were rewritten when the City's own records contradicted
+      them.</span></p>
   </section>
 
   <section style="border-bottom:none">
@@ -1065,8 +1072,8 @@ function renderXCheck(){
   $("#xclist").innerHTML=rows;
   $("#xcnote").innerHTML=`Council's referral of 14 April 2026 names these nine downtown projects as stalled,
     ${fmt(councilTot)} homes between them, and says <b>${claimed} of the nine</b> have received a building
-    permit. Checking each address against Berkeley's own permit system &mdash; the source the referral cites
-    &mdash; <b>none of the nine holds a permit to build the homes</b>. What those five have is demolition,
+    permit. Checking each address against Berkeley's own permit system, the source the referral cites,
+    <b>none of the nine holds a permit to build the homes</b>. What those five have is demolition,
     a shoring package still in corrections, and repairs dating back to 1992. Accela files demolition under
     the record type "Building Permit", which is the likely origin of the claim.
     ${shown===9?"All nine":`${shown} of the nine`} appear in the waiting room above, and the State's file

@@ -29,7 +29,6 @@ body{margin:0;background:var(--paper);color:var(--ink);
   font-size:16px;line-height:1.55}
 .wrap{max-width:900px;margin:0 auto;padding:0 26px 90px}
 a{color:var(--stall)}
-.mono{font-family:"Azeret Mono",monospace}
 .lab{font-family:"Azeret Mono",monospace;font-size:10px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--muted)}
 
@@ -65,10 +64,6 @@ h1 mark{background:var(--acid);padding:0 .08em}
 .axis{display:flex;font-family:"Azeret Mono",monospace;font-size:10px;letter-spacing:.1em;
   text-transform:uppercase;color:var(--muted);margin-top:8px}
 .axis span{text-align:center;padding:0 4px}
-/* The markers used to be positioned under the segment they refer to, but the
-   first segment is only 8.4% wide and its caption overran the second one. They
-   are a legend row now; the chip's left border carries the segment colour, which
-   is what the positioning was for. */
 .marks{display:flex;flex-wrap:wrap;margin-top:15px;gap:10px 26px}
 .mk{display:flex;align-items:center;gap:9px;border-left:4px solid var(--ink);padding-left:10px}
 .mk b{background:var(--ink);color:var(--acid);font-family:"Azeret Mono",monospace;
@@ -78,6 +73,8 @@ h1 mark{background:var(--acid);padding:0 .08em}
 h2{font-weight:800;letter-spacing:-.032em;font-size:1.6rem;margin:56px 0 12px}
 .premise{border-left:3px solid var(--ink);padding:2px 0 2px 18px;margin:0 0 10px;
   font-size:16px;line-height:1.62;color:var(--ink-2)}
+.premise p{margin:0 0 14px}
+.premise p:last-child{margin:0}
 .premise b{color:var(--ink)}
 
 /* ── recommendation blocks ─────────────────────────────────── */
@@ -101,12 +98,11 @@ h2{font-weight:800;letter-spacing:-.032em;font-size:1.6rem;margin:56px 0 12px}
 
 /* the figure frame used by every graphic */
 .fig{border-top:2px solid var(--ink);padding-top:14px;margin:22px 0 4px}
-.fig .t{font-weight:800;font-size:15.5px;letter-spacing:-.015em;margin-bottom:2px}
-.fig .s{font-family:"Azeret Mono",monospace;font-size:11px;color:var(--muted);margin-bottom:16px}
+.fig .ftitle{font-weight:800;font-size:15.5px;letter-spacing:-.015em;margin-bottom:2px}
+.fig .fsub{font-family:"Azeret Mono",monospace;font-size:11px;color:var(--muted);margin-bottom:16px}
 .fig .src{font-family:"Azeret Mono",monospace;font-size:10px;color:var(--muted);
   border-top:1px dotted var(--grid);padding-top:8px;margin-top:14px;line-height:1.6}
 
-/* bar rows with direct labels */
 /* Three fixed tracks, not two. The value used to sit inside the bar's flex line,
    which let a long label shrink its own bar, so the widest value ended up with
    the most-compressed bar and the chart was quietly out of scale. The bar track
@@ -116,35 +112,61 @@ h2{font-weight:800;letter-spacing:-.032em;font-size:1.6rem;margin:56px 0 12px}
 .bar .k{font-family:"Azeret Mono",monospace;font-size:11.5px;color:var(--ink-2);line-height:1.35}
 .bar .t{display:block;margin:0}
 /* min-width keeps a genuinely tiny value visible as a tick rather than vanishing.
-   The reference row is a true zero and opts out via inline border:0. */
+   A true zero opts out via inline border:0. */
 .bar i{height:26px;display:block;border:1.5px solid var(--ink);min-width:3px}
 .bar .v{font-weight:800;font-size:14px;line-height:1.3}
 .bar.hi .v{color:var(--stall)}
 .bar .v small{display:block;font-family:"Azeret Mono",monospace;font-weight:400;
   font-size:10.5px;color:var(--muted)}
 
-/* the transparency timeline */
-.tl{position:relative;margin:8px 0 4px;padding-left:0}
-.tl:before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:var(--ink)}
-.tlrow{position:relative;padding:0 0 18px 34px}
-.tlrow:last-child{padding-bottom:0}
-.tlrow:after{content:"";position:absolute;left:2px;top:4px;width:14px;height:14px;
-  background:var(--card);border:2.5px solid var(--ink);border-radius:50%}
-.tlrow.now:after{background:var(--stall)}
-.tlrow.risk:after{background:var(--acid)}
-.tlrow b{display:block;font-size:14.5px;line-height:1.35}
-.tlrow span{display:block;font-family:"Azeret Mono",monospace;font-size:10.5px;color:var(--muted);
-  margin-top:2px}
-.tlrow em{display:block;font-style:normal;font-size:13.5px;color:var(--ink-2);margin-top:5px;
-  line-height:1.5;max-width:60ch}
+/* the two-part bar: what the statute measures against what it does not */
+.split{display:flex;height:66px;border:2.5px solid var(--ink);overflow:hidden}
+.split .seg{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:"Azeret Mono",monospace;font-weight:700;font-size:15px;text-align:center;
+  line-height:1.2;padding:0 8px}
+.split .seg small{display:block;font-weight:400;font-size:10px;margin-top:4px;opacity:.92}
+.split .a{background:var(--stall);color:#fff}
+.split .b{background:var(--blue);color:#fff;border-left:3px solid var(--ink)}
+.splitnote{display:flex;font-family:"Azeret Mono",monospace;font-size:10px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted);margin-top:8px}
+.splitnote span{text-align:center;padding:0 6px}
+.clockstart{position:relative;margin-top:10px;font-family:"Azeret Mono",monospace;font-size:11px}
+.clockstart b{display:inline-block;background:var(--ink);color:var(--acid);padding:3px 8px;
+  letter-spacing:.06em;font-size:10px}
 
-/* the zero table */
+/* the zero table, reused for the RFP word counts */
 .zero{display:grid;grid-template-columns:1fr 62px;border:2px solid var(--ink);margin:16px 0 0}
 .zero div{padding:8px 13px;border-bottom:1px dotted var(--grid);font-size:14px}
 .zero div:nth-child(even){text-align:right;font-family:"Azeret Mono",monospace;font-weight:700;
   border-left:1px dotted var(--grid)}
 .zero div:nth-last-child(-n+2){border-bottom:0}
 .zero .z{color:var(--stall)}
+
+/* the four overrun reservations */
+.proj{display:grid;grid-template-columns:1fr auto;gap:2px 14px;border:2px solid var(--ink)}
+.proj > div{padding:11px 14px;border-bottom:1px dotted var(--grid);font-size:14px;line-height:1.45}
+.proj > div:nth-child(even){text-align:right;font-family:"Azeret Mono",monospace;font-weight:700;
+  white-space:nowrap}
+.proj > div:nth-last-child(-n+2){border-bottom:0}
+.proj b{display:block;font-size:14.5px}
+.proj em{font-style:normal;font-family:"Azeret Mono",monospace;font-size:11px;color:var(--muted);
+  display:block;margin-top:3px}
+.projtot{display:flex;justify-content:space-between;align-items:baseline;
+  border:2px solid var(--ink);border-top:0;background:var(--ink);color:var(--acid);
+  padding:11px 14px;font-family:"Azeret Mono",monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase}
+.projtot b{font-size:17px;letter-spacing:-.01em}
+
+/* the gallery dot grid */
+.dots{display:grid;gap:14px;margin:4px 0}
+.dotrow{display:grid;grid-template-columns:118px 1fr;gap:14px;align-items:center}
+.dotrow .k{font-family:"Azeret Mono",monospace;font-size:11.5px;color:var(--ink-2);line-height:1.3}
+.dotrow .g{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.dotrow i{width:22px;height:22px;display:block;border:2px solid var(--ink);background:var(--blue)}
+.dotrow .n{font-weight:800;font-size:15px;margin-left:6px}
+.dotrow.none .n{color:var(--stall)}
+.dotrow .empty{font-family:"Azeret Mono",monospace;font-size:11.5px;color:var(--stall);
+  border:2px dashed var(--stall);padding:3px 10px}
 
 .recmeta{font-family:"Azeret Mono",monospace;font-size:11px !important;line-height:1.7 !important;
   border-top:2px solid var(--ink);padding-top:11px;margin-top:18px !important;color:var(--muted) !important}
@@ -161,10 +183,15 @@ h2{font-weight:800;letter-spacing:-.032em;font-size:1.6rem;margin:56px 0 12px}
   .ba{grid-template-columns:1fr}
   .ba .before{border-right:0;border-bottom:2px solid var(--ink)}
   .bar{grid-template-columns:1fr;gap:4px}
+  .dotrow{grid-template-columns:1fr;gap:5px}
   .rec{padding:20px 18px}
   .pipe{height:auto;flex-wrap:wrap}
-  .pipe div{width:50% !important;height:56px}
+  .pipe div{width:50% !important;height:60px}
   .axis,.marks{display:none}
+  .split{height:auto;flex-direction:column}
+  .split .seg{width:100% !important;padding:12px 8px}
+  .split .b{border-left:0;border-top:3px solid var(--ink)}
+  .splitnote{display:none}
 }
 </style>
 </head>
@@ -177,9 +204,9 @@ h2{font-weight:800;letter-spacing:-.032em;font-size:1.6rem;margin:56px 0 12px}
 <div class="seam">
   <b>This page argues. The rest of the site measures.</b>
   <p>Every figure on the main page is computed from public records at load time, and says so where the
-    record is thin. This page is different. It is my reading of what those measurements imply: three
+    record is thin. This page is different. It is my reading of what those measurements imply, three
     changes Berkeley could make, each with the evidence behind it and the finding that would prove it
-    wrong.</p>
+    wrong. Two of the three started out as something else and were rewritten when the record disagreed.</p>
 </div>
 
 <div class="spine">
@@ -191,62 +218,85 @@ h2{font-weight:800;letter-spacing:-.032em;font-size:1.6rem;margin:56px 0 12px}
     <div class="p-con">2.1 years<small>permit → move-in</small></div>
   </div>
   <div class="axis"><span style="width:8.4%"></span>
-    <span style="width:56.4%">the part nobody measures</span>
+    <span style="width:56.4%">approved, no permit yet · no clock covers this</span>
     <span style="width:35.2%">construction · outside the City</span></div>
   <div class="marks">
     <div class="mk" style="border-color:var(--blue)"><b>03</b>
-      <span>Preapproved plans act on the approval step</span></div>
+      <span>Correction cycles sit inside the approval step</span></div>
     <div class="mk" style="border-color:var(--stall)"><b>01 · 02</b>
       <span>Measurement and financing act on the gap</span></div>
   </div>
 </div>
 
 <h2>The premise</h2>
-<p class="premise">Berkeley is not slow to approve. It clears an apartment building in about six months,
-  faster than most of California, and has permitted a higher share of its state allocation than the median
-  of the 539 jurisdictions doing the same exercise. What is slow is everything after approval. The levers
-  Council reached for in April 2026 were all cost levers, and the City's own consultant put the feasibility
-  gap on a ten-unit condominium at sixteen points of return while finding that removing the in-lieu fee
-  entirely closes two to five. <b>RAND, measuring 140 completed projects, found time to be the dominant cost
-  driver and priced a month of California predevelopment at roughly $1,284 per home.</b> If that is right,
-  the levers still unpulled are the ones that shorten time and reduce uncertainty.</p>
+<div class="premise">
+  <p>Berkeley is not slow to approve, by the only comparison available. It clears an apartment building in
+    about six months, faster than most of California, and has permitted a higher share of its state
+    allocation than the median of the 539 jurisdictions filing the same report. That is true, and it cuts
+    against everything below.</p>
+  <p>But approval time is counted from the day an application arrives, while every deadline the City is
+    actually held to starts later, when the application is deemed <em>complete</em>. On small projects the
+    City's own permit records put the wait to reach completeness at a median of <b>116 days</b>, on the
+    same order as the entire application-to-approval time the State ever sees. The years that follow
+    approval are not measured by anyone. The six-month figure is not wrong. It is describing a process
+    whose slowest stretches sit outside every clock that governs it.</p>
+  <p>The levers Council reached for in April 2026 were all cost levers, and the City's own consultant put
+    the feasibility gap on a ten-unit condominium at sixteen points of return while finding that removing
+    the in-lieu fee entirely closes two to five. <b>RAND, measuring 140 completed projects, found time to
+    be the dominant cost driver and priced a month of California predevelopment at roughly $1,284 per
+    home.</b> If that is right, the unpulled levers are the ones that shorten time and reduce uncertainty,
+    and all three below need the same precondition: knowing where the time goes.</p>
+</div>
 
 <!-- ─────────────────────────── 1 ─────────────────────────── -->
 <div class="rec">
   <div class="rechead"><div class="recnum">01</div>
-    <h3>Publish what the new permit system will already measure</h3></div>
+    <h3>Measure the part that no clock is running on</h3></div>
 
-  <p>On 20 January 2026 Council awarded Clariti Cloud <b>$5,359,128</b> to replace Accela, over a
-    twenty-month implementation. The Council report says the system will deliver "compliance with State laws
-    (e.g. AB 2234 electronic submittal and permit tracking requirements)" and that it is "necessary to
-    improve transparency and reduce permit processing times."</p>
+  <p>Every statutory deadline that applies to Berkeley starts at the same moment: when an application is
+    <em>deemed complete</em>. AB 2234 gives 30 business days for projects of 25 homes or fewer and 60 for
+    larger ones. The state ADU statute gives 60 days. AB 1332 gives 30 days where an applicant uses a
+    preapproved plan. All of them run from completeness.</p>
+
+  <p>Completeness is not approval, and the two stages are different kinds of work. Reaching completeness is
+    the intake gate: the City confirming an application has everything it needs, the right drawings, forms,
+    fees and studies, before anyone assesses whether the project is any good. The decision that follows is
+    the actual review against zoning and code.</p>
+
+  <p><b>The intake gate is the longer of the two, and nothing measures it.</b> Reading the City's own
+    permit workflow records, the median wait from submittal to being deemed complete is 116 days. The
+    decision that follows takes 52.</p>
 
   <div class="fig">
-    <div class="t">The transparency cliff</div>
-    <div class="s">What an outsider can see about Berkeley permitting, over time</div>
-    <div class="tl">
-      <div class="tlrow"><b>1 January 2024 · AB 2234 takes effect</b>
-        <span>15 days to deem complete · 30 business days ≤25 units · 60 business days for 26+</span>
-        <em>Berkeley is covered twice over: a city above 75,000 in a county above 1.1 million. Missing the
-          deadlines is a Housing Accountability Act violation carrying fees and fines.</em></div>
-      <div class="tlrow"><b>11 October 2024 · the RFP is issued</b>
-        <span>38 pages · 124 internal reports · 81 system interfaces</span>
-        <em>It never mentions AB 2234, open data, a public portal, transparency, or export.</em></div>
-      <div class="tlrow now"><b>Today · the only public view is second-hand</b>
-        <span>HCD publishes annually, ~16 months in arrears, currently ending 19 Dec 2025</span>
-        <em>Live permit status is reachable only through an undocumented vendor front end. That is how this
-          site verifies its own numbers, and nothing commits the City to keeping it.</em></div>
-      <div class="tlrow risk"><b>≈ September 2027 · Clariti goes live, Accela is retired</b>
-        <span>20-month implementation from January 2026</span>
-        <em>If a public read path is not a requirement, external visibility falls on the day a $5.36m
-          transparency project completes.</em></div>
+    <div class="ftitle">The clock starts after the part that takes longest</div>
+    <div class="fsub">Median days, Berkeley permit records naming an accessory dwelling unit</div>
+    <div class="split">
+      <div class="seg a" style="width:69%">116 days<small>waiting to be accepted as complete</small></div>
+      <div class="seg b" style="width:31%">52 days<small>the decision itself</small></div>
     </div>
-    <div class="src">City of Berkeley Council item 16, 20 January 2026 · RFP 24-11661-C, released 11 October 2024</div>
+    <div class="splitnote"><span style="width:69%">no statute measures this</span>
+      <span style="width:31%">every clock covers only this</span></div>
+    <div class="clockstart"><b>▲ THE STATUTORY CLOCK STARTS HERE</b></div>
+    <div class="src">Computed from the workflow milestones Berkeley's permit system publishes for each
+      record: n = 89 for submittal to completeness, n = 84 for completeness to decision, spanning 2008 to
+      2025. Only the final completeness event is stored, not the round trips to reach it, so this shows
+      where the time sits and not whose fault it is. Sampled from 1,000 addresses; 26% returned the
+      10-record maximum, so busy addresses are under-represented.</div>
   </div>
 
+  <p>A city in this position can report perfect compliance with every deadline it is subject to, and the
+    report will be true, and it will describe about a third of the wait. That is the reason to ask for
+    something more than statutory metrics.</p>
+
+  <p>The opportunity is a procurement already underway. On 20 January 2026 Council awarded Clariti Cloud
+    <b>$5,359,128</b> to replace Accela over twenty months. The report says the system will deliver
+    "compliance with State laws (e.g. AB 2234 electronic submittal and permit tracking requirements)" and
+    is "necessary to improve transparency and reduce permit processing times." Compliance tracking alone
+    would measure the 52 days and miss the 116.</p>
+
   <div class="fig">
-    <div class="t">What the specification asks for</div>
-    <div class="s">Occurrences in the 38-page RFP body</div>
+    <div class="ftitle">What the specification asks for</div>
+    <div class="fsub">Occurrences in the 38-page RFP body</div>
     <div class="zero">
       <div>"AB 2234"</div><div class="z">0</div>
       <div>"open data"</div><div class="z">0</div>
@@ -255,20 +305,20 @@ h2{font-weight:800;letter-spacing:-.032em;font-size:1.6rem;margin:56px 0 12px}
       <div>"export"</div><div class="z">0</div>
       <div>internal reports specified</div><div>124</div>
     </div>
-    <div class="src">The business-intelligence section is explicit about its audience: the data warehouse
-      "feeds <b>management</b> with real-time data … enable <b>staff</b> to focus on exceptions".
-      Appendices C, D and E are separate spreadsheets not examined here.</div>
+    <div class="src">RFP 24-11661-C, released 11 October 2024. The business-intelligence section is explicit
+      about its audience: the data warehouse "feeds management with real-time data … enable staff to focus
+      on exceptions". Appendices C, D and E are separate spreadsheets not examined here.</div>
   </div>
 
   <div class="ba">
     <div class="before"><h4>Before</h4>
-      <p>No public record of whether Berkeley meets a statutory deadline that has bound it since 2024.</p>
-      <p>Live permit status reachable only through an undocumented vendor front end.</p>
-      <p>A resident had to reconstruct approval-to-permit time from State filings.</p></div>
+      <p>No public measure of the 116-day stage, and no obligation to produce one.</p>
+      <p>Live permit status reachable only through an undocumented vendor front end. The State's copy runs about 16 months behind.</p>
+      <p>A resident had to reconstruct all of this from workflow milestones.</p></div>
     <div class="after"><h4>After</h4>
-      <p>Days-to-decision published quarterly against the 30 and 60 day thresholds, by project size.</p>
-      <p>A documented machine-readable feed of permit records.</p>
-      <p>The City states its own performance instead of having it inferred.</p></div>
+      <p>Both halves published: how long an application waits to be accepted as complete, and how long the decision takes once it is.</p>
+      <p>Plan-check round counts published, which is the mechanism behind the first half.</p>
+      <p>A documented machine-readable feed, so nobody has to reconstruct it again.</p></div>
   </div>
 
   <p><b>The cheap path is already in the specification.</b> Section 4.14 asks for "API integration with GIS"
@@ -278,113 +328,167 @@ h2{font-weight:800;letter-spacing:-.032em;font-size:1.6rem;margin:56px 0 12px}
 
   <p class="recmeta"><b>Cost</b> close to nothing. The measurement is funded and the implementation is
     underway, so this is a requirements decision rather than new development. &nbsp;<b>Wrong if</b> the
-    contract already requires a public API and published metrics. The Council item does not mention either
-    and the RFP body does not contain them, but three appendices were not examined.</p>
+    contract already requires a public API and published metrics beyond statutory compliance. The Council
+    item does not mention either and the RFP body does not contain them, but three appendices were not
+    examined.</p>
 </div>
 
 <!-- ─────────────────────────── 2 ─────────────────────────── -->
 <div class="rec">
   <div class="rechead"><div class="recnum">02</div>
-    <h3>Make local funding commitments earlier and more certain</h3></div>
+    <h3>Make the funding commitment outlast the process it has to survive</h3></div>
 
-  <p>Where the State's file gives a reason for a project stalling at all, it is overwhelmingly money:
-    <b>2,390 homes across 16 sites</b>, 42% of the waiting room, are recorded as awaiting public financing.
-    But "not enough money" is only half of it. The <em>shape</em> of the money matters too.</p>
+  <p>Where the State's file gives a reason for a project stalling, it is overwhelmingly money:
+    <b>2,390 homes across 16 sites</b>, 42% of the waiting room, recorded as awaiting public financing.
+    Berkeley does commit money ahead of that, through Housing Trust Fund reservations. The problem is how
+    long they last.</p>
+
+  <p>HTF policy limits a reservation to <b>24 months</b>, a rule the City describes as being there "to
+    ensure that City funds are not indefinitely committed to projects that are not moving forward." That is
+    a reasonable guard against dead projects. It is also calibrated below the process it is meant to
+    survive.</p>
 
   <div class="fig">
-    <div class="t">Every extra funding source a project has to assemble costs about $20,000 a home</div>
-    <div class="s">Additional total development cost per unit, by number of public funding sources</div>
+    <div class="ftitle">A 24-month commitment against the timelines it has to cover</div>
+    <div class="fsub">Months</div>
     <div class="bars">
-      <div class="bar"><span class="k">2 sources</span>
-        <span class="t"><i style="width:0;min-width:0;border:0"></i></span>
-        <span class="v" style="color:var(--muted);font-weight:400">reference</span></div>
-      <div class="bar"><span class="k">3 sources</span>
-        <span class="t"><i style="width:25%;background:var(--blue)"></i></span>
-        <span class="v">+$20,460<small>per unit</small></span></div>
-      <div class="bar"><span class="k">4 sources</span>
-        <span class="t"><i style="width:50%;background:var(--blue)"></i></span>
-        <span class="v">+$40,920</span></div>
-      <div class="bar hi"><span class="k">5 sources</span>
-        <span class="t"><i style="width:75%;background:var(--stall)"></i></span>
-        <span class="v">+$61,380</span></div>
-      <div class="bar hi"><span class="k">6 sources</span>
-        <span class="t"><i style="width:100%;background:var(--stall)"></i></span>
-        <span class="v">+$81,840</span></div>
+      <div class="bar hi"><span class="k">Berkeley HTF<br>reservation term</span>
+        <span class="t"><i style="width:60%;background:var(--stall)"></i></span>
+        <span class="v">24 months<small>by policy</small></span></div>
+      <div class="bar"><span class="k">First funding<br>application → LIHTC award</span>
+        <span class="t"><i style="width:60%;background:var(--blue)"></i></span>
+        <span class="v">~24 months<small>3–5 extra sources</small></span></div>
+      <div class="bar"><span class="k">Berkeley approval<br>→ building permit</span>
+        <span class="t"><i style="width:47.5%;background:var(--blue)"></i></span>
+        <span class="v">19 months<small>observed</small></span></div>
+      <div class="bar"><span class="k">The same, counting<br>those still waiting</span>
+        <span class="t"><i style="width:100%;background:var(--blue-l)"></i></span>
+        <span class="v">40 months<small>censored</small></span></div>
     </div>
-    <div class="src">Terner Center, 691 LIHTC projects in California, 2020–2023. The association is
-      $20,460 per unit per additional source, driven by staffing, legal and compliance overhead and by the
-      longer timelines that stacking creates. Bars extrapolate that average linearly, which the study does
-      not claim.</div>
+    <div class="src">Reservation term from the 10 February 2026 Council item and the HTF Guidelines ·
+      LIHTC assembly time from Terner Center, Reducing the Complexity in California's Affordable Housing
+      Finance System, Reid and Tran, 21 April 2025, which also finds each additional public source adds
+      about four months and $20,460 per unit · Berkeley waits computed on the main page</div>
+  </div>
+
+  <p>The consequence is visible in the City's own agenda. On 10 February 2026 staff asked Council to extend
+    <b>every active reservation it holds</b>.</p>
+
+  <div class="fig">
+    <div class="ftitle">All four reservations outran the clock</div>
+    <div class="fsub">Extensions requested 10 February 2026</div>
+    <div class="proj">
+      <div><b>Ashby Lofts</b><em>reserved 14 Dec 2021 · extended Dec 2023 · second extension</em></div>
+      <div>$850,000</div>
+      <div><b>Supportive Housing in People's Park</b><em>extended Dec 2023 · second extension</em></div>
+      <div>$14,359,593</div>
+      <div><b>Ephesian Legacy Court</b><em>reserved 13 Jun 2023 · term ran to Jun 2025 · won 4% tax credits Dec 2025</em></div>
+      <div>$14,531,301</div>
+      <div><b>North Berkeley BART</b><em>reserved 25 Jun 2024 · $49m AHSC award secured since</em></div>
+      <div>$21,500,000</div>
+    </div>
+    <div class="projtot"><span>Local money whose commitment had expired</span><b>$51,240,894</b></div>
+    <div class="src">City of Berkeley, Extending Reservations for Housing Trust Fund Projects, Consent
+      Calendar, 10 February 2026. Ephesian's reservation term ran out roughly six months before the tax
+      credit award it was helping to win.</div>
   </div>
 
   <div class="ba">
     <div class="before"><h4>Before</h4>
-      <p>Housing Trust Fund revenue fell from $10.7m in FY24 to $831,000 in FY25, against a five-year average near $9m.</p>
-      <p>$22.6m of projected in-lieu revenue sits in the pipeline, none payable until certificate of occupancy.</p>
-      <p>Projects assemble many small sources, each adding cost and time.</p></div>
+      <p>24-month term against a funding assembly that takes about as long, with renewal requiring a Council item.</p>
+      <p>Funding rounds released "when there are sufficient funds in the HTF to warrant releasing a NOFA", not on a calendar and not aligned to state deadlines.</p>
+      <p>Revenue is volatile: $10.7m in FY24, $831,000 in FY25.</p></div>
     <div class="after"><h4>After</h4>
-      <p>Commitments issued earlier and timed to state funding rounds, so a project carries a firm local letter into a competitive application.</p>
-      <p>Consolidated into fewer awards where the fund can bear it.</p>
-      <p>Fewer sources per project, which is itself a cost reduction.</p></div>
+      <p>A term matched to observed timelines, or renewal delegated to the City Manager with notice to Council.</p>
+      <p>A commitment a developer can carry through a full state application cycle without it expiring mid-round.</p>
+      <p>Longer term, a revolving construction fund, where the constraint is turnover rather than annual revenue.</p></div>
   </div>
 
-  <p class="recmeta"><b>Honest limit</b> at roughly $9m a year against a LIHTC median development cost near
-    $250,000 a unit, Berkeley cannot be a large single source. That is perhaps 36 fully funded homes a year.
-    The real lever here is certainty and timing, not size, and claiming otherwise would be the weakest thing
-    on this page. &nbsp;<b>Wrong if</b> the Housing Trust Fund already commits early and firmly, which is
-    internal practice not visible from outside.</p>
+  <p><b>On size, which is the obvious objection.</b> At roughly $9m a year against a LIHTC median
+    development cost near $250,000 a unit, Berkeley cannot be a large single source. Montgomery County,
+    Maryland is the counter-example worth reading: a <b>$100m revolving construction fund</b>, financed by
+    housing-authority bonds the county services, which converts to permanent financing at lease-up and
+    repays itself so the same capital lends again. It targets 6,000 units over twenty years, 30% of them
+    permanently affordable, and made its first loan of $14.3m in December 2021. A revolving fund does not
+    need to be large. It needs to turn over.</p>
+
+  <p class="recmeta"><b>Rests on</b> the City's own reservation policy and the February 2026 extension
+    item, plus Terner's measurement of how long assembling several public sources takes.
+    &nbsp;<b>Wrong if</b> the 24-month term is a formality nobody enforces, or if Terner is right that this
+    is state-level fragmentation and local scheduling changes are wasted effort. They study the problem and
+    deliberately do not recommend local fixes, which is the strongest argument against this item.</p>
 </div>
 
 <!-- ─────────────────────────── 3 ─────────────────────────── -->
 <div class="rec">
   <div class="rechead"><div class="recnum">03</div>
-    <h3>Preapproved plans for accessory units and middle housing</h3></div>
+    <h3>Cut the correction cycles, which is where the delay actually is</h3></div>
 
   <p>Accessory dwelling units are the quiet majority of Berkeley's permitting workload:
-    <b>801 separate filings</b> produced 827 homes between 2018 and 2025, about <b>103 homes a year</b>,
-    steady across eight years and <b>18.3% of every home the city permits</b>. Each one is plan-checked
-    individually. Middle Housing is new, so duplex and fourplex volume should rise on the same path.</p>
+    <b>801 separate filings</b> produced 827 homes between 2018 and 2025, about 103 homes a year, steady
+    across eight years and <b>18.3% of every home the city permits</b>. This page originally recommended
+    that Berkeley adopt preapproved plans for them. <b>It already has.</b> AB 1332 required every
+    California city to run such a programme by 1 January 2025, and Berkeley's gallery is that programme.</p>
 
-  <p>These are the one part of the pipeline where approval is the <em>whole</em> clock. For projects under
-    five homes the wait from approval to building permit is <b>zero: the same day, across 572 projects</b>.
-    There is no downstream queue to fix. Whatever time a small project loses, it loses at the front, and
-    that is the only place an intervention can act.</p>
+  <p>So the question is not whether to build one. It is whether the one that exists touches the thing
+    causing the delay. The permit records say the delay is <em>revision cycles</em>.</p>
 
   <div class="fig">
-    <div class="t">One city's before and after</div>
-    <div class="s">Median time from application to approval for a small project</div>
+    <div class="ftitle">Permits that need a revision take eleven weeks. Ones that don't are issued at once.</div>
+    <div class="fsub">Median days, submittal to ready-to-issue</div>
     <div class="bars">
-      <div class="bar hi"><span class="k">Berkeley today<br>small projects</span>
-        <span class="t"><i style="width:59%;background:var(--stall)"></i></span>
-        <span class="v">3.5 months<small>n = 134</small></span></div>
-      <div class="bar"><span class="k">Berkeley today<br>5+ units</span>
-        <span class="t"><i style="width:100%;background:var(--blue)"></i></span>
-        <span class="v">5.9 months<small>n = 48</small></span></div>
-      <div class="bar"><span class="k">Claremore, OK<br>with preapproved plans</span>
-        <span class="t"><i style="width:0.8%;background:var(--ok)"></i></span>
-        <span class="v" style="color:var(--ok)">24–48 hours<small>80% faster there</small></span></div>
+      <div class="bar"><span class="k">No revision cycle<br>n = 41</span>
+        <span class="t"><i style="width:0;min-width:0;border:0"></i></span>
+        <span class="v" style="color:var(--ok)">0 days<small>same day</small></span></div>
+      <div class="bar hi"><span class="k">One or more<br>revisions · n = 70</span>
+        <span class="t"><i style="width:100%;background:var(--stall)"></i></span>
+        <span class="v">78 days<small>63% of all records</small></span></div>
     </div>
-    <div class="src">The green bar is not missing. Thirty-six hours is eight tenths of one percent of 5.9
-      months, and bars here are drawn to scale. · Berkeley figures computed from HCD Annual Progress
-      Reports, 2018–2025 · Claremore figures from Pew Charitable Trusts, Preapproved Building Plans
-      Help Cities Improve Housing Affordability, May 2026</div>
+    <div class="src">n = 111 records carrying both a submittal and a ready-to-issue milestone. Overall
+      median 35 days, mean 68, longest 494. Same sample and same caveats as the figure in 01: 1,000
+      addresses, 26% returning the 10-record maximum.</div>
+  </div>
+
+  <p>A revision cycle is a correction the applicant did not know was coming. What prevents it is knowing
+    the requirements in advance, which is precisely what AB 2234 already requires the City to publish: a
+    checklist of what makes an application complete, plus example applications. Preapproved plans are one
+    form of that, and Berkeley's version is narrow.</p>
+
+  <div class="fig">
+    <div class="ftitle">What is actually in Berkeley's preapproved gallery</div>
+    <div class="fsub">Designs available, by construction type</div>
+    <div class="dots">
+      <div class="dotrow"><span class="k">Prefabricated</span>
+        <span class="g"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          <span class="n">12</span></span></div>
+      <div class="dotrow none"><span class="k">Site-built</span>
+        <span class="g"><span class="empty">none</span><span class="n">0</span></span></div>
+    </div>
+    <div class="src">Berkeley ADU Plans Gallery, read August 2026. All twelve are commercial prefabricated
+      products. Using one earns a 50% plan-check fee reduction and plans "will often proceed more quickly",
+      with no published time standard. The gallery's own notice states that "all ADU plans, even
+      pre-approved plans, will require further review and approval." Most Berkeley ADUs are site-built
+      conversions and additions, which the gallery does not cover.</div>
   </div>
 
   <div class="ba">
     <div class="before"><h4>Before</h4>
-      <p>801 individual plan checks over eight years for what are largely repeated building types.</p>
-      <p>3.5 months to approval on the smallest projects in the city.</p>
-      <p>Design and architectural cost carried in full by every applicant.</p></div>
+      <p>Twelve prefabricated designs, no site-built option, covering ADUs only.</p>
+      <p>The benefit is a fee discount plus "often more quickly", with no service standard and no published uptake.</p>
+      <p>63% of permits still go through at least one revision.</p></div>
     <div class="after"><h4>After</h4>
-      <p>A library of preapproved designs. Choosing one drops the applicant into a near-ministerial lane.</p>
-      <p>Roughly 100 reviews a year of staff capacity returned to the 5+ pipeline, where approval takes 5.9 months.</p>
-      <p>Design cost falls most on the projects least able to carry it.</p></div>
+      <p>Site-built designs in the gallery, which is what most Berkeley ADUs actually are.</p>
+      <p>A published cap of two plan checks absent a written health-or-safety finding, adopted voluntarily.</p>
+      <p>The programme extended to duplexes and fourplexes before it is required to be.</p></div>
   </div>
 
-  <p class="recmeta"><b>Also</b> AB 748 would require such programmes and a 30-day decision. Building one
-    now is cheaper than complying late. &nbsp;<b>Wrong if</b> Berkeley's ADU approvals are already
-    effectively ministerial and the 3.5 months is applicant-side rather than City-side. Worth asking
-    Planning before asserting it.</p>
+  <p class="recmeta"><b>Precedents</b> AB 1621 would cap plan checks at two statewide; Chicago lets
+    licensed architects self-certify code compliance and skip detailed plan review, with zoning review
+    still applying; Pew counts about 40 US jurisdictions running preapproved-plan programmes, worth 1 to 2%
+    of development cost. &nbsp;<b>Due anyway</b> AB 748 passed the Assembly 75–0 on 10 May 2026 and would
+    extend preapproval to single-family and multifamily, with large jurisdictions required to comply by
+    1 July 2027. &nbsp;<b>Wrong if</b> gallery uptake is already high and the revision cycles fall on
+    projects that would never use a standard plan. Nobody publishes uptake, which is 01 again.</p>
 </div>
 
 <div class="notsaying">
@@ -394,18 +498,25 @@ h2{font-weight:800;letter-spacing:-.032em;font-size:1.6rem;margin:56px 0 12px}
     gap, and the in-lieu fee is the Housing Trust Fund's main dedicated income.</p>
   <p>It does not claim these three would restart the stalled projects. Interest rates and construction costs
     are larger forces sitting entirely outside the City's control.</p>
+  <p>It does not know whose fault the 116 days is. The record stores the date an application was finally
+    deemed complete, not the exchanges that got it there, so the figure locates the delay without
+    attributing it. That distinction matters and is easy to lose.</p>
   <p>And it does not treat the City as the villain. Berkeley approves faster than most of California and
     permits more of its allocation than most, which is on the main page too, because it is true and because
     it cuts against the argument on this one.</p>
 </div>
 
 <div class="foot">
-  Every Berkeley figure here is computed on the main page from public records ·
+  Every Berkeley figure here is computed from public records ·
   <a href="./">The Berkeley Housing Clock</a><br>
-  Council item 16, 20 January 2026 (Clariti) · RFP 24-11661-C · Assembly Bill 2234 (2022) ·
+  Council item 16, 20 January 2026 (Clariti) · Council item, 10 February 2026 (HTF reservations) ·
+  RFP 24-11661-C · Housing Trust Fund Guidelines, adopted 19 January 2021 ·
+  Assembly Bills 2234 (2022), 1332 (2023), 748 and 1621 (2025–26) ·
+  Berkeley ADU Plans Gallery · Berkeley's permit workflow records ·
   Strategic Economics and Street Level Advisors, Residential Feasibility Analysis, 21 May 2024 ·
-  RAND RRA3743-1, April 2025 · Terner Center on LIHTC development cost and on development fees ·
-  Pew Charitable Trusts, May 2026 · BMC 23.328 and 23.404
+  RAND RRA3743-1, April 2025 · Terner Center, Reid and Tran, 21 April 2025 ·
+  Housing Opportunities Commission of Montgomery County · Pew Charitable Trusts, May 2026 ·
+  BMC 23.328 and 23.404
 </div>
 
 </div>
