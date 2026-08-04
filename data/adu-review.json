@@ -1,0 +1,58 @@
+{
+ "generated": "2026-08-04T16:44:20Z",
+ "harvestedAt": "2026-08-04T16:43:40Z",
+ "addressesChecked": 1000,
+ "recordsNamingAnADU": 223,
+ "addressesHittingTenRecordCap": 265,
+ "capShareOfAddresses": 26,
+ "submittalToComplete": {
+  "medianDays": 116,
+  "n": 89
+ },
+ "completeToDecision": {
+  "medianDays": 52,
+  "n": 84
+ },
+ "revision": {
+  "shareNeedingOne": 63,
+  "withRevisionMedianDays": 78,
+  "nWith": 70,
+  "noRevisionMedianDays": 0,
+  "nWithout": 41
+ },
+ "concurrency": {
+  "routeToLastTechnicalDeskMedianDays": 38,
+  "n": 86,
+  "lastDeskToConsolidationMedianDays": 1,
+  "nConsolidate": 83,
+  "consolidationToReadyMedianDays": 4,
+  "nReady": 83
+ },
+ "revisionRateByDeskCount": {
+  "2": {
+   "n": 38,
+   "sharePct": 63
+  },
+  "3": {
+   "n": 17,
+   "sharePct": 76
+  },
+  "4": {
+   "n": 6,
+   "sharePct": 83
+  },
+  "5": {
+   "n": 5,
+   "sharePct": 60
+  },
+  "6": {
+   "n": 25,
+   "sharePct": 96
+  }
+ },
+ "constructionType": {
+  "new on lot": 63,
+  "unclassified": 39,
+  "conversion": 39
+ }
+}

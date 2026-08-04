@@ -12,7 +12,7 @@ a browser is not allowed to read.
 ## What it shows
 
 Berkeley approves an apartment building in a median of about **6 months**, then it
-waits **1.6 years** for a building permit — or **3.3 years**, if you count the projects
+waits **1.6 years** for a building permit, or **3.3 years**, if you count the projects
 that are still waiting rather than only the ones that made it. Around **5,636 approved homes**
 across 97 sites have no building permit reported to the State and were never occupied,
 and of the homes approved between 2018 and 2021, **34% are still in that state** four
@@ -37,8 +37,10 @@ units**, and **97% of what gets built is rental**.
   holds for it, including anything upcoming. Selecting a project anywhere on the page
   fills it in, and one control clears everything.
 - **The Clock** measures each stage of the pipeline, split between multifamily and
-  small projects, because small projects are ministerial and are approved and
-  permitted on the same day. It then runs the same measurement against five
+  small projects. The small-project stages read "same day" between approval
+  and permit, which is a reporting convention rather than a fast process: a ministerial ADU
+  has no separate entitlement to record, so 512 of the 524 ADU rows carrying both dates carry
+  them identical. Among small projects that are not ADUs the two dates diverge normally. It then runs the same measurement against five
   neighbouring cities, since without a baseline there is no way to judge 1.6 years.
   Berkeley comes third of six: slower than Oakland, faster than Alameda. Two blocks
   below it give that number the context it needs: a Kaplan-Meier estimate that keeps
@@ -47,7 +49,7 @@ units**, and **97% of what gets built is rental**.
 - **The waiting room** lists approved projects with no building permit reported to the
   State, aged, with a reason where the record gives one. A cross-check panel sets the
   nine downtown projects the City Council named as stalled in April 2026 against what
-  Berkeley's own permit system actually holds for them — which is how the referral's
+  Berkeley's own permit system actually holds for them, which is how the referral's
   claim that five had been permitted was tested, and found to be demolition permits.
 - **Where it is stuck** breaks the same figure down by street.
 - **The skyline that isn't there** draws every approved-but-unbuilt project on its
@@ -102,8 +104,7 @@ run by hand there is no gate: if no listing page answers it exits 75 and leaves
 `data/zab.json` alone, and if the harvest comes back at less than half what is
 already on disk it refuses to write. The workflow treats 75 as "Berkeley's server
 is down, nothing to do" and ends cleanly with a warning; every other failure stays
-red. A scheduled run on 3 August 2026 hit exactly this — both listing fetches timed
-out and the script wrote an empty file that only the workflow gate caught.
+red. A scheduled run on 3 August 2026 hit exactly this: both listing fetches timed out and the script wrote an empty file that only the workflow gate caught.
 
 ### Why `geo/` is cached rather than fetched live
 
@@ -117,13 +118,12 @@ that half stays live.
 
 ## Design
 
-Light only — no theme toggle, no `prefers-color-scheme` branch. Bricolage
+Light only. No theme toggle, no `prefers-color-scheme` branch. Bricolage
 Grotesque and Azeret Mono on a bone surface, with black rules and hard offset
 shadows instead of soft borders and radii.
 
 The five data colours were produced by the dataviz palette validator rather than
-chosen by eye. The three that carry identity — stalled `#EE3F12`, built `#3B6FA8`,
-BART `#00875A` — pass every categorical check on all pairs against the surface,
+chosen by eye. The three that carry identity, stalled `#EE3F12`, built `#3B6FA8` and BART `#00875A`, pass every categorical check on all pairs against the surface,
 and the built ramp passes the ordinal checks. The bus network is deliberately a
 grey (`#94A3A8`) separated by lightness, because it is basemap context and fails
 the categorical checks against every series at any hue. The acid green is a
@@ -148,8 +148,7 @@ anything except black. `CLAUDE.md` records what failed and why.
   An earlier version of this section claimed the opposite, on the strength of the City
   Council referral of 14 April 2026, which lists nine stalled downtown projects and says
   five of them "went on to receive a building permit" while HCD records none. Checking
-  those five against Berkeley's own permit system — the source the referral cites —
-  showed HCD was right: what those projects hold is a demolition permit, a shoring
+  those five against Berkeley's own permit system, the source the referral cites, showed HCD was right: what those projects hold is a demolition permit, a shoring
   package still in corrections, and repairs dating from 1992 to 2010. Accela files
   demolition under the record type "Building Permit", which is the likely origin of the
   claim. **None of the nine holds a permit to build the homes.** The cross-check panel
@@ -160,7 +159,7 @@ anything except black. `CLAUDE.md` records what failed and why.
   as waiting. `tools/check_permits.py` walks every site in the waiting room against
   Berkeley's own permit system and writes `data/permits.json`; the waiting room states
   the result and the date it was checked. On 3 August 2026 the answer was that **none of
-  the 97 has been permitted** since the state file closed — the only four permits issued
+  the 97 has been permitted** since the state file closed. The only four permits issued
   in that window are two demolitions, a shed relocation and a remodelled entry, none of
   which is permission to build. The parcel card resolves any individual project live.
 - **Two addresses are counted twice**, 2015 Blake and 3233 Ellis, because HCD holds
@@ -187,8 +186,7 @@ anything except black. `CLAUDE.md` records what failed and why.
   effort to obtain a building permit. So whether these approvals remain live is a
   discretionary call the record does not show. Searching the permit history of all 97
   sites for a lapse turned up exactly one trace: 2128 Oxford, 485 homes, which filed a use
-  permit modification in December 2025 "for permit not exercised". That is a floor, not a
-  count — a permit that simply expires generates no record, so only a project moving to
+  permit modification in December 2025 "for permit not exercised". That is a floor, not a count, because a permit that simply expires generates no record, so only a project moving to
   revive one leaves a mark.
 - **We can rarely say why a project is stalled.** Financing, interest rates and
   construction costs are in no public dataset. Where the record gives a reason, such
@@ -235,8 +233,7 @@ HCD allows any origin, but the cached `geo/` files need to be served over HTTP.
 After changing `index.html`, run `python3 tools/check.py`. It verifies JS syntax,
 per-section `<div>` balance, required element ids and that no computed figure has
 been hard-coded into the markup. The same script runs in CI on every push. It is a
-static check, so it cannot tell you an element rendered into the wrong section —
-`CLAUDE.md` has a short browser snippet for that, and notes the invariants that are
+static check, so it cannot tell you an element rendered into the wrong section. `CLAUDE.md` has a short browser snippet for that, and notes the invariants that are
 easy to break.
 
 ## Refreshing the permit check
@@ -255,8 +252,44 @@ python3 tools/check_permits.py
 It makes one or two requests per site, paced, and refuses to publish if more than a
 quarter of the sites were unreachable. Anything it finds that its keyword filter does not
 recognise as minor work is written out with `looksMinor: false` so a person reads the
-description before the headline number moves — Accela files demolition and repairs under
+description before the headline number moves, because Accela files demolition and repairs under
 the same record type as new construction, which is the trap that caught the City Council.
+
+## The recommendations page
+
+`what-could-change.html` is argument rather than measurement, which is why it is a
+separate page behind its own disclaimer: disagreeing with it should cost the reader
+nothing on the data. It makes three cases, and two of them were rewritten mid-draft
+when the City's own records contradicted the first version. An earlier draft
+recommended that Berkeley adopt preapproved plans for accessory units; it already has
+them, because AB 1332 required every California city to by 1 January 2025.
+
+It is also the one part of the site whose figures are not computed live in the browser.
+They come from `tools/adu_review_times.py`, which reads the workflow milestones Accela
+publishes on each permit record:
+
+```sh
+python3 tools/adu_review_times.py            # analyse data/adu-records.json
+python3 tools/adu_review_times.py --harvest  # re-fetch from the City first, ~15 min
+```
+
+`data/adu-records.json` is committed so the numbers can be re-derived without
+re-querying the City, and `data/adu-review.json` holds the computed output. The two
+findings that matter:
+
+- **Reaching completeness takes a median of 116 days; the decision that follows takes
+  52.** Every statutory clock that binds Berkeley starts at completeness, not at
+  submittal, so a city can report full compliance and have described a third of the
+  wait.
+- **Review is already concurrent.** The spread between the first technical desk
+  finishing and the last is a median of 4 days and consolidation adds 1, so there is no
+  queue to remove. What costs time is a revision: 78 days against 0 without one, on 63%
+  of records.
+
+The hard limit on both: only the final "Application Complete" event is stored, not the
+round trips that got there, so the 116 days locates the delay without attributing it.
+It may be applicant-side. The portal has a record-comment field that would say, and its
+published config marks that field unavailable.
 
 ## Refreshing the cached geometry
 

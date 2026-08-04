@@ -29,6 +29,7 @@ body{margin:0;background:var(--paper);color:var(--ink);
   font-size:16px;line-height:1.55}
 .wrap{max-width:900px;margin:0 auto;padding:0 26px 90px}
 a{color:var(--stall)}
+.mono{font-family:"Azeret Mono",monospace;font-size:13px}
 .lab{font-family:"Azeret Mono",monospace;font-size:10px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--muted)}
 
@@ -203,10 +204,16 @@ h2{font-weight:800;letter-spacing:-.032em;font-size:1.6rem;margin:56px 0 12px}
 
 <div class="seam">
   <b>This page argues. The rest of the site measures.</b>
-  <p>Every figure on the main page is computed from public records at load time, and says so where the
-    record is thin. This page is different. It is my reading of what those measurements imply, three
-    changes Berkeley could make, each with the evidence behind it and the finding that would prove it
-    wrong. Two of the three started out as something else and were rewritten when the record disagreed.</p>
+  <p>Three changes Berkeley could make, each with the evidence behind it and the finding that would prove
+    it wrong. Two of the three started out as something else and were rewritten when the City's own records
+    disagreed with them.</p>
+  <p style="margin-top:9px">Two things here work differently from the main page, and both are worth knowing
+    before you weigh any of it. The recommendations are my reading of what the measurements imply, not
+    measurements themselves. And the permit-workflow figures below are the one part of this site not
+    computed live in your browser: they come from a script run against the City's permit records, committed
+    as <span class="mono">tools/adu_review_times.py</span> and
+    <span class="mono">data/adu-records.json</span> so the numbers can be re-derived without taking the
+    City's word or mine.</p>
 </div>
 
 <div class="spine">
@@ -280,8 +287,8 @@ h2{font-weight:800;letter-spacing:-.032em;font-size:1.6rem;margin:56px 0 12px}
     <div class="src">Computed from the workflow milestones Berkeley's permit system publishes for each
       record: n = 89 for submittal to completeness, n = 84 for completeness to decision, spanning 2008 to
       2025. Only the final completeness event is stored, not the round trips to reach it, so this shows
-      where the time sits and not whose fault it is. Sampled from 1,000 addresses; 26% returned the
-      10-record maximum, so busy addresses are under-represented.</div>
+      where the time sits and not whose fault it is. Sampled from 1,000 addresses; 26% returned the 10-record maximum, so busy addresses are
+      under-represented. Reproduce with tools/adu_review_times.py against data/adu-records.json.</div>
   </div>
 
   <p>A city in this position can report perfect compliance with every deadline it is subject to, and the
@@ -466,8 +473,8 @@ h2{font-weight:800;letter-spacing:-.032em;font-size:1.6rem;margin:56px 0 12px}
         <span class="v">78 days<small>63% of all records</small></span></div>
     </div>
     <div class="src">n = 111 records carrying both a submittal and a ready-to-issue milestone. Overall
-      median 35 days, mean 68, longest 494. Same sample and same caveats as the figure in 01: 1,000
-      addresses, 26% returning the 10-record maximum.</div>
+      median 35 days, mean 68, longest 494. Same sample and same caveats as the figure in 01: 1,000 addresses, 26% returning the 10-record
+      maximum. Reproduce with tools/adu_review_times.py.</div>
   </div>
 
   <p>The obvious explanation would be that an application crawls from desk to desk. It does not. The
@@ -488,8 +495,8 @@ h2{font-weight:800;letter-spacing:-.032em;font-size:1.6rem;margin:56px 0 12px}
         <span class="v">4 days</span></div>
     </div>
     <div class="src">The gap between the first technical desk finishing and the last is a median of 4 days,
-      which is what concurrent review looks like. Consolidation is last in 81% of records because that is
-      its job, not because it is slow. Streamlining the handoffs would recover almost nothing.</div>
+      which is what concurrent review looks like. Consolidation is last in 81% of records because that is its job, not because it is slow.
+      Streamlining the handoffs would recover almost nothing. Reproduce with tools/adu_review_times.py.</div>
   </div>
 
   <p>What the number of desks does change is the <em>chance</em> of a correction. Each additional reviewer
