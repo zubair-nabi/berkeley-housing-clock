@@ -1,8 +1,23 @@
 {
- "generated": "2026-08-02T03:16:09Z",
+ "generated": "2026-08-06T13:04:17Z",
  "source": "https://berkeleyca.gov/your-government/boards-commissions/zoning-adjustments-board",
  "note": "Parsed from Berkeley's published ZAB agenda PDFs. Case numbers and addresses are extracted text, not a City data feed.",
  "meetings": [
+  {
+   "date": "2026-08-13",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2026-08-13_ZAB%20Agenda_DRAFT.pdf",
+   "cases": [
+    "ZP2025-0069",
+    "ZP2026-0039",
+    "ZP2026-0025"
+   ],
+   "addresses": [
+    "3101 Sacramento St",
+    "2298 Durant Ave",
+    "2974 Sacramento St"
+   ],
+   "maxUnitsMentioned": 45
+  },
   {
    "date": "2026-07-09",
    "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2026-07-09_ZAB_Agenda_Linked.pdf",
