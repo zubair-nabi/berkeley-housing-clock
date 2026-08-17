@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-10T12:00:19Z",
+ "generated": "2026-08-17T11:42:41Z",
  "source": "https://berkeleyca.gov/your-government/boards-commissions/zoning-adjustments-board",
  "note": "Parsed from Berkeley's published ZAB agenda PDFs. Case numbers and addresses are extracted text, not a City data feed.",
  "meetings": [
@@ -179,79 +179,6 @@
     "2360 Ellsworth St"
    ],
    "maxUnitsMentioned": 65
-  },
-  {
-   "date": "2025-10-09",
-   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2025-10-09_ZAB%20Agenda_Linked.pdf",
-   "cases": [
-    "ZP2024-0162",
-    "ZP2024-0164"
-   ],
-   "addresses": [
-    "2425 Durant Ave",
-    "1250 Addison St",
-    "29 Orinda Way",
-    "314 Pacific Ave"
-   ],
-   "maxUnitsMentioned": 169
-  },
-  {
-   "date": "2025-09-25",
-   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2025_09-25_FINAL_ZAB%20Agenda_Linked_0.pdf",
-   "cases": [
-    "ZP2024-0115",
-    "ZP2025-0048",
-    "ZP2022-0097",
-    "ZP2025-0020",
-    "ZP2024-0114"
-   ],
-   "addresses": [
-    "2952 Sacramento St",
-    "2948 Sacramento St",
-    "1304 Estudillo Ave",
-    "2538 Durant Ave",
-    "1810 Sixth St",
-    "1917 Tenth St",
-    "801 Camelia St",
-    "1117 Virginia St",
-    "2138 Kittredge St",
-    "164 Oak Rd"
-   ],
-   "maxUnitsMentioned": 66
-  },
-  {
-   "date": "2025-09-11",
-   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2025-09-11_ZAB_Agenda_Linked.pdf",
-   "cases": [
-    "ZP2024-0096",
-    "ZP2022-0113",
-    "ZP2025-0027",
-    "ZP2024-0066"
-   ],
-   "addresses": [
-    "2105 Los Angeles Ave",
-    "226 Delfino Ave",
-    "2109 Virginia St",
-    "2421 Fourth St",
-    "1683 Shattuck Ave"
-   ],
-   "maxUnitsMentioned": 110
-  },
-  {
-   "date": "2025-08-14",
-   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2025-08-14_ZAB_Agenda_Linked_0.pdf",
-   "cases": [
-    "ZP2022-0136",
-    "ZP2024-0060"
-   ],
-   "addresses": [
-    "2942 College Ave",
-    "1810 Sixth St",
-    "2437 Durant Ave",
-    "2201 Blake St",
-    "9101 Burning Tree Rd"
-   ],
-   "maxUnitsMentioned": null
   }
  ]
 }
