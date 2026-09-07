@@ -1,8 +1,28 @@
 {
- "generated": "2026-08-17T11:42:41Z",
+ "generated": "2026-09-07T16:29:05Z",
  "source": "https://berkeleyca.gov/your-government/boards-commissions/zoning-adjustments-board",
  "note": "Parsed from Berkeley's published ZAB agenda PDFs. Case numbers and addresses are extracted text, not a City data feed.",
  "meetings": [
+  {
+   "date": "2026-09-10",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2026-09-10_ZAB_Agenda_Linked.pdf",
+   "cases": [
+    "ZP2026-0015",
+    "ZP2024-0071",
+    "ZP2026-0016",
+    "ZP2021-0215"
+   ],
+   "addresses": [
+    "2455 Telegraph Ave",
+    "2506 Haste St",
+    "2955 Shattuck Ave",
+    "1810 Sixth St",
+    "6266 La Salle Ave",
+    "1500 University Ave",
+    "1201 Second St"
+   ],
+   "maxUnitsMentioned": 74
+  },
   {
    "date": "2026-08-13",
    "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2026-08-13_ZAB_Agenda_Linked.pdf",
