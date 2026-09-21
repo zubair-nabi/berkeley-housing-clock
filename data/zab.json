@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-07T16:29:05Z",
+ "generated": "2026-09-21T17:04:55Z",
  "source": "https://berkeleyca.gov/your-government/boards-commissions/zoning-adjustments-board",
  "note": "Parsed from Berkeley's published ZAB agenda PDFs. Case numbers and addresses are extracted text, not a City data feed.",
  "meetings": [
@@ -185,20 +185,6 @@
     "3035 Colby St"
    ],
    "maxUnitsMentioned": 240
-  },
-  {
-   "date": "2025-10-30",
-   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2025-10-30_ZAB%20Agenda_Linked_Revised.pdf",
-   "cases": [
-    "ZP2024-0169",
-    "ZP2024-0126"
-   ],
-   "addresses": [
-    "2372 Ellsworth St",
-    "2298 Durant Ave",
-    "2360 Ellsworth St"
-   ],
-   "maxUnitsMentioned": 65
   }
  ]
 }
