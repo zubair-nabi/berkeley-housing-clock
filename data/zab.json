@@ -1,8 +1,27 @@
 {
- "generated": "2026-10-01T17:23:32Z",
+ "generated": "2026-10-05T19:38:33Z",
  "source": "https://berkeleyca.gov/your-government/boards-commissions/zoning-adjustments-board",
  "note": "Parsed from Berkeley's published ZAB agenda PDFs. Case numbers and addresses are extracted text, not a City data feed.",
  "meetings": [
+  {
+   "date": "2026-10-08",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2026-10-08_ZAB_Agenda.pdf",
+   "cases": [
+    "ZP2026-0031",
+    "ZP2026-0053",
+    "ZP2021-0161",
+    "ZP2022-0116",
+    "ZP2026-0060"
+   ],
+   "addresses": [
+    "3050 Shattuck Ave",
+    "742 Grayson St",
+    "2920 Shattuck Ave",
+    "2900 Shattuck Ave",
+    "701 University Ave"
+   ],
+   "maxUnitsMentioned": 242
+  },
   {
    "date": "2026-09-10",
    "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2026-09-10_ZAB_Agenda_Linked.pdf",
