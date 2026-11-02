@@ -1,8 +1,20 @@
 {
- "generated": "2026-10-05T19:38:33Z",
+ "generated": "2026-11-02T20:48:11Z",
  "source": "https://berkeleyca.gov/your-government/boards-commissions/zoning-adjustments-board",
  "note": "Parsed from Berkeley's published ZAB agenda PDFs. Case numbers and addresses are extracted text, not a City data feed.",
  "meetings": [
+  {
+   "date": "2026-11-05",
+   "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2026-11-05_%20ZAB%20Agenda_Final.pdf",
+   "cases": [
+    "ZP2026-0072",
+    "ZP2026-0056"
+   ],
+   "addresses": [
+    "1130 Oxford St"
+   ],
+   "maxUnitsMentioned": null
+  },
   {
    "date": "2026-10-08",
    "url": "https://berkeleyca.gov/sites/default/files/legislative-body-meeting-agendas/2026-10-08_ZAB_Agenda.pdf",
